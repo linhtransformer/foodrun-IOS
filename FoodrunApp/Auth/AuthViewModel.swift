@@ -10,22 +10,36 @@ final class AuthViewModel: ObservableObject {
         case signedIn(email: String)
     }
 
-    enum SendStatus: Equatable {
+    enum Mode: String, CaseIterable, Identifiable {
+        case password = "Wachtwoord"
+        case magicLink = "Magische link"
+        var id: String { rawValue }
+    }
+
+    enum PasswordSubmode: String, CaseIterable, Identifiable {
+        case signIn = "Log in"
+        case signUp = "Registreer"
+        var id: String { rawValue }
+    }
+
+    enum Status: Equatable {
         case idle
-        case sending
-        case sent
+        case working
+        case magicLinkSent
+        case signUpConfirmationSent
         case failed(String)
     }
 
     @Published private(set) var state: State = .loading
-    @Published private(set) var sendStatus: SendStatus = .idle
+    @Published private(set) var status: Status = .idle
+    @Published var mode: Mode = .password
+    @Published var passwordSubmode: PasswordSubmode = .signIn
 
     private var authStateTask: Task<Void, Never>?
 
     private var client: SupabaseClient { SupabaseManager.shared.client }
 
     func bootstrap() async {
-        // Try to hydrate from stored session.
         do {
             let session = try await client.auth.session
             state = .signedIn(email: session.user.email ?? "")
@@ -33,7 +47,6 @@ final class AuthViewModel: ObservableObject {
             state = .signedOut
         }
 
-        // Listen for future auth changes.
         authStateTask?.cancel()
         authStateTask = Task { [weak self] in
             guard let self else { return }
@@ -52,29 +65,60 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Magic link
+
     func sendMagicLink(email: String) async {
-        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed.contains("@") else {
-            sendStatus = .failed("Voer een geldig e-mailadres in.")
-            return
-        }
-        sendStatus = .sending
+        guard validate(email: email) else { return }
+        status = .working
         do {
             try await client.auth.signInWithOTP(
-                email: trimmed,
+                email: email.trimmed,
                 redirectTo: URL(string: "foodrun://auth-callback")
             )
-            sendStatus = .sent
+            status = .magicLinkSent
         } catch {
-            sendStatus = .failed(error.localizedDescription)
+            status = .failed(error.localizedDescription)
         }
     }
+
+    // MARK: - Password
+
+    func signIn(email: String, password: String) async {
+        guard validate(email: email, password: password) else { return }
+        status = .working
+        do {
+            _ = try await client.auth.signIn(email: email.trimmed, password: password)
+            status = .idle
+        } catch {
+            status = .failed(error.localizedDescription)
+        }
+    }
+
+    func signUp(email: String, password: String) async {
+        guard validate(email: email, password: password) else { return }
+        status = .working
+        do {
+            let response = try await client.auth.signUp(
+                email: email.trimmed,
+                password: password,
+                redirectTo: URL(string: "foodrun://auth-callback")
+            )
+            if response.session == nil {
+                status = .signUpConfirmationSent
+            } else {
+                status = .idle
+            }
+        } catch {
+            status = .failed(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Deep link + sign out
 
     func handleDeepLink(_ url: URL) async {
         do {
             try await client.auth.session(from: url)
         } catch {
-            // Ignore — session listener will surface state on success.
             print("Deep link session error: \(error)")
         }
     }
@@ -84,6 +128,27 @@ final class AuthViewModel: ObservableObject {
     }
 
     func reset() {
-        sendStatus = .idle
+        status = .idle
     }
+
+    // MARK: - Validation
+
+    private func validate(email: String, password: String? = nil) -> Bool {
+        let trimmed = email.trimmed
+        guard !trimmed.isEmpty, trimmed.contains("@") else {
+            status = .failed("Voer een geldig e-mailadres in.")
+            return false
+        }
+        if let password {
+            guard password.count >= 8 else {
+                status = .failed("Wachtwoord moet minimaal 8 tekens zijn.")
+                return false
+            }
+        }
+        return true
+    }
+}
+
+private extension String {
+    var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
