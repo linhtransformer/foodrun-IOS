@@ -1,0 +1,197 @@
+/* Foodrun iOS — Nederlandse strings.
+   Bundle §Copy & language: NL runs ~20% longer than EN — labels must wrap.
+*/
+
+// MARK: Tabbalk
+"tab.shifts" = "Diensten";
+"tab.tasks"  = "Taken";
+"tab.hours"  = "Uren";
+"tab.inbox"  = "Berichten";
+"tab.me"     = "Ik";
+
+// MARK: Modes
+"mode.shifts"       = "Diensten";
+"mode.roster"       = "Bezetting";
+"mode.availability" = "Beschikbaarheid";
+
+// MARK: Inloggen
+"auth.headline"           = "Je diensten.\nEén tik weg.";
+"auth.subheadline"        = "Log in om je rooster te zien, je uren te loggen en je diensten af te ronden.";
+"auth.email"              = "E-mail";
+"auth.email.placeholder"  = "jij@voorbeeld.nl";
+"auth.password"           = "Wachtwoord";
+"auth.password.placeholder" = "Wachtwoord";
+"auth.login"              = "Inloggen";
+"auth.makeAccount"        = "Account aanmaken";
+"auth.invite.footer"      = "Ga je bij een team horen? Open de uitnodigingslink\ndie je manager je stuurde — hij verbindt je automatisch.";
+
+// MARK: Diensten
+"shifts.greeting %@"             = "Hey %@";
+"shifts.avatarProfile"           = "Profiel openen";
+"shifts.empty.title"             = "Geen dienst op deze dag";
+"shifts.empty.body"              = "Je staat als beschikbaar aangemerkt.";
+"shifts.empty.editAvailability"  = "Bewerken";
+"shifts.stillToWork.title"       = "Nog te werken";
+
+// MARK: Hero
+"hero.eyebrow.nextShift"  = "Volgende dienst";
+"hero.expand"             = "Kaart uitklappen";
+"hero.collapse"           = "Kaart inklappen";
+"hero.onTheClock"         = "Aan het werk";
+"hero.since %@"           = "sinds %@";
+"hero.of %@ · %@ left"    = "van %@ · %@ over";
+"hero.nfc.listening"      = "Tik hier en houd je telefoon tegen de tag op Truck Mees om in te klokken";
+"hero.checklist"          = "Checklist openen";
+
+// MARK: Week
+"action.toggleMonth" = "Maandweergave wisselen";
+"action.back"        = "Terug";
+"action.more"        = "Meer";
+"action.increment"   = "Verhogen";
+"action.decrement"   = "Verlagen";
+
+// MARK: Rijen / bezetting
+"row.you"                  = "Jij";
+"roster.peopleOnShift %lld" = "%lld mensen ingepland";
+
+// MARK: Beschikbaarheid
+"availability.wantThisWeek"        = "Diensten die je deze week wilt";
+"availability.standardPerWeek"     = "Standaard diensten per week";
+"availability.available"           = "Beschikbaar";
+"availability.notAvailable"        = "Niet beschikbaar";
+"availability.legend.available"    = "Beschikbaar";
+"availability.legend.notAvailable" = "Niet beschikbaar";
+"availability.reason.placeholder"  = "Reden (optioneel)";
+"availability.closesThu"           = "Sluit do 23:59";
+"availability.agent %lld %lld"     = "Je wilt %1$lld diensten deze week (standaard %2$lld). De agent plant binnen je open uren.";
+"availability.saveWeek %lld"       = "Week %lld opslaan";
+"availability.slider.start"        = "Beginuur";
+"availability.slider.end"          = "Einduur";
+
+// MARK: Dienst detail
+"detail.kicker"          = "Dienst detail";
+"detail.status.confirmed" = "Bevestigd";
+"detail.role"            = "Rol";
+"detail.break"           = "Pauze";
+"detail.hours"           = "Uren";
+"detail.route"           = "Route";
+"detail.crew"            = "Crew op deze truck";
+"detail.gate.title"      = "Wat je moet doen";
+"detail.gate.open %lld %lld" = "Checklist openen · %1$lld van %2$lld af";
+"detail.gate.locked.today"   = "De checklist gaat open zodra je inklokt — houd je telefoon tegen de tag op de truck.";
+"detail.gate.locked.future"  = "Deze dienst is nog niet begonnen. De checklist opent bij het inklokken.";
+"detail.nfc.listening"       = "Houd je telefoon tegen de tag op de truck om in te klokken.";
+"detail.requestSwap"     = "Ruilverzoek";
+
+// MARK: Taken
+"tasks.kicker"                 = "Truck Mees · Paradigm";
+"tasks.title"                  = "Dienstchecklist";
+"tasks.completedLabel"         = "Voltooid";
+"tasks.submittedAt %@"         = "Verstuurd naar je manager om %@";
+"tasks.section.beforeService"  = "Voor service";
+"tasks.section.tapToComplete"  = "Tik om af te vinken";
+"tasks.submit"                 = "Checklist indienen";
+"tasks.footer"                 = "Zodra je indient, kijkt je manager het na en werkt de inventaris-agent de voorraad automatisch bij.";
+"task.enterValue"              = "Waarde invullen";
+"task.photo"                   = "Foto";
+"task.done"                    = "Gedaan";
+"task.todo"                    = "Niet gedaan";
+
+// MARK: Uren
+"hours.periodKicker"          = "Periode 9 · September";
+"hours.title"                 = "Je uren";
+"hours.approved"              = "Goedgekeurd";
+"hours.approvedLabel"         = "Goedgekeurd";
+"hours.pendingLabel"          = "In behandeling";
+"hours.thisMonth"             = "Alleen deze maand";
+"hours.pending.sub"           = "1 dienst nog in te dienen";
+"hours.waitingForYou"         = "Wachtend op jou";
+"hours.rowLead"               = "Ma 14 sep · Truck Mike";
+"hours.tile.start"            = "Start";
+"hours.tile.end"              = "Einde";
+"hours.tile.break"            = "Pauze";
+"hours.agent.note"            = "Inklok stond op 17:04. De planning-agent vulde 17:00 in — pas aan als dat niet klopt.";
+"hours.submit %@"             = "%@ indienen";
+"hours.seeAll"                = "Alles bekijken →";
+"hours.status.pending"        = "In behandeling";
+"hours.status.approved"       = "Goedgekeurd";
+"hours.status.rejected"       = "Afgewezen";
+
+// MARK: Goedgekeurd
+"approved.kicker"   = "Goedgekeurd";
+"approved.eyebrow"  = "Alles voltooid";
+"approved.since"    = "Sinds je bij Vietnamama begon in maart";
+
+// MARK: Inbox
+"inbox.unreadKicker %lld" = "%lld ongelezen";
+"inbox.title"             = "Berichten";
+"inbox.accept"            = "Accepteren";
+"inbox.decline"           = "Weigeren";
+
+// MARK: Profiel
+"profile.role.line"       = "Kitchen · Vietnamama-vloot";
+"profile.stat.shifts"     = "Diensten";
+"profile.stat.checklists" = "Checklists";
+"profile.stat.trucks"     = "Trucks";
+"profile.section.account" = "Account";
+"profile.language"        = "Taal";
+"profile.notifications"   = "Meldingen";
+"profile.payslips"        = "Loonstroken";
+"profile.contract"        = "Contract (24 u/wk)";
+"profile.help"            = "Hulp & contact";
+"profile.logout"          = "Uitloggen";
+"profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
+
+// MARK: Ruilverzoek
+"swap.title"          = "Ruilverzoek";
+"swap.context"        = "Wo 16 sep · 19:00 – 23:00 · Truck Mees";
+"swap.available.body" = "Beschikbaar wo 16 sep · Geen dienst";
+"swap.send"           = "Verzoek versturen";
+"swap.askCrew"        = "Vraag het aan de hele crew";
+
+// MARK: Dienst toevoegen (admin)
+"roster.addShift"           = "Dienst toevoegen";
+"addShift.title"            = "Dienst toevoegen";
+"addShift.adminBadge"       = "Admin";
+"addShift.description"      = "Roostert medewerkers op de gekozen dag. Ze zien de dienst meteen in hun app.";
+"addShift.field.date"       = "Datum";
+"addShift.field.start"      = "Start";
+"addShift.field.end"        = "Einde";
+"addShift.field.truck"      = "Truck";
+"addShift.field.role"       = "Rol";
+"addShift.field.who"        = "Wie";
+"addShift.pickCount %lld"   = "%lld geselecteerd";
+"addShift.save"             = "Dienst inroosteren";
+"addShift.cancel"           = "Annuleren";
+
+// MARK: NFC
+"nfc.tagDetected"          = "Tag gelezen";
+"nfc.result.clockedIn"     = "Je bent ingeklokt";
+"nfc.result.clockedOut"    = "Dienst klaar";
+"nfc.tile.clockedInAt"     = "Ingeklokt";
+"nfc.tile.truck"           = "Truck";
+"nfc.tile.workedTotal"     = "Gewerkt";
+"nfc.tile.span"            = "Traject";
+"nfc.agent.clockedIn"      = "De agent kijkt mee. Tikken vergeten? Vraag een collega — die kan het bevestigen.";
+"nfc.agent.clockedOut"     = "Manager is op de hoogte. Uren zijn ingevuld op basis van je in- en uitklok.";
+"nfc.cta.openChecklist"    = "Dienstchecklist openen";
+"nfc.cta.reviewHours"      = "Mijn uren bekijken";
+"nfc.cta.notMe"            = "Ik was het niet — ongedaan maken";
+"nfc.cta.stayClockedIn"    = "Nog niet klaar — ingeklokt blijven";
+
+// MARK: Live data (2026-09-28)
+"shifts.loading"            = "Je diensten laden…";
+"shifts.none"               = "Nog geen diensten gepland";
+"hours.prefill.note"        = "Tijden komen uit je rooster. Pas ze aan als je langer of korter hebt gewerkt — je manager keurt ze goed in Foodrun HQ.";
+"hours.rejected %@"         = "Teruggestuurd: %@";
+"hours.moreDue %lld"        = "+%lld meer";
+"hours.dueCount %lld"       = "%lld diensten in te dienen";
+"hours.monthEmpty"          = "Geen uren deze maand.";
+"approved.totalShifts %lld" = "u · %lld diensten";
+"approved.empty"            = "Nog geen goedgekeurde uren.";
+"inbox.empty"               = "Nog niets. Roosterwijzigingen en goedgekeurde uren verschijnen hier.";
+"detail.crew.others %lld"   = "+ %lld collega's op deze dienst";
+"roster.empty"              = "Niemand ingeroosterd op deze dag.";
+"addShift.field.activity"   = "Activiteit";
+"addShift.noActivity"       = "Op deze dag loopt geen activiteit. Maak er eerst een aan in Foodrun HQ.";
+"addShift.alreadyRostered"  = "Al ingeroosterd";

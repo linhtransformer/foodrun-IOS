@@ -1,0 +1,18 @@
+{
+  "name": "foodrun-ios-mirror",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HTML mirror + Playwright specs for the Foodrun iOS worker app design system. Verifies from Windows what would otherwise need a Mac + Xcode.",
+  "scripts": {
+    "serve": "http-server . -p 4321 -c-1 -s",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:update": "playwright test --update-snapshots",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "http-server": "^14.1.1"
+  }
+}

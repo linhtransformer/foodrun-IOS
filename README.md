@@ -51,14 +51,49 @@ You need Xcode 15.4 or newer.
 
 ## What builds today
 
-- Auth screen (email magic link, Sign in with Apple stubbed for v2)
-- Post-auth Home showcase — a scrollable page rendering every design-system primitive so you can eyeball the visual language on-device
+- **AuthViewRedesign** (email + password, "Make an account", invite-link footer — bundle §1)
+- **AppShell** — floating tab bar + 5 tabs (Shifts / Tasks / Hours / Inbox / Me)
+- **8 screens**: Shifts (with 3 modes), Shift detail, Tasks, Hours, Approved hours, Inbox, Profile
+- **2 sheets**: Swap sheet, NFC result sheet
+- **12 `FoodrunUI/Components/`**: FRTabBar, FRSegmentedPills, FRWeekCarousel, FRMonthGrid,
+  FRNextShiftCard (collapsed + expanded), FRShiftRow, FRRosterRow, FRAvailabilityCard
+  (with a custom dual-handle slider), FRStepperRow, FRTaskRow, FRHoursRow, FRNFCSheet
+- **Tokens** reconciled to bundle §Token reconciliation — new warm canvas, Truck palette,
+  semantic worker-app colors, 11 new `FRFont` roles, new `FRAnimation` easings.
+- **Localization** EN + NL from day 1 (`Localization/en.lproj/`, `nl.lproj/`).
+- **NFC clock-in** foreground path via Core NFC; passive-read spike documented.
+- **Supabase schema mirror** — `FoodrunApp/Supabase/SharedSchema.swift` + `SchemaContract.md`
+  binding iOS stores to the same tables the web PWA uses.
+
+## HTML mirror + Playwright (Windows-friendly)
+
+The design bundle ships as an HTML prototype. We keep a verbatim copy at `mirror/index.html`
+and run **Playwright specs** against it as a visual-regression fence.
+
+```
+cd mirror
+npm install
+npm run install-browsers
+npm test           # runs 8 spec files against the mirror
+npm run test:ui    # interactive mode
+```
+
+Playwright verifies the design contract on the mirror; SwiftUI is verified separately
+on the Mac via `#Preview` blocks. See `mirror/README.md` for the split.
 
 ## What's next (per spec)
 
-- Shift domain components (`FRShiftCard`, `FRShiftWeekStrip`, etc.) — see `docs/superpowers/specs/2026-09-08-foodrun-ios-design-system-design.md`
-- Widget + Live Activity extension targets
-- Dark mode wiring
+- **Backend audit (Slice 0)**: verify `employee_shift_clock` and `shift_checklist`
+  tables exist on the VPS; if not, migrations land here (see
+  `FoodrunApp/Supabase/SchemaContract.md`).
+- **Widget + Live Activity extension targets** (planned per bundle roadmap).
+- **Dark mode wiring** — structural readiness is in place (every `FRColor` value has a
+  `dark:` companion comment); v2 is a token-file edit only.
+- **Invitations** — 4 screens still to design; stub folder at
+  `FoodrunApp/Invitations/README.md`.
+
+The full spec + build order is at
+`docs/superpowers/specs/2026-09-21-foodrun-ios-apply-design-system.md`.
 
 ## Windows ↔ Mac workflow
 

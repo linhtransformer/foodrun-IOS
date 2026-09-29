@@ -34,10 +34,10 @@ struct RootView: View {
                 ProgressView()
                     .tint(Color.foodrun.foreground)
             case .signedOut:
-                AuthView()
+                AuthViewRedesign()
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             case .signedIn:
-                HomeView()
+                AppShell()
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }

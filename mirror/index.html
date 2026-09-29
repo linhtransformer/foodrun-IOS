@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  body{margin:0;background:#F3F1EF}
+  i[data-lucide]{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+  svg.lucide{width:1em;height:1em;display:block}
+  a{color:#1A1A1A}a:hover{color:#000}
+  *{-webkit-tap-highlight-color:transparent}
+  .fr-scroll::-webkit-scrollbar{width:0}
+  @keyframes frSlideR1{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  @keyframes frSlideR2{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  @keyframes frSlideL1{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes frSlideL2{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes frScanline{0%{transform:translateY(0)}50%{transform:translateY(206px)}100%{transform:translateY(0)}}
+  @keyframes frLock{from{opacity:0;transform:scale(1.12)}to{opacity:1;transform:scale(1)}}
+  @keyframes frSheet{from{transform:translateY(34px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes frRing{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+  input.fr-range{-webkit-appearance:none;appearance:none;pointer-events:none;background:transparent;height:24px}
+  input.fr-range::-webkit-slider-runnable-track{background:transparent;height:24px;border:none}
+  input.fr-range::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;margin-top:1px;border-radius:9999px;background:currentColor;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);cursor:pointer}
+  input.fr-range::-moz-range-track{background:transparent;height:24px;border:none}
+  input.fr-range::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:9999px;background:currentColor;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);cursor:pointer}
+  @keyframes frArm{from{opacity:.999}to{opacity:1}}
+  @keyframes frBeat{from{opacity:.999}to{opacity:1}}
+  @keyframes frFlash{0%,55%{opacity:1}100%{opacity:0;visibility:hidden}}
+  @keyframes frPop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px 64px;box-sizing:border-box;font-family:Inter,system-ui,sans-serif">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:874px;display:flex;flex-direction:column;background:#F3F1EF;color:#1A1A1A;position:relative;overflow:hidden">
+
+<!-- ══════════════════ SIGN IN ══════════════════ -->
+<sc-if value="{{ isSignIn }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Sign in" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 20px 28px;box-sizing:border-box;display:flex;flex-direction:column">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:44px 0 34px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <img src="assets/foodrun-logo.png" alt="Foodrun" style="width:auto;height:76px;display:block;object-fit:contain">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em">Foodrun</div>
+    </div>
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.1;text-align:center;margin-top:6px">Your shifts.<br>One tap away.</div>
+    <div style="font-size:14px;line-height:1.55;color:#8A8A8A;text-align:center;max-width:280px">Sign in to see your schedule, log your hours and finish your shift checklists.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#8A8A8A">Email</div>
+      <div style="padding:14px 16px;border-radius:12px;background:#fff;border:1px solid #E0DDD9;font-size:15px">sanne@vietnamama.nl</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#8A8A8A">Password</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:12px;background:#fff;border:1px solid #E0DDD9;font-size:15px;color:#8A8A8A">
+        <span style="flex:1;letter-spacing:.18em;color:#1A1A1A">••••••••••</span>
+        <span style="font-size:17px;display:flex"><i data-lucide="eye"></i></span>
+      </div>
+    </div>
+    <div onClick="{{ signIn }}" style="min-height:54px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.10);transition:transform 180ms cubic-bezier(.22,1,.36,1)" style-active="transform:scale(.98)">Log in</div>
+    <div onClick="{{ signIn }}" style="min-height:54px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;border:1px solid #1A1A1A;font-size:15px;font-weight:500;cursor:pointer">
+      <span style="font-size:17px;display:flex"><i data-lucide="user-plus"></i></span>Make an account
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <div style="text-align:center;font-size:12px;line-height:1.55;color:#8A8A8A;padding-top:24px">Joining a team? Open the invite link your<br>manager sent — it connects you automatically.</div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ SHIFTS ══════════════════ -->
+<sc-if value="{{ isShifts }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Shifts" class="fr-scroll" style="flex:1;overflow:auto;padding:44px 0 108px;box-sizing:border-box">
+  <!-- next shift hero — compact collapsed row; +/− toggles to expanded (unchanged) -->
+  <sc-if value="{{ showHero }}" hint-placeholder-val="{{ true }}">
+  <div onClick="{{ openShift }}" style="position:relative;margin:0 20px;padding:{{ heroPad }};border-radius:22px;background:#1A1A1A;color:#F4F5F0;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.18)">
+    <div onClick="{{ toggleHero }}" style="position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:9999px;background:rgba(244,245,240,.12);display:flex;align-items:center;justify-content:center;font-size:14px;color:#F4F5F0;cursor:pointer;z-index:2" style-active="background:rgba(244,245,240,.22)">
+      <span style="display:{{ openDisplay }};align-items:center;justify-content:center"><i data-lucide="minus"></i></span>
+      <span style="display:{{ closedDisplay }};align-items:center;justify-content:center"><i data-lucide="plus"></i></span>
+    </div>
+
+    <!-- Collapsed: two very tight lines, all info intact (eyebrow + truck + time + day + role + optional timer). ~50% shorter than expanded. -->
+    <div style="display:{{ closedDisplay }};flex-direction:column;gap:4px;padding-right:32px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.24em;color:rgba(244,245,240,.55)">Next shift</span>
+        <span style="width:6px;height:6px;border-radius:9999px;background:#fbe27a"></span>
+        <span style="font-size:11px;font-weight:600;color:rgba(244,245,240,.85)">Truck Mees</span>
+        <span style="margin-left:auto;display:{{ clockChipDisplay }};align-items:center;gap:5px;font-size:11px;font-weight:600;color:#86efac"><span style="width:6px;height:6px;border-radius:9999px;background:#86efac"></span>{{ elapsed }}</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1;color:#fff;font-variant-numeric:tabular-nums">19:00 – 23:00</span>
+        <span style="font-size:12px;color:rgba(244,245,240,.6)">Wed · Kitchen</span>
+      </div>
+    </div>
+
+    <!-- expanded content (CSS display toggled by openDisplay/closedDisplay bindings) -->
+    <div style="display:{{ openDisplay }};align-items:center;justify-content:space-between;padding-right:32px">
+      <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.25em;color:rgba(244,245,240,.6)">Next shift</span>
+      <span style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:9999px;background:rgba(255,255,255,.1)">
+        <span style="width:7px;height:7px;border-radius:9999px;background:#fbe27a"></span>
+        <span style="font-size:11px;font-weight:600;color:#F4F5F0">Truck Mees</span>
+      </span>
+    </div>
+
+    <div style="display:{{ openDisplay }};flex-direction:column;margin-top:16px">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:52px;font-weight:800;letter-spacing:-.04em;line-height:.95;color:#fff;font-variant-numeric:tabular-nums">19:00</span>
+          <span style="font-size:17px;font-weight:500;color:rgba(244,245,240,.65)">– 23:00</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:12px;font-size:13.5px;color:rgba(244,245,240,.8)">
+          <span style="font-size:14px;display:flex"><i data-lucide="map-pin"></i></span>Paradigm Festival · Groningen
+          <span style="opacity:.4">·</span>Kitchen
+        </div>
+          <div ref="{{ beatRef }}" style="display:{{ clockPanelDisplay }};flex-direction:column;margin-top:18px;padding:14px 16px;border-radius:18px;background:rgba(244,245,240,.07);border:1px solid rgba(134,239,172,.28);animation:frBeat 1s linear infinite">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="position:relative;display:flex;width:8px;height:8px;flex:none">
+                <span style="position:absolute;inset:0;border-radius:9999px;background:#86efac;animation:frRing 1.8s ease-out infinite"></span>
+                <span style="position:relative;width:8px;height:8px;border-radius:9999px;background:#86efac"></span>
+              </span>
+              <span style="font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:#86efac">On the clock</span>
+              <span style="margin-left:auto;font-size:11.5px;color:rgba(244,245,240,.6)">since {{ clockInAt }}</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-top:10px">
+              <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff;font-variant-numeric:tabular-nums">{{ elapsed }}</span>
+              <span style="font-size:13px;color:rgba(244,245,240,.6)">of {{ shiftLength }} · {{ remaining }} left</span>
+            </div>
+            <div style="margin-top:12px;height:5px;border-radius:9999px;background:rgba(255,255,255,.14);overflow:hidden">
+              <div style="height:100%;width:{{ shiftPct }};border-radius:9999px;background:#86efac;transition:width 1s linear"></div>
+            </div>
+          </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <div onClick="{{ simulateTag }}" ref="{{ armRef }}" style="flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;background:rgba(244,245,240,.07);border:1px dashed rgba(244,245,240,.26);padding:0 12px;cursor:pointer;animation:frArm 2.8s linear both">
+            <span style="position:relative;display:flex;width:16px;height:16px;flex:none;align-items:center;justify-content:center;color:{{ nfcInk }}">
+              <span style="position:absolute;width:16px;height:16px;border-radius:9999px;border:1.5px solid {{ nfcInk }};animation:frRing 2s ease-out infinite"></span>
+              <i data-lucide="nfc" style="font-size:15px"></i>
+            </span>
+            <span style="font-size:12px;font-weight:500;color:rgba(244,245,240,.82);text-align:left;line-height:1.35">{{ nfcHint }}</span>
+          </div>
+          <div onClick="{{ goTasks }}" style="min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 16px;border-radius:9999px;border:1px solid rgba(244,245,240,.28);font-size:14px;font-weight:500;color:{{ taskBtnInk }};cursor:pointer;flex:none">
+            <span style="font-size:15px;display:flex">
+              <sc-if value="{{ tasksLocked }}" hint-placeholder-val="{{ true }}"><i data-lucide="lock"></i></sc-if>
+              <sc-if value="{{ tasksUnlocked }}" hint-placeholder-val="{{ false }}"><i data-lucide="list-checks"></i></sc-if>
+            </span><span style="font-variant-numeric:tabular-nums">{{ doneCount }}/{{ taskTotal }}</span>
+          </div>
+        </div>
+      </div>
+  </div>
+  </sc-if>
+
+  <!-- mode pills — sit above the week carousel -->
+  <div style="padding:16px 20px 0">
+    <div style="display:flex;gap:4px;padding:6px;border-radius:9999px;background:#E8E5E0;box-shadow:inset 2px 2px 5px rgba(180,176,170,.55),inset -2px -2px 5px rgba(255,255,255,.85)">
+      <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+        <div onClick="{{ m.tap }}" style="flex:1;text-align:center;padding:9px 0;border-radius:9999px;font-size:12.5px;font-weight:600;letter-spacing:-.005em;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};box-shadow:{{ m.shadow }}">{{ m.label }}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- week carousel — arrows step the week, tapping a day selects it. Hidden on the Shifts pill; only Roster + Availability render it. -->
+  <sc-if value="{{ showWeekCarousel }}" hint-placeholder-val="{{ false }}">
+  <div style="margin:14px 20px 0;padding:12px 12px 14px;border-radius:20px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+    <div style="display:flex;align-items:center;gap:8px;padding:0 2px 10px">
+      <div onClick="{{ prevWeek }}" style="width:28px;height:28px;flex:none;border-radius:9999px;background:#F3F1EF;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;transition:box-shadow 160ms,transform 160ms" style-active="box-shadow:inset 2px 2px 4px #D1CECA,inset -2px -2px 4px #FFFFFF;transform:scale(.94)"><i data-lucide="chevron-left"></i></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:12.5px;font-weight:600;letter-spacing:-.005em">{{ weekLabel }}</div>
+        <div style="font-size:10.5px;color:#8A8A8A;margin-top:1px">{{ weekMeta }}</div>
+      </div>
+      <div onClick="{{ toggleMonth }}" style="width:28px;height:28px;flex:none;border-radius:9999px;background:{{ monthBtnBg }};color:{{ monthBtnInk }};display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;box-shadow:{{ monthBtnShadow }}"><i data-lucide="calendar"></i></div>
+      <div onClick="{{ nextWeek }}" style="width:28px;height:28px;flex:none;border-radius:9999px;background:#F3F1EF;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;transition:box-shadow 160ms,transform 160ms" style-active="box-shadow:inset 2px 2px 4px #D1CECA,inset -2px -2px 4px #FFFFFF;transform:scale(.94)"><i data-lucide="chevron-right"></i></div>
+    </div>
+    <div style="display:flex;animation:{{ weekAnim }} 320ms cubic-bezier(.22,1,.36,1) both">
+      <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+        <div onClick="{{ d.tap }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer">
+          <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8A8A8A">{{ d.dow }}</div>
+          <div style="width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums;background:{{ d.bg }};color:{{ d.fg }};box-shadow:{{ d.shadow }};transition:background 200ms cubic-bezier(.22,1,.36,1)">{{ d.num }}</div>
+          <div style="width:16px;height:3px;border-radius:9999px;background:{{ d.bar }}"></div>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ monthOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid #E0DDD9">
+        <div style="display:flex;align-items:center;gap:8px;padding:0 2px 10px">
+          <div onClick="{{ prevMonth }}" style="width:26px;height:26px;flex:none;border-radius:9999px;background:#F3F1EF;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF" style-active="box-shadow:inset 2px 2px 4px #D1CECA,inset -2px -2px 4px #FFFFFF"><i data-lucide="chevron-left"></i></div>
+          <div style="flex:1;text-align:center;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:15px;font-weight:700;letter-spacing:-.02em">{{ monthLabel }}</div>
+          <div onClick="{{ nextMonth }}" style="width:26px;height:26px;flex:none;border-radius:9999px;background:#F3F1EF;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF" style-active="box-shadow:inset 2px 2px 4px #D1CECA,inset -2px -2px 4px #FFFFFF"><i data-lucide="chevron-right"></i></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding-bottom:6px">
+          <sc-for list="{{ dowLabels }}" as="l" hint-placeholder-count="7">
+            <div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8A8A8A">{{ l }}</div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;animation:{{ monthAnim }} 300ms cubic-bezier(.22,1,.36,1) both">
+          <sc-for list="{{ monthCells }}" as="c" hint-placeholder-count="35">
+            <div onClick="{{ c.tap }}" style="height:40px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;background:{{ c.bg }};box-shadow:{{ c.shadow }};opacity:{{ c.opacity }}">
+              <span style="font-size:12.5px;font-weight:{{ c.weight }};color:{{ c.fg }};font-variant-numeric:tabular-nums">{{ c.num }}</span>
+              <div style="display:flex;gap:2px;height:5px">
+                <sc-for list="{{ c.dots }}" as="d" hint-placeholder-count="0">
+                  <span style="width:5px;height:5px;border-radius:9999px;background:{{ d }}"></span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ─── SHIFTS: one unified "Still to work" list. Today's shift lives inside it, tinted yellow. ─── -->
+  <sc-if value="{{ isShiftsMode }}" hint-placeholder-val="{{ true }}">
+
+  <div style="padding:22px 20px 8px;display:flex;align-items:baseline;justify-content:space-between">
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">Still to work</div>
+    <div style="font-size:11.5px;color:#8A8A8A">{{ upcomingMeta }}</div>
+  </div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:6px">
+    <sc-for list="{{ upcoming }}" as="s" hint-placeholder-count="8">
+      <div onClick="{{ s.tap }}" style="display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:14px;background:{{ s.rowBg }};cursor:pointer;box-shadow:{{ s.rowShadow }}">
+        <div style="width:32px;flex:none;text-align:center">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8A8A8A">{{ s.dow }}</div>
+          <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1.05">{{ s.num }}</div>
+        </div>
+        <div style="width:3px;height:30px;border-radius:9999px;background:{{ s.color }};flex:none"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ s.time }}</div>
+          <div style="font-size:11.5px;color:#8A8A8A;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.where }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none">
+          <span style="font-size:11px;font-weight:700;color:{{ s.pillInk }};letter-spacing:.03em;text-transform:uppercase">{{ s.status }}</span>
+          <span style="font-size:11px;color:#8A8A8A">{{ s.role }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- ─── ROSTER: just the day picked on the carousel ─── -->
+  <sc-if value="{{ isRosterMode }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:20px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">{{ selectedLabel }}</div>
+      <div style="font-size:11.5px;color:#8A8A8A">{{ rosterMeta }}</div>
+    </div>
+    <!-- Admin-only: mint a shift on this day. -->
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ true }}">
+      <div onClick="{{ openAddShift }}" style="width:36px;height:36px;flex:none;border-radius:9999px;background:#1A1A1A;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.22)" style-active="transform:scale(.94)">
+        <i data-lucide="plus" style="font-size:18px"></i>
+      </div>
+    </sc-if>
+  </div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px;animation:{{ weekAnim }} 320ms cubic-bezier(.22,1,.36,1) both">
+    <sc-for list="{{ roster }}" as="r" hint-placeholder-count="3">
+      <div onClick="{{ r.tap }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:{{ r.bg }};cursor:{{ r.cursor }};box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;border:1.5px solid {{ r.border }}">
+        <div style="width:36px;height:36px;border-radius:9999px;background:{{ r.avatar }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">{{ r.initials }}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+            <sc-if value="{{ r.mine }}" hint-placeholder-val="{{ false }}">
+              <span style="padding:2px 6px;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex:none">You</span>
+            </sc-if>
+          </div>
+          <div style="font-size:11.5px;color:#8A8A8A;margin-top:2px">{{ r.role }} · Truck {{ r.truck }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;flex:none">
+          <span style="width:8px;height:8px;border-radius:9999px;background:{{ r.color }}"></span>
+          <span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.time }}</span>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ rosterEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:26px 22px;border-radius:18px;border:1px dashed #E0DDD9;text-align:center">
+        <div style="font-size:13.5px;font-weight:600">Nobody rostered</div>
+        <div style="font-size:12px;color:#8A8A8A;margin-top:4px">No crew is scheduled on {{ selectedLabel }}.</div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ─── AVAILABILITY: shift targets + one day's time window ─── -->
+  <sc-if value="{{ isAvailMode }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:16px 20px 0;display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ shiftTargets }}" as="t" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:20px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <div style="flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.35;text-wrap:pretty">{{ t.label }}</div>
+        <div onClick="{{ t.dec }}" style="width:34px;height:34px;flex:none;border-radius:9999px;background:#F3F1EF;display:flex;align-items:center;justify-content:center;font-size:16px;color:{{ t.decInk }};cursor:pointer;box-shadow:inset 2px 2px 4px rgba(180,176,170,.5),inset -2px -2px 4px rgba(255,255,255,.9)"><i data-lucide="minus"></i></div>
+        <div style="min-width:26px;text-align:center;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ t.value }}</div>
+        <div onClick="{{ t.inc }}" style="width:34px;height:34px;flex:none;border-radius:9999px;background:#1A1A1A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.2)" style-active="transform:scale(.94)"><i data-lucide="plus"></i></div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:14px 20px 0;animation:{{ weekAnim }} 320ms cubic-bezier(.22,1,.36,1) both">
+    <div style="padding:20px 18px;border-radius:22px;background:#fff;box-shadow:8px 8px 16px #D1CECA,-8px -8px 16px #FFFFFF">
+      <div style="text-align:center">
+        <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums">{{ availRange }}</div>
+        <div style="font-size:12px;font-weight:600;color:#8A8A8A;margin-top:6px">{{ availDateLabel }}</div>
+      </div>
+
+      <div style="position:relative;height:34px;margin-top:18px">
+        <div style="position:absolute;left:11px;right:11px;top:15px;height:5px;border-radius:9999px;background:#E8E5E0"></div>
+        <div style="position:absolute;left:{{ fillLeft }};right:{{ fillRight }};top:15px;height:5px;border-radius:9999px;background:{{ availFill }}"></div>
+        <input type="range" class="fr-range" min="0" max="23" step="1" value="{{ fromVal }}" onChange="{{ setFrom }}" onInput="{{ setFrom }}" style="position:absolute;left:0;right:0;top:5px;width:100%;margin:0;color:{{ availFill }}">
+        <input type="range" class="fr-range" min="1" max="24" step="1" value="{{ untilVal }}" onChange="{{ setUntil }}" onInput="{{ setUntil }}" style="position:absolute;left:0;right:0;top:5px;width:100%;margin:0;color:{{ availFill }}">
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:#8A8A8A;font-variant-numeric:tabular-nums">
+        <span>00:00</span><span>12:00</span><span>24:00</span>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <sc-for list="{{ availToggle }}" as="o" hint-placeholder-count="2">
+          <div onClick="{{ o.tap }}" style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.shadow }}">{{ o.label }}</div>
+        </sc-for>
+      </div>
+
+      <div onClick="{{ focusReason }}" style="margin-top:12px;padding:13px 14px;border-radius:12px;border:1px solid #E0DDD9;font-size:13px;color:{{ reasonInk }};cursor:text">{{ reasonText }}</div>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px 0;display:flex;flex-wrap:wrap;gap:12px">
+    <sc-for list="{{ availLegend }}" as="l" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="width:10px;height:10px;border-radius:9999px;background:{{ l.color }}"></span>
+        <span style="font-size:11.5px;color:#5c5c5c">{{ l.label }}</span>
+      </div>
+    </sc-for>
+    <span style="margin-left:auto;padding:5px 11px;border-radius:9999px;background:#f59e0b;color:#1A1A1A;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">{{ availDeadline }}</span>
+  </div>
+
+  <div style="padding:16px 20px 0">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px;border-radius:18px;background:rgba(251,226,122,.3)">
+      <span style="font-size:17px;display:flex"><i data-lucide="sparkles"></i></span>
+      <div style="font-size:12.5px;line-height:1.45">{{ availAgentNote }}</div>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px 0">
+    <div onClick="{{ saveAvail }}" style="min-height:54px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.10)" style-active="transform:scale(.98)"><span>Save {{ weekLabel }}</span></div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ══════════════════ SHIFT DETAIL ══════════════════ -->
+<sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Shift detail" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 8px">
+    <div onClick="{{ goShifts }}" style="width:40px;height:40px;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF"><i data-lucide="chevron-left"></i></div>
+    <div style="flex:1;font-size:13px;font-weight:600;color:#8A8A8A;text-transform:uppercase;letter-spacing:.14em">Shift detail</div>
+    <div style="width:40px;height:40px;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF"><i data-lucide="more-horizontal"></i></div>
+  </div>
+
+  <div style="padding:8px 20px 0">
+    <div style="padding:20px;border-radius:22px;background:{{ detailCardBg }};color:{{ detailCardInk }};box-shadow:{{ detailCardShadow }}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="width:9px;height:9px;border-radius:9999px;background:#fbe27a"></span>
+        <span style="font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase">Truck Mees</span>
+        <span style="margin-left:auto;padding:4px 10px;border-radius:9999px;background:{{ detailStatusBg }};color:{{ detailStatusInk }};font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Confirmed</span>
+      </div>
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:15px;font-weight:700;letter-spacing:-.01em;color:{{ detailCardSub }}">Wed 16 September</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+        <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums">19:00</span>
+        <span style="font-size:17px;font-weight:500;color:{{ detailCardSub }}">– 23:00</span>
+      </div>
+      <div style="display:flex;gap:18px;margin-top:16px;padding-top:16px;border-top:1px solid {{ detailCardDiv }}">
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:{{ detailCardSub }}">Role</div>
+          <div style="font-size:14px;font-weight:600;margin-top:4px">Kitchen</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:{{ detailCardSub }}">Break</div>
+          <div style="font-size:14px;font-weight:600;margin-top:4px">30 min</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:{{ detailCardSub }}">Hours</div>
+          <div style="font-size:14px;font-weight:600;margin-top:4px">3,5 h</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:16px 20px 0">
+    <div style="padding:16px;border-radius:18px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;display:flex;gap:14px;align-items:center">
+      <div style="width:56px;height:56px;border-radius:14px;background:#E8E5E0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#8A8A8A;flex:none"><i data-lucide="map"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600">Paradigm Festival</div>
+        <div style="font-size:12.5px;color:#8A8A8A;margin-top:2px">Suikerterrein, Groningen · Gate C</div>
+      </div>
+      <div style="padding:8px 12px;border-radius:9999px;border:1px solid #E0DDD9;font-size:12px;font-weight:600;flex:none">Route</div>
+    </div>
+  </div>
+
+  <div style="padding:22px 20px 10px;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">Crew on this truck</div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
+    <sc-for list="{{ crew }}" as="c" hint-placeholder-count="3">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <div style="width:36px;height:36px;border-radius:9999px;background:{{ c.color }};display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;flex:none">{{ c.initials }}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">{{ c.name }}</div>
+          <div style="font-size:12px;color:#8A8A8A;margin-top:1px">{{ c.role }}</div>
+        </div>
+        <div style="font-size:12px;color:#8A8A8A;font-variant-numeric:tabular-nums">{{ c.time }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:22px 20px 0">
+    <div onClick="{{ toggleGate }}" style="padding:16px;border-radius:18px;background:#fff;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="font-size:19px;display:flex"><i data-lucide="clipboard-list"></i></span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">What you need to do</div>
+          <div style="font-size:12px;color:#8A8A8A;margin-top:2px">{{ gateSummary }}</div>
+        </div>
+        <span style="font-size:16px;color:#8A8A8A;display:flex">
+          <sc-if value="{{ gateClosed }}" hint-placeholder-val="{{ true }}"><i data-lucide="chevron-down"></i></sc-if>
+          <sc-if value="{{ gateOpen }}" hint-placeholder-val="{{ false }}"><i data-lucide="chevron-up"></i></sc-if>
+        </span>
+      </div>
+
+      <sc-if value="{{ gateOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #E0DDD9;display:flex;flex-direction:column;gap:9px">
+          <sc-for list="{{ taskPreview }}" as="t" hint-placeholder-count="7">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="width:18px;height:18px;flex:none;margin-top:1px;border-radius:6px;background:{{ t.dotBg }};color:{{ t.dotInk }};display:flex;align-items:center;justify-content:center;font-size:11px">
+                <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}"><i data-lucide="check"></i></sc-if>
+                <sc-if value="{{ t.todo }}" hint-placeholder-val="{{ true }}"><i data-lucide="circle"></i></sc-if>
+              </span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:{{ t.ink }}">{{ t.title }}</div>
+                <div style="font-size:11.5px;color:#8A8A8A;margin-top:1px;line-height:1.4">{{ t.note }}</div>
+              </div>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ tasksLocked }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:12px 13px;border-radius:14px;background:#F3F1EF;box-shadow:inset 2px 2px 5px rgba(180,176,170,.45),inset -2px -2px 5px rgba(255,255,255,.9)">
+              <span style="font-size:16px;color:#8A8A8A;display:flex"><i data-lucide="lock"></i></span>
+              <div style="font-size:12px;line-height:1.45;color:#5c5c5c">{{ lockedNote }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ tasksUnlocked }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ goTasks }}" style="min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-active="transform:scale(.98)">
+              <span style="font-size:16px;display:flex"><i data-lucide="list-checks"></i></span><span>Open checklist · {{ doneLabel }}</span>
+            </div>
+            <div style="margin-top:2px;height:6px;border-radius:9999px;background:#E8E5E0;overflow:hidden">
+              <div style="height:100%;width:{{ donePct }};border-radius:9999px;background:#1A1A1A;transition:width 300ms cubic-bezier(.22,1,.36,1)"></div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="padding:22px 20px 0;display:flex;flex-direction:column;gap:10px">
+    <div onClick="{{ simulateTag }}" ref="{{ armRef }}" style="min-height:54px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:9999px;background:#fff;border:1px dashed #D1CECA;padding:0 18px;cursor:pointer;animation:frArm 2.8s linear both;box-shadow:inset 2px 2px 5px rgba(180,176,170,.35),inset -2px -2px 5px rgba(255,255,255,.9)">
+      <span style="position:relative;display:flex;width:18px;height:18px;flex:none;align-items:center;justify-content:center">
+        <span style="position:absolute;width:18px;height:18px;border-radius:9999px;border:1.5px solid #1A1A1A;animation:frRing 2s ease-out infinite"></span>
+        <i data-lucide="nfc" style="font-size:17px"></i>
+      </span>
+      <span style="font-size:13.5px;font-weight:500;color:#1A1A1A;text-align:left;line-height:1.35">{{ detailClockLabel }}</span>
+    </div>
+    <div onClick="{{ openSwap }}" style="min-height:54px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;border:1px solid #1A1A1A;font-size:15px;font-weight:500;cursor:pointer">
+      <span style="font-size:17px;display:flex"><i data-lucide="arrow-left-right"></i></span>Request a swap
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ TASKS / CHECKLIST ══════════════════ -->
+<sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Tasks" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="padding:14px 20px 14px">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:#8A8A8A">Truck Mees · Paradigm</div>
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:2px">Shift checklist</div>
+  </div>
+
+  <div style="padding:0 20px">
+    <div style="padding:18px 20px;border-radius:20px;background:#1A1A1A;color:#F4F5F0">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div>
+          <div style="font-size:10px;font-weight:800;letter-spacing:.25em;text-transform:uppercase;color:rgba(244,245,240,.6)">Completed</div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
+            <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff;font-variant-numeric:tabular-nums">{{ doneCount }}</span>
+            <span style="font-size:16px;color:rgba(244,245,240,.6)">/ {{ taskTotal }}</span>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:12px;line-height:1.5;color:rgba(244,245,240,.7)">Submitted to<br>your manager at 23:15</div>
+      </div>
+      <div style="margin-top:16px;height:6px;border-radius:9999px;background:rgba(255,255,255,.14);overflow:hidden">
+        <div style="height:100%;width:{{ donePct }};border-radius:9999px;background:#fbe27a;transition:width 300ms cubic-bezier(.22,1,.36,1)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:22px 20px 10px;display:flex;align-items:baseline;justify-content:space-between">
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">Before service</div>
+    <div style="font-size:11.5px;color:#8A8A8A">Tap to complete</div>
+  </div>
+
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:{{ rowGap }}">
+    <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="7">
+      <div onClick="{{ t.tap }}" style="display:flex;gap:13px;padding:{{ rowPad }};border-radius:18px;background:#fff;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;opacity:{{ t.opacity }};transition:opacity 200ms">
+        <div style="width:24px;height:24px;border-radius:8px;flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:14px;background:{{ t.boxBg }};color:{{ t.boxInk }};box-shadow:{{ t.boxShadow }}"><i data-lucide="check"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14.5px;font-weight:600;text-decoration:{{ t.strike }}">{{ t.title }}</div>
+          <div style="font-size:12.5px;color:#8A8A8A;margin-top:3px;line-height:1.45">{{ t.note }}</div>
+          <sc-if value="{{ t.hasInput }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <div style="flex:1;padding:9px 12px;border-radius:10px;background:#F3F1EF;border:1px solid #E0DDD9;font-size:13px;font-variant-numeric:tabular-nums">{{ t.inputVal }}</div>
+              <div style="padding:9px 12px;border-radius:10px;background:#F3F1EF;border:1px dashed #E0DDD9;font-size:12px;color:#8A8A8A;display:flex;align-items:center;gap:6px"><span style="font-size:14px;display:flex"><i data-lucide="camera"></i></span>Photo</div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="font-size:11px;color:#8A8A8A;flex:none;font-variant-numeric:tabular-nums">{{ t.stamp }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:22px 20px 0">
+    <div style="min-height:54px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.10)" style-active="transform:scale(.98)">Submit checklist</div>
+    <div style="text-align:center;font-size:12px;color:#8A8A8A;margin-top:12px;line-height:1.5">Your fleet manager sees completions live.<br>Stock counts feed the inventory agent.</div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ HOURS ══════════════════ -->
+<sc-if value="{{ isHours }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Hours" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:14px 20px 16px">
+    <div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:#8A8A8A">{{ hoursPeriod }}</div>
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:2px">Your hours</div>
+    </div>
+    <div onClick="{{ goApproved }}" style="display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:9999px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;flex:none;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF" style-active="box-shadow:inset 2px 2px 4px #D1CECA,inset -2px -2px 4px #FFFFFF">
+      <span style="width:7px;height:7px;border-radius:9999px;background:#16a34a"></span>Approved
+      <span style="font-size:14px;color:#8A8A8A;display:flex"><i data-lucide="chevron-right"></i></span>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 12px">
+    <div style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:9999px;background:#E8E5E0;box-shadow:inset 2px 2px 5px rgba(180,176,170,.55),inset -2px -2px 5px rgba(255,255,255,.85)">
+      <div onClick="{{ prevHoursMonth }}" style="width:30px;height:30px;flex:none;border-radius:9999px;background:#FBFAF7;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer" style-active="transform:scale(.94)"><i data-lucide="chevron-left"></i></div>
+      <div style="flex:1;text-align:center;font-size:12.5px;font-weight:600">{{ hoursMonthLabel }}</div>
+      <div onClick="{{ nextHoursMonth }}" style="width:30px;height:30px;flex:none;border-radius:9999px;background:#FBFAF7;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer" style-active="transform:scale(.94)"><i data-lucide="chevron-right"></i></div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="padding:18px;border-radius:20px;background:#fff;box-shadow:8px 8px 16px #D1CECA,-8px -8px 16px #FFFFFF">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A">Approved</div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px">
+        <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums">{{ monthApproved }}</span>
+        <span style="font-size:14px;color:#8A8A8A">h</span>
+      </div>
+      <div style="font-size:11px;color:#8A8A8A;margin-top:6px">{{ hoursMonthShort }} only</div>
+    </div>
+    <div style="padding:18px;border-radius:20px;background:#fff;box-shadow:8px 8px 16px #D1CECA,-8px -8px 16px #FFFFFF">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A">Pending</div>
+      <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px">
+        <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1;color:#f97316;font-variant-numeric:tabular-nums">{{ monthPending }}</span>
+        <span style="font-size:14px;color:#8A8A8A">h</span>
+      </div>
+      <div style="font-size:11px;color:#8A8A8A;margin-top:6px">{{ monthPendingNote }}</div>
+    </div>
+  </div>
+
+  <sc-if value="{{ hasEntry }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:22px 20px 10px;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">Waiting for you</div>
+  <div style="padding:0 20px">
+    <div style="padding:18px;border-radius:20px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:9999px;background:#86efac"></span>
+        <span style="font-size:13px;font-weight:600">Mon 14 Sep · Truck Mike</span>
+        <span style="margin-left:auto;font-size:11.5px;color:#8A8A8A">Zwarte Cross</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px">Start</div>
+          <div style="padding:12px;border-radius:12px;background:#F3F1EF;box-shadow:inset 2px 2px 5px rgba(180,176,170,.5),inset -2px -2px 5px rgba(255,255,255,.85);text-align:center;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">17:00</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px">End</div>
+          <div style="padding:12px;border-radius:12px;background:#F3F1EF;box-shadow:inset 2px 2px 5px rgba(180,176,170,.5),inset -2px -2px 5px rgba(255,255,255,.85);text-align:center;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">23:20</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;margin-bottom:6px">Break</div>
+          <div style="padding:12px;border-radius:12px;background:#F3F1EF;box-shadow:inset 2px 2px 5px rgba(180,176,170,.5),inset -2px -2px 5px rgba(255,255,255,.85);text-align:center;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">30m</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:11px 13px;border-radius:12px;background:rgba(122,166,245,.14)">
+        <span style="font-size:15px;color:#3b82f6;display:flex"><i data-lucide="sparkles"></i></span>
+        <div style="font-size:12px;line-height:1.45;color:#1A1A1A">Clock-in said 17:04. The scheduling agent pre-filled 17:00 — edit if that's wrong.</div>
+      </div>
+      <div onClick="{{ submitHours }}" style="min-height:50px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:14.5px;font-weight:600;margin-top:14px;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.10)" style-active="transform:scale(.98)">Submit 6,3 hours</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="padding:22px 20px 10px;display:flex;align-items:baseline;justify-content:space-between">
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">{{ hoursMonthShort }}</div>
+    <div onClick="{{ goApproved }}" style="font-size:11.5px;font-weight:600;color:#8A8A8A;cursor:pointer">See all →</div>
+  </div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:{{ rowGap }}">
+    <sc-for list="{{ monthLog }}" as="h" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:12px;padding:{{ rowPad }};border-radius:16px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <span style="width:8px;height:8px;border-radius:9999px;background:{{ h.color }};flex:none"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600">{{ h.day }}</div>
+          <div style="font-size:12px;color:#8A8A8A;margin-top:2px">{{ h.where }}</div>
+        </div>
+        <div style="text-align:right;flex:none">
+          <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ h.hours }}</div>
+          <div style="font-size:11px;color:{{ h.stateInk }};font-weight:600;margin-top:2px">{{ h.state }}</div>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ monthLogEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:20px;border-radius:18px;border:1px dashed #E0DDD9;text-align:center;font-size:12.5px;color:#8A8A8A">No hours logged in {{ hoursMonthShort }}.</div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ APPROVED HOURS ══════════════════ -->
+<sc-if value="{{ isApproved }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Approved hours" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 8px">
+    <div onClick="{{ goHours }}" style="width:40px;height:40px;flex:none;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF"><i data-lucide="chevron-left"></i></div>
+    <div style="flex:1;font-size:13px;font-weight:600;color:#8A8A8A;text-transform:uppercase;letter-spacing:.14em">Approved</div>
+  </div>
+
+  <div style="padding:10px 20px 0">
+    <div style="padding:18px 20px;border-radius:20px;background:#1A1A1A;color:#F4F5F0">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.25em;text-transform:uppercase;color:rgba(244,245,240,.6)">Everything worked</div>
+      <div style="display:flex;align-items:baseline;gap:7px;margin-top:8px">
+        <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:40px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#fff;font-variant-numeric:tabular-nums">{{ totalApproved }}</span>
+        <span style="font-size:15px;color:rgba(244,245,240,.6)">h · {{ totalShifts }} shifts</span>
+      </div>
+      <div style="font-size:12px;color:rgba(244,245,240,.65);margin-top:8px">Since you joined Vietnamama in March</div>
+    </div>
+  </div>
+
+  <div style="padding:18px 20px 0;display:flex;flex-direction:column;gap:18px">
+    <sc-for list="{{ approvedMonths }}" as="m" hint-placeholder-count="3">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:8px;padding:0 2px 8px">
+          <span style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:16px;font-weight:700;letter-spacing:-.02em">{{ m.label }}</span>
+          <span style="flex:1;height:1px;background:#E0DDD9"></span>
+          <span style="font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">{{ m.total }} h</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ m.rows }}" as="h" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+              <span style="width:7px;height:7px;border-radius:9999px;background:{{ h.color }};flex:none"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">{{ h.day }}</div>
+                <div style="font-size:11px;color:#8A8A8A;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.where }}</div>
+              </div>
+              <div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;flex:none">{{ h.hours }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ INBOX ══════════════════ -->
+<sc-if value="{{ isInbox }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Inbox" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="padding:14px 20px 16px">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:#8A8A8A">3 unread</div>
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:2px">Inbox</div>
+  </div>
+
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:{{ rowGap }}">
+    <sc-for list="{{ inbox }}" as="m" hint-placeholder-count="5">
+      <div style="display:flex;gap:12px;padding:{{ rowPad }};border-radius:18px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;cursor:pointer">
+        <div style="width:36px;height:36px;border-radius:{{ m.avatarRadius }};background:{{ m.color }};color:{{ m.avatarInk }};display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;flex:none">{{ m.initials }}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="font-size:14px;font-weight:600">{{ m.from }}</span>
+            <span style="margin-left:auto;font-size:11px;color:#8A8A8A;flex:none">{{ m.when }}</span>
+          </div>
+          <div style="font-size:12.5px;color:#8A8A8A;margin-top:3px;line-height:1.45">{{ m.body }}</div>
+          <sc-if value="{{ m.hasActions }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;margin-top:11px">
+              <div style="padding:8px 14px;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:12px;font-weight:600">Accept</div>
+              <div style="padding:8px 14px;border-radius:9999px;border:1px solid #E0DDD9;font-size:12px;font-weight:600">Decline</div>
+            </div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ m.unread }}" hint-placeholder-val="{{ false }}">
+          <span style="width:8px;height:8px;border-radius:9999px;background:#f97316;flex:none;margin-top:5px"></span>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ PROFILE ══════════════════ -->
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Profile" class="fr-scroll" style="flex:1;overflow:auto;padding:60px 0 108px;box-sizing:border-box">
+  <div style="padding:18px 20px 0;display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div style="width:76px;height:76px;border-radius:9999px;background:#fbe27a;display:flex;align-items:center;justify-content:center;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:26px;font-weight:700;box-shadow:8px 8px 16px #D1CECA,-8px -8px 16px #FFFFFF">SV</div>
+    <div style="text-align:center">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em">Sanne de Vries</div>
+      <div style="font-size:13px;color:#8A8A8A;margin-top:3px">Kitchen · Vietnamama fleet</div>
+    </div>
+  </div>
+
+  <div style="padding:22px 20px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+    <div style="padding:14px 12px;border-radius:16px;background:#fff;text-align:center;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums">14</div>
+      <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#8A8A8A;margin-top:4px">Shifts</div>
+    </div>
+    <div style="padding:14px 12px;border-radius:16px;background:#fff;text-align:center;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums">92%</div>
+      <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#8A8A8A;margin-top:4px">Checklists</div>
+    </div>
+    <div style="padding:14px 12px;border-radius:16px;background:#fff;text-align:center;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums">3</div>
+      <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#8A8A8A;margin-top:4px">Trucks</div>
+    </div>
+  </div>
+
+  <div style="padding:22px 20px 10px;font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">Account</div>
+  <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px">
+    <sc-for list="{{ settings }}" as="r" hint-placeholder-count="5">
+      <div style="display:flex;align-items:center;gap:13px;padding:14px;border-radius:16px;background:#fff;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <span style="width:22px;font-size:18px;display:flex;justify-content:center"><i data-lucide="{{ r.icon }}"></i></span>
+        <span style="flex:1;font-size:14px;font-weight:500">{{ r.label }}</span>
+        <span style="font-size:12.5px;color:#8A8A8A">{{ r.value }}</span>
+        <span style="font-size:16px;color:#8A8A8A;display:flex"><i data-lucide="chevron-right"></i></span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:22px 20px 0">
+    <div onClick="{{ signOut }}" style="min-height:52px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;border:1px solid #E0DDD9;font-size:14.5px;font-weight:600;color:#dc2626;cursor:pointer">
+      <span style="font-size:16px;display:flex"><i data-lucide="log-out"></i></span>Log out
+    </div>
+    <div style="text-align:center;font-size:11.5px;color:#8A8A8A;margin-top:14px">Foodrun 1.0 · nl.foodrun.app</div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ SWAP SHEET ══════════════════ -->
+<sc-if value="{{ swapOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;justify-content:flex-end">
+  <div onClick="{{ closeSwap }}" style="position:absolute;inset:0;background:rgba(0,0,0,.5)"></div>
+  <div style="position:relative;background:#F3F1EF;border-radius:26px 26px 0 0;padding:10px 20px 34px;box-shadow:0 -10px 40px rgba(0,0,0,.2)">
+    <div style="width:42px;height:5px;border-radius:9999px;background:#D1CECA;margin:0 auto 18px"></div>
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em">Request a swap</div>
+    <div style="font-size:13px;color:#8A8A8A;margin-top:6px;line-height:1.5">Wed 16 Sep · 19:00 – 23:00 · Truck Mees. Pick who you'd like to take it, or let the agent ask the whole crew.</div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px">
+      <sc-for list="{{ swapCandidates }}" as="c" hint-placeholder-count="3">
+        <div onClick="{{ c.tap }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;cursor:pointer;box-shadow:{{ c.shadow }};border:1.5px solid {{ c.border }}">
+          <div style="width:34px;height:34px;border-radius:9999px;background:{{ c.color }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">{{ c.initials }}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">{{ c.name }}</div>
+            <div style="font-size:12px;color:#8A8A8A;margin-top:1px">{{ c.note }}</div>
+          </div>
+          <span style="font-size:16px;color:{{ c.checkInk }};display:flex"><i data-lucide="check-circle-2"></i></span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div onClick="{{ closeSwap }}" style="min-height:54px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;margin-top:18px;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22)" style-active="transform:scale(.98)">Send request</div>
+    <div onClick="{{ closeSwap }}" style="text-align:center;font-size:13px;font-weight:600;color:#8A8A8A;margin-top:14px;cursor:pointer">Ask the whole crew instead</div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ ADD SHIFT (admin) ══════════════════ -->
+<sc-if value="{{ addShiftOpen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Add shift" style="position:absolute;inset:0;z-index:82;display:flex;flex-direction:column;justify-content:flex-end">
+  <div onClick="{{ closeAddShift }}" style="position:absolute;inset:0;background:rgba(0,0,0,.5)"></div>
+  <div style="position:relative;background:#F3F1EF;border-radius:26px 26px 0 0;padding:10px 20px 28px;box-shadow:0 -10px 40px rgba(0,0,0,.2);max-height:82%;overflow:auto">
+    <div style="width:42px;height:5px;border-radius:9999px;background:#D1CECA;margin:0 auto 14px"></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+      <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em">Add shift</div>
+      <div style="font-size:11.5px;color:#8A8A8A">Admin</div>
+    </div>
+    <div style="font-size:13px;color:#8A8A8A;margin-top:4px;line-height:1.5">Rosters a shift on the picked day. Workers get a push in their inbox.</div>
+
+    <!-- Date + time row -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">Date</div>
+      <input type="date" value="{{ addShiftDate }}" onChange="{{ setAddDate }}" onInput="{{ setAddDate }}"
+             style="padding:12px 14px;border-radius:12px;border:1px solid #E0DDD9;background:#fff;font-size:15px;font-family:inherit">
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">Start</div>
+        <input type="time" value="{{ addShiftStart }}" onChange="{{ setAddStart }}" onInput="{{ setAddStart }}"
+               style="padding:12px 14px;border-radius:12px;border:1px solid #E0DDD9;background:#fff;font-size:15px;font-family:inherit;font-variant-numeric:tabular-nums">
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">End</div>
+        <input type="time" value="{{ addShiftEnd }}" onChange="{{ setAddEnd }}" onInput="{{ setAddEnd }}"
+               style="padding:12px 14px;border-radius:12px;border:1px solid #E0DDD9;background:#fff;font-size:15px;font-family:inherit;font-variant-numeric:tabular-nums">
+      </div>
+    </div>
+
+    <!-- Truck -->
+    <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">Truck</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+      <sc-for list="{{ addShiftTrucks }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.tap }}" style="display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:9999px;background:{{ t.bg }};color:{{ t.fg }};font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+          <span style="width:8px;height:8px;border-radius:9999px;background:{{ t.dot }}"></span>{{ t.label }}
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Role -->
+    <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">Role</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+      <sc-for list="{{ addShiftRoles }}" as="r" hint-placeholder-count="4">
+        <div onClick="{{ r.tap }}" style="padding:9px 13px;border-radius:9999px;background:{{ r.bg }};color:{{ r.fg }};font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">{{ r.label }}</div>
+      </sc-for>
+    </div>
+
+    <!-- Crew -->
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:18px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A">Who</div>
+      <div style="font-size:11px;color:#8A8A8A">{{ addShiftPickCount }} selected</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+      <sc-for list="{{ addShiftCrew }}" as="c" hint-placeholder-count="4">
+        <div onClick="{{ c.tap }}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:{{ c.bg }};cursor:pointer;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF;border:1.5px solid {{ c.border }}">
+          <div style="width:32px;height:32px;border-radius:9999px;background:{{ c.color }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">{{ c.initials }}</div>
+          <div style="flex:1;font-size:14px;font-weight:600">{{ c.name }}</div>
+          <span style="width:20px;height:20px;border-radius:6px;border:1.5px solid #1A1A1A;background:{{ c.border }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px"><i data-lucide="check"></i></span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div onClick="{{ saveAddShift }}" style="min-height:54px;display:flex;align-items:center;justify-content:center;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;margin-top:20px;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22)" style-active="transform:scale(.98)">
+      Roster this shift
+    </div>
+    <div onClick="{{ closeAddShift }}" style="text-align:center;font-size:13px;font-weight:600;color:#8A8A8A;margin-top:12px;cursor:pointer">Cancel</div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ══════════════════ PASSIVE NFC CLOCK-IN ══════════════════ -->
+<sc-if value="{{ nfcOpen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="NFC clock-in" style="position:absolute;inset:0;z-index:90;display:flex;flex-direction:column;justify-content:flex-end">
+  <div onClick="{{ cancelTag }}" style="position:absolute;inset:0;background:rgba(10,10,9,.72)"></div>
+
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;color:#F4F5F0;pointer-events:none;animation:frFlash 1.5s cubic-bezier(.22,1,.36,1) forwards">
+    <div style="position:relative;width:104px;height:104px;display:flex;align-items:center;justify-content:center">
+      <span style="position:absolute;width:104px;height:104px;border-radius:9999px;border:1.5px solid rgba(251,226,122,.7);animation:frRing 1.5s ease-out infinite"></span>
+      <span style="position:absolute;width:104px;height:104px;border-radius:9999px;border:1.5px solid rgba(251,226,122,.45);animation:frRing 1.5s ease-out .4s infinite"></span>
+      <div style="width:64px;height:64px;border-radius:9999px;background:#fbe27a;color:#1A1A1A;display:flex;align-items:center;justify-content:center;font-size:28px"><i data-lucide="nfc"></i></div>
+    </div>
+    <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em">Tag detected</div>
+  </div>
+
+  <sc-if value="{{ nfcDone }}" hint-placeholder-val="{{ true }}">
+  <div style="position:relative;background:#F3F1EF;color:#1A1A1A;border-radius:26px 26px 0 0;padding:22px 20px 30px;animation:frSheet 320ms cubic-bezier(.22,1,.36,1) both">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:46px;height:46px;flex:none;border-radius:9999px;background:{{ nfcBadgeBg }};color:{{ nfcBadgeInk }};display:flex;align-items:center;justify-content:center;font-size:22px;animation:frPop 420ms cubic-bezier(.22,1,.36,1) both">
+        <sc-if value="{{ nfcIsOut }}" hint-placeholder-val="{{ false }}"><i data-lucide="flag"></i></sc-if>
+        <sc-if value="{{ nfcIsIn }}" hint-placeholder-val="{{ true }}"><i data-lucide="check"></i></sc-if>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.15">{{ nfcHeadline }}</div>
+        <div style="font-size:12.5px;color:#8A8A8A;margin-top:3px">{{ nfcSub }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <div style="flex:1;padding:14px;border-radius:16px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <div style="font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A">{{ nfcStampLabel }}</div>
+        <div style="font-family:'Cabinet Grotesk',Inter,sans-serif;font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-top:7px;font-variant-numeric:tabular-nums">{{ nfcStamp }}</div>
+        <div style="font-size:11px;color:#8A8A8A;margin-top:4px">{{ nfcStampNote }}</div>
+      </div>
+      <div style="flex:1;padding:14px;border-radius:16px;background:#fff;box-shadow:2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF">
+        <div style="font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A">Truck</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:9px">
+          <span style="width:9px;height:9px;border-radius:9999px;background:#fbe27a;flex:none"></span>
+          <span style="font-size:15px;font-weight:600">Mees</span>
+        </div>
+        <div style="font-size:11px;color:#8A8A8A;margin-top:5px">Paradigm · Kitchen</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:9px;margin-top:14px;padding:12px 13px;border-radius:14px;background:rgba(122,166,245,.14)">
+      <span style="font-size:15px;color:#3b82f6;display:flex"><i data-lucide="sparkles"></i></span>
+      <div style="font-size:12px;line-height:1.45">{{ nfcAgentNote }}</div>
+    </div>
+
+    <div onClick="{{ nfcPrimary }}" style="min-height:54px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9999px;background:#1A1A1A;color:#fff;font-size:15px;font-weight:600;margin-top:16px;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.10)" style-active="transform:scale(.98)">
+      <span style="font-size:17px;display:flex">
+        <sc-if value="{{ nfcIsOut }}" hint-placeholder-val="{{ false }}"><i data-lucide="clock"></i></sc-if>
+        <sc-if value="{{ nfcIsIn }}" hint-placeholder-val="{{ true }}"><i data-lucide="list-checks"></i></sc-if>
+      </span><span>{{ nfcPrimaryLabel }}</span>
+    </div>
+    <div onClick="{{ nfcUndo }}" style="text-align:center;font-size:13px;font-weight:600;color:#8A8A8A;margin-top:14px;cursor:pointer">{{ nfcUndoLabel }}</div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ══════════════════ TAB BAR ══════════════════ -->
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;left:12px;right:12px;bottom:22px;z-index:70;display:flex;padding:8px;border-radius:26px;background:#1A1A1A;box-shadow:0 12px 30px rgba(0,0,0,.28)">
+  <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+    <div onClick="{{ t.tap }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:18px;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }};transition:background 200ms cubic-bezier(.22,1,.36,1)">
+      <span style="position:relative;font-size:19px;display:flex">
+        <i data-lucide="{{ t.icon }}"></i>
+        <sc-if value="{{ t.badge }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute;top:-3px;right:-6px;width:7px;height:7px;border-radius:9999px;background:#f97316;border:1.5px solid #1A1A1A"></span>
+        </sc-if>
+      </span>
+      <span style="font-size:9.5px;font-weight:600;letter-spacing:.02em">{{ t.label }}</span>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:980},&quot;defaultMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Shifts&quot;,&quot;Roster&quot;,&quot;Availability&quot;],&quot;default&quot;:&quot;Shifts&quot;,&quot;tsType&quot;:&quot;'Shifts' | 'Roster' | 'Availability'&quot;,&quot;section&quot;:&quot;Shifts screen&quot;},&quot;homeLayout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;hero&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;hero&quot;,&quot;tsType&quot;:&quot;'hero' | 'compact'&quot;,&quot;section&quot;:&quot;Shifts screen&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;comfortable&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;comfortable&quot;,&quot;tsType&quot;:&quot;'comfortable' | 'compact'&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+const YELLOW = '#fbe27a', GREEN = '#86efac', PINK = '#f0a8c8', ORANGE = '#f97316',
+      BLUE = '#7aa6f5', INK = '#1A1A1A';
+const PILL_SHADOW = '-3px -3px 6px rgba(255,255,255,.95),3px 4px 8px rgba(165,160,154,.45),0 1px 0 rgba(255,255,255,.9) inset';
+const TODAY = '2026-09-16';
+const DOW = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DOW3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MON_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const STATUS = {
+  'Next':      { pillBg: 'rgba(26,26,26,.08)',   pillInk: INK },
+  'Confirmed': { pillBg: 'rgba(22,163,74,.12)',  pillInk: '#16a34a' },
+  'Swap open': { pillBg: 'rgba(249,115,22,.14)', pillInk: '#a15c07' },
+  'Draft':     { pillBg: 'rgba(26,26,26,.06)',   pillInk: '#8A8A8A' },
+  'Done':      { pillBg: 'rgba(26,26,26,.06)',   pillInk: '#8A8A8A' },
+};
+const TRUCKS = { Mees: YELLOW, Mike: GREEN, Mama: PINK };
+const TINT = { Mees: 'rgba(251,226,122,.18)', Mike: 'rgba(134,239,172,.18)', Mama: 'rgba(240,168,200,.18)' };
+
+const SHIFTS = [
+  { date: '2026-09-14', start: '17:00', end: '23:20', role: 'Counter', truck: 'Mike', where: 'Zwarte Cross · Lichtenvoorde', status: 'Done' },
+  { date: '2026-09-16', start: '19:00', end: '23:00', role: 'Kitchen', truck: 'Mees', where: 'Paradigm Festival · Groningen', status: 'Next' },
+  { date: '2026-09-18', start: '12:00', end: '18:00', role: 'Counter', truck: 'Mama', where: 'Strandzicht · Scheveningen', status: 'Confirmed' },
+  { date: '2026-09-19', start: '11:00', end: '16:00', role: 'Kitchen', truck: 'Mees', where: 'Zwarte Cross · Lichtenvoorde', status: 'Swap open' },
+  { date: '2026-09-19', start: '16:30', end: '21:00', role: 'Counter', truck: 'Mike', where: 'Zwarte Cross · Lichtenvoorde', status: 'Confirmed' },
+  { date: '2026-09-21', start: '17:00', end: '23:00', role: 'Counter', truck: 'Mike', where: 'Noorderzon · Groningen', status: 'Draft' },
+  { date: '2026-09-23', start: '18:00', end: '23:30', role: 'Kitchen', truck: 'Mees', where: 'Paradigm Festival · Groningen', status: 'Confirmed' },
+  { date: '2026-09-25', start: '12:00', end: '18:00', role: 'Counter', truck: 'Mama', where: 'Strandzicht · Scheveningen', status: 'Confirmed' },
+  { date: '2026-09-26', start: '10:00', end: '22:00', role: 'Kitchen', truck: 'Mees', where: 'Noorderzon · Groningen', status: 'Confirmed' },
+  { date: '2026-09-28', start: '17:00', end: '23:00', role: 'Counter', truck: 'Mike', where: 'Vakwerktent · Utrecht', status: 'Draft' },
+  { date: '2026-10-02', start: '16:00', end: '22:00', role: 'Kitchen', truck: 'Mama', where: 'Herfstmarkt · Nijmegen', status: 'Draft' },
+  { date: '2026-10-03', start: '11:00', end: '19:00', role: 'Counter', truck: 'Mees', where: 'Herfstmarkt · Nijmegen', status: 'Draft' },
+];
+
+const CREW = {
+  ML: { name: 'Mees Linh', avatar: YELLOW },
+  TD: { name: 'Tom Dinh', avatar: BLUE },
+  AK: { name: 'Anh Khoa', avatar: PINK },
+  JB: { name: 'Joris Bakker', avatar: GREEN },
+};
+// Everyone else's shifts — the roster view merges these with SHIFTS.
+const OTHERS = [
+  { date: '2026-09-16', start: '18:00', end: '23:30', who: 'ML', role: 'Truck lead', truck: 'Mees' },
+  { date: '2026-09-16', start: '19:00', end: '23:00', who: 'TD', role: 'Counter', truck: 'Mees' },
+  { date: '2026-09-17', start: '12:00', end: '18:00', who: 'AK', role: 'Kitchen', truck: 'Mama' },
+  { date: '2026-09-18', start: '12:00', end: '18:00', who: 'JB', role: 'Kitchen', truck: 'Mama' },
+  { date: '2026-09-18', start: '16:00', end: '22:00', who: 'ML', role: 'Truck lead', truck: 'Mike' },
+  { date: '2026-09-19', start: '11:00', end: '16:00', who: 'AK', role: 'Counter', truck: 'Mees' },
+  { date: '2026-09-19', start: '16:30', end: '21:00', who: 'ML', role: 'Truck lead', truck: 'Mike' },
+  { date: '2026-09-19', start: '11:00', end: '21:00', who: 'TD', role: 'Kitchen', truck: 'Mike' },
+  { date: '2026-09-20', start: '13:00', end: '20:00', who: 'JB', role: 'Counter', truck: 'Mees' },
+  { date: '2026-09-21', start: '17:00', end: '23:00', who: 'AK', role: 'Kitchen', truck: 'Mike' },
+  { date: '2026-09-23', start: '18:00', end: '23:30', who: 'TD', role: 'Counter', truck: 'Mees' },
+  { date: '2026-09-25', start: '12:00', end: '18:00', who: 'ML', role: 'Truck lead', truck: 'Mama' },
+  { date: '2026-09-26', start: '10:00', end: '22:00', who: 'AK', role: 'Counter', truck: 'Mees' },
+  { date: '2026-09-26', start: '10:00', end: '16:00', who: 'JB', role: 'Kitchen', truck: 'Mike' },
+];
+// Every hour already worked, newest first — the Approved screen and the
+// per-month totals both read from this one ledger.
+const WORKED = [
+  { date: '2026-09-14', where: 'Zwarte Cross · Truck Mike', hours: 6.3, truck: 'Mike', state: 'Pending' },
+  { date: '2026-09-12', where: 'Noorderzon · Truck Mees', hours: 9.5, truck: 'Mees', state: 'Approved' },
+  { date: '2026-09-11', where: 'Strandzicht · Truck Mama', hours: 6.0, truck: 'Mama', state: 'Approved' },
+  { date: '2026-09-06', where: 'Zwarte Cross · Truck Mike', hours: 10.0, truck: 'Mike', state: 'Approved' },
+  { date: '2026-09-05', where: 'Zwarte Cross · Truck Mike', hours: 9.0, truck: 'Mike', state: 'Approved' },
+  { date: '2026-09-02', where: 'Paradigm · Truck Mees', hours: 4.0, truck: 'Mees', state: 'Approved' },
+  { date: '2026-08-30', where: 'Zomerfeest · Truck Mama', hours: 8.5, truck: 'Mama', state: 'Approved' },
+  { date: '2026-08-29', where: 'Zomerfeest · Truck Mama', hours: 11.0, truck: 'Mama', state: 'Approved' },
+  { date: '2026-08-23', where: 'Lowlands · Truck Mees', hours: 12.0, truck: 'Mees', state: 'Approved' },
+  { date: '2026-08-22', where: 'Lowlands · Truck Mees', hours: 12.0, truck: 'Mees', state: 'Approved' },
+  { date: '2026-08-16', where: 'Havenfeest · Truck Mike', hours: 7.5, truck: 'Mike', state: 'Approved' },
+  { date: '2026-08-09', where: 'Strandzicht · Truck Mama', hours: 6.0, truck: 'Mama', state: 'Approved' },
+  { date: '2026-07-26', where: 'Zwarte Cross · Truck Mike', hours: 10.5, truck: 'Mike', state: 'Approved' },
+  { date: '2026-07-25', where: 'Zwarte Cross · Truck Mike', hours: 11.0, truck: 'Mike', state: 'Approved' },
+  { date: '2026-07-19', where: 'Paradigm · Truck Mees', hours: 8.0, truck: 'Mees', state: 'Approved' },
+  { date: '2026-07-12', where: 'Noorderzon · Truck Mees', hours: 9.0, truck: 'Mees', state: 'Approved' },
+];
+
+const parse = (iso) => new Date(iso + 'T00:00:00');
+const isoOf = (dt) => dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+const addDays = (dt, n) => { const d = new Date(dt); d.setDate(d.getDate() + n); return d; };
+const mondayOf = (dt) => addDays(dt, -((dt.getDay() + 6) % 7));
+const minutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+const weekNo = (dt) => {
+  const d = new Date(dt);
+  d.setDate(d.getDate() + 4 - ((d.getDay() + 6) % 7 + 1));
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - jan1) / 86400000 + 1) / 7);
+};
+const shiftsOn = (iso) => SHIFTS.filter((s) => s.date === iso);
+const decorate = (s) => ({
+  ...s,
+  iso: s.date,
+  color: TRUCKS[s.truck], tint: TINT[s.truck],
+  time: s.start + ' – ' + s.end,
+  pillBg: STATUS[s.status].pillBg, pillInk: STATUS[s.status].pillInk,
+  statusInk: STATUS[s.status].pillInk,
+});
+const RAIL_START = 8, RAIL_HOURS = 16;
+
+// Lucide's createIcons() REPLACES each <i data-lucide> with an <svg>, which
+// yanks a node out from under React and crashes the next unmount with
+// removeChild. So we build the svg markup ourselves and paint it INSIDE the
+// <i> — React keeps owning every node it rendered.
+const ICON_SVG = {};
+function iconMarkup(name) {
+  if (ICON_SVG[name] !== undefined) return ICON_SVG[name];
+  const L = window.lucide;
+  if (!L || !L.icons) return null;
+  const pascal = String(name).split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  const node = L.icons[pascal] || L.icons[name];
+  if (!node) { ICON_SVG[name] = ''; return ''; }
+  const kids = node[0] === 'svg' ? (node[2] || []) : node;
+  const body = kids.map((k) => {
+    const tag = k[0], attrs = k[1] || {};
+    const a = Object.keys(attrs).map((key) => key + '="' + attrs[key] + '"').join(' ');
+    return '<' + tag + ' ' + a + '></' + tag + '>';
+  }).join('');
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" class="lucide" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + body + '</svg>';
+  ICON_SVG[name] = svg;
+  return svg;
+}
+function paintIcons(root) {
+  const host = root || document;
+  host.querySelectorAll('i[data-lucide]').forEach((el) => {
+    const name = el.getAttribute('data-lucide');
+    if (!name || el.dataset.painted === name) return;
+    const svg = iconMarkup(name);
+    if (svg === null) return; // lucide not loaded yet — try again next pass
+    el.innerHTML = svg;
+    el.dataset.painted = name;
+  });
+}
+
+
+class Component extends DCLogic {
+  state = {
+    screen: 'signin',
+    tab: 'shifts',
+    swap: false,
+    swapPick: 1,
+    nfc: null,
+    nfcAt: 0,
+    autoFired: false,
+    clockedIn: false,
+    clockInAt: 0,
+    mode: null,
+    heroOpen: false,
+    monthOpen: false,
+    gate: false,
+    openIso: TODAY,
+    openStart: '19:00',
+    hoursMonth: 0,
+    weekOffset: 0,
+    weekDir: 1,
+    weekTick: 0,
+    monthOffset: 0,
+    monthTick: 0,
+    selected: TODAY,
+    layout: null,
+    done: { prep: true, gas: true, stock: false, fridge: false, pos: false, waste: false, photo: false },
+    // availability per ISO date: 0 = available in this window, 2 = NOT available in it
+    avail: { '2026-09-17': 2, '2026-09-22': 2, '2026-09-27': 2 },
+    // the window itself, [fromHour, untilHour]
+    hours: { '2026-09-17': [0, 24], '2026-09-20': [7, 15], '2026-09-22': [0, 24], '2026-09-24': [16, 23] },
+    reason: { '2026-09-22': 'Family weekend' },
+    wantShifts: 3,
+    stdShifts: 4,
+    // TODO(iOS): source from employees.role — admin operators see the + in Roster mode.
+    isAdmin: true,
+    addShiftOpen: false,
+    addShift: { date: TODAY, start: '19:00', end: '23:00', truck: 'Mees', role: 'Kitchen', breakMin: 0, picks: [] },
+  };
+
+  componentDidMount() { this.ensureClock(); this.icons(); }
+  componentDidUpdate(prev) {
+    this.ensureClock();
+    if (prev && prev.homeLayout !== this.props.homeLayout) this.setState({ layout: null });
+    if (prev && prev.defaultMode !== this.props.defaultMode) this.setState({ mode: null });
+    this.icons();
+  }
+  icons() {
+    paintIcons();
+    if (!window.lucide) { setTimeout(() => paintIcons(), 200); setTimeout(() => paintIcons(), 700); }
+  }
+  openIsoShift = (iso, start) => {
+    this.setState({ openIso: iso, openStart: start });
+    this.go('detail', 'shifts');
+  };
+  go = (screen, tab) => {
+    this._t0 = 0; // re-arm the listening beat on arrival, not at app mount
+    this.setState((s) => ({ screen, tab: tab || s.tab, swap: false, nfc: null }));
+  };
+  readTag(s, now, auto) {
+    return {
+      nfc: s.clockedIn ? 'out' : 'in',
+      nfcAt: now,
+      autoFired: auto ? true : s.autoFired,
+      clockedIn: !s.clockedIn,
+      clockInAt: s.clockedIn ? s.clockInAt : now,
+    };
+  }
+  // No JS timers: a 2.8s CSS animation on the listening strip fires
+  // onAnimationEnd (the tag read), and a 1s looping animation on the
+  // on-the-clock panel ticks the elapsed counter via onAnimationIteration.
+  autoRead = () => this.setState((s) => (s.nfc === null && !s.autoFired && !s.clockedIn ? this.readTag(s, Date.now(), true) : null));
+  beat = () => this.forceUpdate();
+  // Backstop for the animation path: a half-second ticker that re-creates
+  // itself whenever it has gone quiet (a logic-class swap kills the old one
+  // and leaves its handle behind, so never trust the handle alone).
+  ensureClock() {
+    const now = Date.now();
+    if (this._ticker && now - (this._beatAt || 0) < 1500) return;
+    clearInterval(this._ticker);
+    this._beatAt = now;
+    this._ticker = setInterval(this.tickNow, 500);
+  }
+  tickNow = () => {
+    const now = Date.now();
+    this._beatAt = now;
+    const s = this.state;
+    const onSurface = s.screen === 'shifts' || s.screen === 'detail';
+    if (!onSurface) { this._t0 = 0; }
+    else if (!this._t0) { this._t0 = now; }
+    if (onSurface && s.nfc === null && !s.autoFired && !s.clockedIn && now - this._t0 > 2800) return this.autoRead();
+    if (s.clockedIn && s.nfc === null) this.forceUpdate();
+  };
+  armRef = (node) => {
+    if (!node || node === this._armNode) return;
+    this._armNode = node;
+    node.addEventListener('animationend', this.autoRead);
+  };
+  beatRef = (node) => {
+    if (!node || node === this._beatNode) return;
+    this._beatNode = node;
+    node.addEventListener('animationiteration', this.beat);
+  };
+  tapTag = () => this.setState((s) => (s.nfc === null ? this.readTag(s, Date.now(), false) : null));
+  cancelTag = () => this.setState({ nfc: null, autoFired: true });
+  componentWillUnmount() { clearInterval(this._ticker); this._ticker = null; }
+  stepWeek = (dir) => this.setState((s) => ({ weekOffset: s.weekOffset + dir, weekDir: dir, weekTick: s.weekTick + 1 }));
+  stepMonth = (dir) => this.setState((s) => ({ monthOffset: s.monthOffset + dir, monthTick: s.monthTick + 1 }));
+
+  renderVals() {
+    this.ensureClock();
+    const s = this.state;
+    const base0 = parse(TODAY);
+    const mode = s.mode ?? this.props.defaultMode ?? 'Shifts';
+    // A checklist only opens for a shift that has actually started: it must be
+    // today's shift AND you must be clocked in.
+    const isToday = s.openIso === TODAY;
+    const detailLocked = !(isToday && s.clockedIn);
+    const locked = s.screen === 'detail' ? detailLocked : !s.clockedIn;
+
+    // Detail summary card visually mirrors the black hero when the opened shift
+    // is today's — reinforces "same shift, tapped through to detail."
+    const detailCardBg    = isToday ? '#1A1A1A' : '#fff';
+    const detailCardInk   = isToday ? '#F4F5F0' : '#1A1A1A';
+    const detailCardSub   = isToday ? 'rgba(244,245,240,.6)' : '#8A8A8A';
+    const detailCardDiv   = isToday ? 'rgba(244,245,240,.15)' : '#E0DDD9';
+    const detailCardShadow= isToday ? '0 10px 24px rgba(0,0,0,.22)' : '8px 8px 16px #D1CECA,-8px -8px 16px #FFFFFF';
+    const detailStatusBg  = isToday ? 'rgba(134,239,172,.16)' : 'rgba(22,163,74,.12)';
+    const detailStatusInk = isToday ? '#86efac' : '#16a34a';
+    const showHero = (s.layout ?? this.props.homeLayout ?? 'hero') === 'hero';
+    const compact = (this.props.density ?? 'comfortable') === 'compact';
+
+    // ── week window ──────────────────────────────────────────
+    const monday = addDays(mondayOf(parse(TODAY)), s.weekOffset * 7);
+    const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+    const sunday = days[6];
+    const spanLabel = monday.getDate() + (monday.getMonth() === sunday.getMonth() ? '' : ' ' + MON_SHORT[monday.getMonth()]) +
+      ' – ' + sunday.getDate() + ' ' + MON_SHORT[sunday.getMonth()];
+    const weekShifts = days.flatMap((d) => shiftsOn(isoOf(d)));
+    const weekMin = weekShifts.reduce((a, x) => a + (minutes(x.end) - minutes(x.start)), 0);
+
+    // ── tasks ────────────────────────────────────────────────
+    const taskDefs = [
+      { id: 'prep', title: 'Prep station set up', note: 'Boards, knives, sauces in place · pho base on low heat' },
+      { id: 'gas', title: 'Gas bottles checked', note: 'Two full, one spare connected' },
+      { id: 'stock', title: 'Opening stock count', note: 'Count bao buns, rice paper, noodles', input: '48 bao · 6 kg noodles' },
+      { id: 'fridge', title: 'Fridge temperature logged', note: 'Must read under 4 °C', input: '3,2 °C' },
+      { id: 'pos', title: 'POS terminal tested', note: 'One €0,01 test payment' },
+      { id: 'waste', title: 'Closing waste logged', note: 'Weigh unsold portions for the inventory agent', input: '2,4 kg' },
+      { id: 'photo', title: 'Truck left clean', note: 'Photo of the counter and floor', input: 'Add note' },
+    ];
+    const tasks = taskDefs.map((t, i) => {
+      const on = !!s.done[t.id];
+      return {
+        ...t,
+        tap: () => this.setState((st) => ({ done: { ...st.done, [t.id]: !st.done[t.id] } })),
+        boxBg: on ? INK : '#F3F1EF',
+        boxInk: on ? '#fff' : 'transparent',
+        boxShadow: on ? 'none' : 'inset 2px 2px 4px rgba(180,176,170,.6),inset -2px -2px 4px rgba(255,255,255,.9)',
+        strike: on ? 'line-through' : 'none',
+        opacity: on ? 0.55 : 1,
+        stamp: on ? ['18:40', '18:44', '', '', '', '', ''][i] : '',
+        hasInput: !on && !!t.input,
+        inputVal: t.input || '',
+      };
+    });
+    const doneCount = taskDefs.filter((t) => s.done[t.id]).length;
+
+    // ── roster: only the day picked on the carousel ──
+    const rosterMine = shiftsOn(s.selected).map((x) => ({
+      mine: true, initials: 'SV', name: 'Sanne de Vries', avatar: YELLOW,
+      role: x.role, truck: x.truck, color: TRUCKS[x.truck], time: x.start + ' – ' + x.end,
+      tap: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openIsoShift(s.selected, x.start); },
+      bg: 'rgba(251,226,122,.16)', border: INK, cursor: 'pointer',
+    }));
+    const rosterTheirs = OTHERS.filter((o) => o.date === s.selected).map((o) => ({
+      mine: false, initials: o.who, name: CREW[o.who].name, avatar: CREW[o.who].avatar,
+      role: o.role, truck: o.truck, color: TRUCKS[o.truck], time: o.start + ' – ' + o.end,
+      tap: () => {}, bg: '#fff', border: 'transparent', cursor: 'default',
+    }));
+    const rosterDay = rosterMine.concat(rosterTheirs);
+
+    // ── availability: shift targets + one day's time window ──
+    const availVal = s.avail[s.selected] ?? 0;
+    const unavailable = availVal === 2;
+    const hrs = s.hours[s.selected] || [0, 24];
+    const hh = (n) => String(n).padStart(2, '0') + ':00';
+    const setHours = (from, until) => this.setState((prev) => ({
+      hours: { ...prev.hours, [s.selected]: [from, until] },
+    }));
+    const AVAIL_RED = '#dc2626', AVAIL_GREEN = '#16a34a';
+
+    const openDays = days.filter((d) => (s.avail[isoOf(d)] ?? 0) !== 2).length;
+
+    // ── hours, scoped to the month the stepper is on ──
+    const hoursFirst = new Date(base0.getFullYear(), base0.getMonth() + s.hoursMonth, 1);
+    const inHoursMonth = (x) => {
+      const d = parse(x.date);
+      return d.getMonth() === hoursFirst.getMonth() && d.getFullYear() === hoursFirst.getFullYear();
+    };
+    const dec = (n) => n.toFixed(1).replace('.', ',');
+    const monthRows = WORKED.filter(inHoursMonth);
+    const monthApproved = monthRows.filter((x) => x.state === 'Approved').reduce((a, x) => a + x.hours, 0);
+    const monthPending = monthRows.filter((x) => x.state === 'Pending').reduce((a, x) => a + x.hours, 0);
+    const rowLabel = (x) => {
+      const d = parse(x.date);
+      return DOW3[(d.getDay() + 6) % 7] + ' ' + d.getDate() + ' ' + MON_SHORT[d.getMonth()];
+    };
+    const approvedAll = WORKED.filter((x) => x.state === 'Approved');
+    const monthKeys = [];
+    approvedAll.forEach((x) => { const k = x.date.slice(0, 7); if (!monthKeys.includes(k)) monthKeys.push(k); });
+
+    // ── month grid ───────────────────────────────────────────
+    const first = new Date(base0.getFullYear(), base0.getMonth() + s.monthOffset, 1);
+    const gridStart = mondayOf(first);
+    const monthCells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i))
+      .filter((_, i) => i < 35 || addDays(gridStart, i).getMonth() === first.getMonth())
+      .map((d) => {
+        const iso = isoOf(d), inMonth = d.getMonth() === first.getMonth();
+        const items = shiftsOn(iso), today = iso === TODAY, sel = iso === s.selected;
+        return {
+          num: d.getDate(),
+          tap: () => this.setState({ selected: iso }),
+          cursor: 'pointer',
+          bg: today ? INK : sel ? '#E8E5E0' : items.length ? '#F7F5F2' : 'transparent',
+          shadow: sel && !today ? 'inset 1px 1px 3px rgba(180,176,170,.6),inset -1px -1px 3px rgba(255,255,255,.9)' : 'none',
+          fg: today ? '#fff' : INK,
+          weight: items.length ? 700 : 500,
+          opacity: inMonth ? 1 : 0.32,
+          dots: items.map((x) => TRUCKS[x.truck]),
+        };
+      });
+    const openDate = parse(s.openIso);
+    const openDayLabel = DOW3[(openDate.getDay() + 6) % 7] + ' ' + openDate.getDate() + ' ' + MON_SHORT[openDate.getMonth()];
+    const selDate = parse(s.selected);
+    const selShifts = shiftsOn(s.selected).map(decorate);
+
+    // live on-the-clock timer — real seconds since the clock-in tap
+    const clockedSecs = s.clockedIn && s.clockInAt ? Math.floor((Date.now() - s.clockInAt) / 1000) : 0;
+    const fmt = (mins) => Math.floor(mins / 60) + 'h ' + String(Math.floor(mins % 60)).padStart(2, '0') + 'm';
+    const workedMins = clockedSecs / 60;
+    const elapsedLabel = Math.floor(workedMins / 60) + ':' + String(Math.floor(workedMins % 60)).padStart(2, '0') + ':' + String(clockedSecs % 60).padStart(2, '0');
+    const shiftMins = 240;
+    const shiftPct = Math.min(100, Math.round((workedMins / shiftMins) * 100));
+    const remainingLabel = fmt(Math.max(0, shiftMins - workedMins));
+    const workedLabel = fmt(Math.max(1, workedMins));
+    const outM = 1142 + Math.max(1, Math.round(workedMins));
+    const outLabel = String(Math.floor(outM / 60) % 24).padStart(2, '0') + ':' + String(outM % 60).padStart(2, '0');
+
+    const tabDefs = [
+      { id: 'shifts', label: 'Shifts', icon: 'calendar-days', screen: 'shifts' },
+      { id: 'tasks', label: 'Tasks', icon: 'list-checks', screen: 'tasks', badge: true },
+      { id: 'hours', label: 'Hours', icon: 'clock', screen: 'hours', badge: true },
+      { id: 'inbox', label: 'Inbox', icon: 'message-square', screen: 'inbox', badge: true },
+      { id: 'me', label: 'Me', icon: 'user', screen: 'profile' },
+    ];
+
+    return {
+      isSignIn: s.screen === 'signin',
+      isShifts: s.screen === 'shifts',
+      isDetail: s.screen === 'detail',
+      isTasks: s.screen === 'tasks',
+      isHours: s.screen === 'hours',
+      isApproved: s.screen === 'approved',
+      isInbox: s.screen === 'inbox',
+      isProfile: s.screen === 'profile',
+      showTabs: s.screen !== 'signin',
+      swapOpen: s.swap,
+      showHero,
+      heroIcon: s.heroOpen ? 'minus' : 'plus',
+      openDisplay: s.heroOpen ? 'flex' : 'none',
+      closedDisplay: s.heroOpen ? 'none' : 'flex',
+      heroPad: s.heroOpen ? '20px' : '12px 16px',
+      // Shift-detail card styling — mirrors black hero when opened shift is today.
+      detailIsToday: isToday,
+      detailCardBg, detailCardInk, detailCardSub, detailCardDiv, detailCardShadow,
+      detailStatusBg, detailStatusInk,
+      clockChipDisplay: !s.heroOpen && s.clockedIn ? 'flex' : 'none',
+      clockPanelDisplay: s.clockedIn ? 'flex' : 'none',
+      heroOpen: s.heroOpen,
+      heroClosed: !s.heroOpen,
+      taskBtnInk: locked ? 'rgba(244,245,240,.55)' : '#F4F5F0',
+      todayLabel: showHero ? 'Wednesday 16 Sep' : MONTHS[first.getMonth()] + ' ' + first.getFullYear(),
+      shiftsTitle: showHero ? 'Hey Sanne' : 'Shifts',
+      isAdmin: s.isAdmin,
+      addShiftOpen: s.addShiftOpen,
+      addShiftDate: s.addShift.date,
+      addShiftStart: s.addShift.start,
+      addShiftEnd: s.addShift.end,
+      addShiftBreak: s.addShift.breakMin,
+      addShiftTrucks: ['Mees', 'Mike', 'Mama', 'Extra Blue'].map((t) => ({
+        label: 'Truck ' + t, key: t,
+        bg: s.addShift.truck === t ? '#1A1A1A' : '#fff',
+        fg: s.addShift.truck === t ? '#fff' : '#1A1A1A',
+        dot: t === 'Mees' ? '#fbe27a' : t === 'Mike' ? '#86efac' : t === 'Mama' ? '#f0a8c8' : '#7aa6f5',
+        tap: () => this.setState((st) => ({ addShift: { ...st.addShift, truck: t } })),
+      })),
+      addShiftRoles: ['Kitchen', 'Sales', 'Runner', 'Prep'].map((r) => ({
+        label: r,
+        bg: s.addShift.role === r ? '#1A1A1A' : '#fff',
+        fg: s.addShift.role === r ? '#fff' : '#1A1A1A',
+        tap: () => this.setState((st) => ({ addShift: { ...st.addShift, role: r } })),
+      })),
+      addShiftCrew: [
+        { id: 'sv', name: 'Sanne V.', color: '#fbe27a', initials: 'SV' },
+        { id: 'bt', name: 'Bram T.', color: '#86efac', initials: 'BT' },
+        { id: 'jk', name: 'Julia K.', color: '#f0a8c8', initials: 'JK' },
+        { id: 'mo', name: 'Milan O.', color: '#7aa6f5', initials: 'MO' },
+      ].map((c) => ({
+        ...c,
+        on: s.addShift.picks.includes(c.id),
+        bg: s.addShift.picks.includes(c.id) ? 'rgba(251,226,122,.28)' : '#fff',
+        border: s.addShift.picks.includes(c.id) ? '#1A1A1A' : 'transparent',
+        tap: () => this.setState((st) => {
+          const picks = st.addShift.picks.includes(c.id)
+            ? st.addShift.picks.filter((x) => x !== c.id)
+            : [...st.addShift.picks, c.id];
+          return { addShift: { ...st.addShift, picks } };
+        }),
+      })),
+      addShiftPickCount: s.addShift.picks.length,
+      addShiftCanSave: s.addShift.picks.length > 0,
+
+      rowGap: compact ? '6px' : '10px',
+      rowPad: compact ? '11px 14px' : '15px 16px',
+
+      signIn: () => this.go('shifts', 'shifts'),
+      signOut: () => this.go('signin'),
+      goShifts: () => this.go('shifts', 'shifts'),
+      goProfile: () => this.go('profile', 'me'),
+      // The checklist is only reachable once the shift has actually started
+      // (clock-in): before that, tapping it opens the gated preview instead.
+      goTasks: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (locked) return this.setState({ screen: 'detail', tab: 'shifts', gate: true, nfc: null });
+        this.go('tasks', 'tasks');
+      },
+      goHours: () => this.go('hours', 'hours'),
+      goApproved: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.go('approved', 'hours'); },
+      goAvailability: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ screen: 'shifts', tab: 'shifts', mode: 'Availability' }); },
+      toggleHero: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState((st) => ({ heroOpen: !st.heroOpen })); },
+      toggleMonth: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState((st) => ({ monthOpen: !st.monthOpen })); },
+      toggleGate: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState((st) => ({ gate: !st.gate })); },
+      saveAvail: () => this.setState({ mode: 'Shifts' }),
+      openShift: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ openIso: TODAY, openStart: '19:00' }); this.go('detail', 'shifts'); },
+      submitHours: () => this.go('shifts', 'shifts'),
+      openSwap: () => this.setState({ swap: true }),
+      closeSwap: () => this.setState({ swap: false }),
+      openAddShift: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ addShiftOpen: true }); },
+      closeAddShift: () => this.setState({ addShiftOpen: false }),
+      saveAddShift: () => {
+        // Fixture-only: pretend to save + close. Real implementation posts to Supabase
+        // (activities.daily_employee_times upsert) via a Slice-3 hook.
+        this.setState({ addShiftOpen: false });
+      },
+      setAddTruck: (t) => this.setState((s) => ({ addShift: { ...s.addShift, truck: t } })),
+      setAddRole: (r) => this.setState((s) => ({ addShift: { ...s.addShift, role: r } })),
+      setAddStart: (e) => { const v = e && e.target ? e.target.value : e; this.setState((s) => ({ addShift: { ...s.addShift, start: v } })); },
+      setAddEnd: (e) => { const v = e && e.target ? e.target.value : e; this.setState((s) => ({ addShift: { ...s.addShift, end: v } })); },
+      setAddDate: (e) => { const v = e && e.target ? e.target.value : e; this.setState((s) => ({ addShift: { ...s.addShift, date: v } })); },
+      toggleAddPick: (id) => this.setState((s) => {
+        const on = s.addShift.picks.includes(id);
+        return { addShift: { ...s.addShift, picks: on ? s.addShift.picks.filter((x) => x !== id) : [...s.addShift.picks, id] } };
+      }),
+
+      // passive NFC clock-in
+      nfcOpen: s.nfc !== null,
+      nfcDone: s.nfc === 'in' || s.nfc === 'out',
+      clockedIn: s.clockedIn,
+      clockInAt: '19:02',
+      elapsed: elapsedLabel,
+      shiftLength: '4h 00m',
+      remaining: remainingLabel,
+      shiftPct: shiftPct + '%',
+      nfcInk: s.clockedIn ? '#86efac' : '#fbe27a',
+      nfcHint: s.clockedIn
+        ? 'Hold your phone to the tag to clock out'
+        : 'Hold your phone to the tag on Truck Mees — clock-in starts by itself',
+      detailClockLabel: s.clockedIn
+        ? 'Hold your phone to the truck tag to clock out'
+        : 'Hold your phone to the truck tag — clock-in is automatic',
+      nfcBadgeBg: s.nfc === 'out' ? '#1A1A1A' : '#86efac',
+      nfcBadgeInk: s.nfc === 'out' ? '#F4F5F0' : INK,
+      nfcIsOut: s.nfc === 'out',
+      nfcIsIn: s.nfc === 'in',
+      nfcHeadline: s.nfc === 'out' ? 'Shift complete' : "You're clocked in",
+      nfcSub: s.nfc === 'out'
+        ? 'Truck Mees · Paradigm Festival, Groningen'
+        : 'Truck tag read · Paradigm Festival, Groningen',
+      nfcStampLabel: s.nfc === 'out' ? 'Worked' : 'Clocked in',
+      nfcStamp: s.nfc === 'out' ? workedLabel : '19:02',
+      nfcStampNote: s.nfc === 'out' ? '19:02 – ' + outLabel : '2 min after 19:00',
+      nfcAgentNote: s.nfc === 'out'
+        ? 'Hours are pre-filled and waiting for you to submit. ' + (7 - doneCount) + ' checklist items stay open for 48 h.'
+        : 'Your checklist is open and the crew can see you arrived.',
+      nfcPrimaryLabel: s.nfc === 'out' ? 'Review my hours' : 'Open shift checklist',
+      nfcPrimary: () => this.setState((st) => ({ nfc: null, screen: st.nfc === 'out' ? 'hours' : 'tasks', tab: st.nfc === 'out' ? 'hours' : 'tasks' })),
+      nfcUndoLabel: s.nfc === 'out' ? "Wasn't done — stay clocked in" : 'Not me — undo clock-in',
+      nfcUndo: () => this.setState((st) => ({ nfc: null, clockedIn: st.nfc === 'out', clockInAt: st.nfc === 'out' ? st.clockInAt : 0 })),
+      cancelTag: () => this.cancelTag(),
+      simulateTag: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.tapTag(); },
+      armRef: this.armRef,
+      beatRef: this.beatRef,
+
+      // week stepper
+      prevWeek: () => this.stepWeek(-1),
+      nextWeek: () => this.stepWeek(1),
+      weekLabel: 'Week ' + weekNo(monday),
+      weekMeta: spanLabel + ' · ' + weekShifts.length + (weekShifts.length === 1 ? ' shift' : ' shifts'),
+      weekSpan: spanLabel,
+      weekHours: (Math.round(weekMin / 6) / 10).toString().replace('.', ',') + ' h',
+      weekAnim: (s.weekDir > 0 ? 'frSlideR' : 'frSlideL') + (s.weekTick % 2 ? '1' : '2'),
+      week: days.map((d) => {
+        const iso = isoOf(d), items = shiftsOn(iso), today = iso === TODAY, sel = iso === s.selected;
+        return {
+          dow: DOW[(d.getDay() + 6) % 7], num: d.getDate(),
+          tap: () => this.setState({ selected: iso }),
+          bg: today ? INK : sel ? '#E8E5E0' : 'transparent',
+          fg: today ? '#fff' : INK,
+          shadow: today ? '0 4px 10px rgba(0,0,0,.2)' : 'none',
+          bar: mode === 'Availability'
+            ? ((s.avail[iso] ?? 0) === 2 ? '#dc2626' : '#16a34a')
+            : (items.length ? TRUCKS[items[0].truck] : 'transparent'),
+        };
+      }),
+
+      modes: ['Shifts', 'Roster', 'Availability'].map((label) => ({
+        label,
+        tap: () => this.setState({ mode: label }),
+        bg: mode === label ? '#FBFAF7' : 'transparent',
+        fg: mode === label ? INK : '#6a6a6a',
+        shadow: mode === label ? PILL_SHADOW : 'none',
+      })),
+      isShiftsMode: mode === 'Shifts',
+      isRosterMode: mode === 'Roster',
+      isAvailMode: mode === 'Availability',
+      showWeekCarousel: mode !== 'Shifts',
+
+      // month calendar, folded into the carousel
+      monthOpen: s.monthOpen,
+      monthBtnBg: s.monthOpen ? INK : '#F3F1EF',
+      monthBtnInk: s.monthOpen ? '#fff' : INK,
+      monthBtnShadow: s.monthOpen ? 'inset 2px 2px 4px rgba(0,0,0,.35)' : '2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF',
+      dowLabels: DOW,
+      monthLabel: MONTHS[first.getMonth()] + ' ' + first.getFullYear(),
+      monthAnim: 'frSlideR' + (s.monthTick % 2 ? '1' : '2'),
+      prevMonth: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.stepMonth(-1); },
+      nextMonth: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.stepMonth(1); },
+      monthCells,
+
+      // the day you tapped
+      selectedLabel: DOW3[(selDate.getDay() + 6) % 7] + ' ' + selDate.getDate() + ' ' + MON_SHORT[selDate.getMonth()],
+      selectedMeta: selShifts.length
+        ? selShifts.length + (selShifts.length === 1 ? ' shift' : ' shifts')
+        : 'Nothing scheduled',
+      selectedShifts: selShifts.map((x) => ({ ...x, tap: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openIsoShift(x.iso, x.start); } })),
+      selectedEmpty: selShifts.length === 0,
+      hasSelectedShift: selShifts.length > 0,
+      selectedAvailLabel: ['You are available 07:00 – 23:00', 'You are available part of the day', 'You marked yourself unavailable'][s.avail[s.selected] ?? 0],
+
+      // everything still to work
+      upcoming: SHIFTS.filter((x) => x.date >= TODAY && x.status !== 'Done').map((x) => {
+        const d = parse(x.date);
+        const isToday = x.date === TODAY;
+        return {
+          ...decorate(x), dow: DOW[(d.getDay() + 6) % 7], num: d.getDate(),
+          isToday,
+          rowBg: isToday ? 'rgba(251,226,122,.35)' : '#fff',
+          rowShadow: isToday
+            ? '2px 2px 4px rgba(180,160,80,.45),-2px -2px 4px rgba(255,255,255,.9)'
+            : '2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF',
+          tap: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openIsoShift(x.date, x.start); },
+        };
+      }),
+      upcomingMeta: (() => {
+        const list = SHIFTS.filter((x) => x.date >= TODAY && x.status !== 'Done');
+        const mins = list.reduce((acc, x) => acc + (minutes(x.end) - minutes(x.start)), 0);
+        return list.length + ' shifts · ' + (Math.round(mins / 6) / 10).toString().replace('.', ',') + ' h';
+      })(),
+
+      roster: rosterDay,
+      rosterEmpty: rosterDay.length === 0,
+      rosterMeta: rosterDay.length
+        ? rosterDay.length + (rosterDay.length === 1 ? ' person' : ' people') + ' on shift'
+        : 'Nothing scheduled',
+
+      availDeadline: 'Closes Thu 23:59',
+      availRange: hh(hrs[0]) + ' – ' + hh(hrs[1]),
+      availDateLabel: selDate.getDate() + '-' + (selDate.getMonth() + 1) + '-' + selDate.getFullYear(),
+      fromVal: hrs[0],
+      untilVal: hrs[1],
+      fillLeft: 'calc(' + (hrs[0] / 24) * 100 + '% + 11px)',
+      fillRight: 'calc(' + (100 - (hrs[1] / 24) * 100) + '% + 11px)',
+      availFill: unavailable ? AVAIL_RED : AVAIL_GREEN,
+      setFrom: (e) => { const v = Math.min(Number(e.target.value), hrs[1] - 1); setHours(v, hrs[1]); },
+      setUntil: (e) => { const v = Math.max(Number(e.target.value), hrs[0] + 1); setHours(hrs[0], v); },
+      availToggle: [
+        { label: 'Not available', val: 2, on: AVAIL_RED, ink: '#fff' },
+        { label: 'Available', val: 0, on: AVAIL_GREEN, ink: '#fff' },
+      ].map((o) => ({
+        label: o.label,
+        tap: () => this.setState((prev) => ({ avail: { ...prev.avail, [s.selected]: o.val } })),
+        bg: availVal === o.val ? o.on : '#F3F1EF',
+        fg: availVal === o.val ? o.ink : '#6a6a6a',
+        shadow: availVal === o.val ? '0 4px 10px rgba(0,0,0,.14)' : 'inset 2px 2px 4px rgba(180,176,170,.5),inset -2px -2px 4px rgba(255,255,255,.9)',
+      })),
+      reasonText: s.reason[s.selected] || 'Reason (optional)',
+      reasonInk: s.reason[s.selected] ? '#1A1A1A' : '#8A8A8A',
+      focusReason: () => this.setState((prev) => ({
+        reason: { ...prev.reason, [s.selected]: prev.reason[s.selected] ? '' : 'Not available — other job' },
+      })),
+      shiftTargets: [
+        {
+          label: 'Shifts you want this week', value: s.wantShifts,
+          dec: () => this.setState((prev) => ({ wantShifts: Math.max(0, prev.wantShifts - 1) })),
+          inc: () => this.setState((prev) => ({ wantShifts: Math.min(7, prev.wantShifts + 1) })),
+          decInk: s.wantShifts === 0 ? '#C9C4BE' : INK,
+        },
+        {
+          label: 'Standard shifts per week', value: s.stdShifts,
+          dec: () => this.setState((prev) => ({ stdShifts: Math.max(0, prev.stdShifts - 1) })),
+          inc: () => this.setState((prev) => ({ stdShifts: Math.min(7, prev.stdShifts + 1) })),
+          decInk: s.stdShifts === 0 ? '#C9C4BE' : INK,
+        },
+      ],
+      availLegend: [
+        { label: 'Available', color: AVAIL_GREEN },
+        { label: 'Not available', color: AVAIL_RED },
+      ],
+      availAgentNote: s.wantShifts > openDays
+        ? 'You asked for ' + s.wantShifts + ' shifts but only ' + openDays + ' days are open. The agent can only fill what you leave free.'
+        : 'You want ' + s.wantShifts + ' shifts this week (standard ' + s.stdShifts + '). The agent will schedule inside your open windows.',
+
+      // hours
+      hoursPeriod: 'Period ' + (hoursFirst.getMonth() + 1) + ' · ' + MONTHS[hoursFirst.getMonth()],
+      hoursMonthLabel: MONTHS[hoursFirst.getMonth()] + ' ' + hoursFirst.getFullYear(),
+      hoursMonthShort: MON_SHORT[hoursFirst.getMonth()] + ' ' + hoursFirst.getFullYear(),
+      prevHoursMonth: () => this.setState((st) => ({ hoursMonth: st.hoursMonth - 1 })),
+      nextHoursMonth: () => this.setState((st) => ({ hoursMonth: st.hoursMonth + 1 })),
+      monthApproved: dec(monthApproved),
+      monthPending: dec(monthPending),
+      monthPendingNote: monthPending > 0 ? '1 shift to submit' : 'Nothing waiting',
+      hasEntry: s.hoursMonth === 0,
+      monthLog: monthRows.map((x) => ({
+        day: rowLabel(x), where: x.where, hours: dec(x.hours) + ' h',
+        color: TRUCKS[x.truck], state: x.state,
+        stateInk: x.state === 'Approved' ? '#16a34a' : '#f97316',
+      })),
+      monthLogEmpty: monthRows.length === 0,
+      totalApproved: dec(approvedAll.reduce((acc, x) => acc + x.hours, 0)),
+      totalShifts: approvedAll.length,
+      approvedMonths: monthKeys.map((k) => {
+        const rows = approvedAll.filter((x) => x.date.slice(0, 7) === k);
+        const d = parse(k + '-01');
+        return {
+          label: MONTHS[d.getMonth()] + ' ' + d.getFullYear(),
+          total: dec(rows.reduce((acc, x) => acc + x.hours, 0)),
+          rows: rows.map((x) => ({ day: rowLabel(x), where: x.where, hours: dec(x.hours) + ' h', color: TRUCKS[x.truck] })),
+        };
+      }),
+
+      tasks, doneCount, taskTotal: taskDefs.length,
+      donePct: Math.round((doneCount / taskDefs.length) * 100) + '%',
+      doneLabel: doneCount + ' of ' + taskDefs.length + ' done',
+
+      // gated "what you need to do"
+      gateOpen: s.gate,
+      gateClosed: !s.gate,
+      gateSummary: locked
+        ? taskDefs.length + ' items · unlocks when the shift starts'
+        : doneCount + ' of ' + taskDefs.length + ' done · tap to open',
+      tasksLocked: locked,
+      tasksUnlocked: !locked,
+      lockedNote: isToday
+        ? 'The checklist opens once you clock in at ' + s.openStart + ' — hold your phone to the tag on the truck.'
+        : 'This shift has not started yet. The checklist opens when you clock in on ' + openDayLabel + ' at ' + s.openStart + '.',
+      taskPreview: taskDefs.map((t) => {
+        const on = !locked && !!s.done[t.id];
+        return {
+          title: t.title, note: t.note,
+          done: on, todo: !on,
+          dotBg: on ? INK : '#E8E5E0',
+          dotInk: on ? '#fff' : 'transparent',
+          ink: locked ? '#5c5c5c' : INK,
+        };
+      }),
+
+      crew: [
+        { initials: 'ML', name: 'Mees Linh', role: 'Truck lead', color: YELLOW, time: '18:00' },
+        { initials: 'SV', name: 'Sanne de Vries', role: 'Kitchen · you', color: YELLOW, time: '19:00' },
+        { initials: 'TD', name: 'Tom Dinh', role: 'Counter', color: BLUE, time: '19:00' },
+      ],
+
+      inbox: [
+        { initials: 'F', from: 'Foodrun agent', when: '2m', body: 'Saturday 11:00 shift on Truck Mees needs cover. You marked yourself available — take it?', color: INK, avatarInk: '#fff', avatarRadius: '11px', unread: true, hasActions: true },
+        { initials: 'ML', from: 'Mees Linh', when: '1h', body: 'Bring the spare gas regulator tomorrow, the one on Mees is leaking a bit.', color: YELLOW, avatarInk: INK, avatarRadius: '9999px', unread: true, hasActions: false },
+        { initials: 'F', from: 'Foodrun agent', when: '4h', body: 'Your hours for Mon 14 Sep were approved. €112,50 lands in the 25 Sep payslip.', color: INK, avatarInk: '#fff', avatarRadius: '11px', unread: true, hasActions: false },
+        { initials: 'AK', from: 'Anh Khoa', when: 'Yesterday', body: 'Thanks for covering Friday! Owe you one.', color: PINK, avatarInk: INK, avatarRadius: '9999px', unread: false, hasActions: false },
+        { initials: 'F', from: 'Foodrun agent', when: 'Mon', body: 'Checklist for Noorderzon was missing the closing photo. Add it within 48 h.', color: INK, avatarInk: '#fff', avatarRadius: '11px', unread: false, hasActions: false },
+      ],
+
+      settings: [
+        { icon: 'globe', label: 'Language', value: 'English' },
+        { icon: 'bell', label: 'Notifications', value: 'All' },
+        { icon: 'receipt', label: 'Payslips', value: '' },
+        { icon: 'building-2', label: 'Contract', value: '24 h/wk' },
+        { icon: 'help-circle', label: 'Help & contact', value: '' },
+      ],
+
+      swapCandidates: [
+        { initials: 'AK', name: 'Anh Khoa', note: 'Available · 2 shifts this week', color: PINK },
+        { initials: 'TD', name: 'Tom Dinh', note: 'Available · same festival', color: BLUE },
+        { initials: 'JB', name: 'Joris Bakker', note: 'If needed · new hire', color: GREEN },
+      ].map((c, i) => ({
+        ...c,
+        tap: () => this.setState({ swapPick: i }),
+        border: s.swapPick === i ? INK : 'transparent',
+        shadow: s.swapPick === i ? 'none' : '2px 2px 4px #D1CECA,-2px -2px 4px #FFFFFF',
+        checkInk: s.swapPick === i ? INK : '#E0DDD9',
+      })),
+
+      tabs: tabDefs.map((t) => {
+        const active = s.tab === t.id;
+        return {
+          ...t,
+          tap: () => this.go(t.screen, t.id),
+          bg: active ? '#F4F5F0' : 'transparent',
+          fg: active ? INK : 'rgba(244,245,240,.55)',
+          badge: !active && !!t.badge,
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

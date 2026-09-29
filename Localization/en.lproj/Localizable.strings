@@ -1,0 +1,197 @@
+/* Foodrun iOS — English strings. Every user-facing label lives here.
+   Bundle §Copy & language: strings are final, use verbatim, wrap don't truncate.
+*/
+
+// MARK: Tab bar
+"tab.shifts" = "Shifts";
+"tab.tasks"  = "Tasks";
+"tab.hours"  = "Hours";
+"tab.inbox"  = "Inbox";
+"tab.me"     = "Me";
+
+// MARK: Modes
+"mode.shifts"       = "Shifts";
+"mode.roster"       = "Roster";
+"mode.availability" = "Availability";
+
+// MARK: Auth
+"auth.headline"           = "Your shifts.\nOne tap away.";
+"auth.subheadline"        = "Sign in to see your schedule, log your hours and finish your shift checklists.";
+"auth.email"              = "Email";
+"auth.email.placeholder"  = "you@example.com";
+"auth.password"           = "Password";
+"auth.password.placeholder" = "Password";
+"auth.login"              = "Log in";
+"auth.makeAccount"        = "Make an account";
+"auth.invite.footer"      = "Joining a team? Open the invite link your\nmanager sent — it connects you automatically.";
+
+// MARK: Shifts / home
+"shifts.greeting %@"             = "Hey %@";
+"shifts.avatarProfile"           = "Open profile";
+"shifts.empty.title"             = "No shift on this day";
+"shifts.empty.body"              = "You are marked available this day.";
+"shifts.empty.editAvailability"  = "Edit";
+"shifts.stillToWork.title"       = "Still to work";
+
+// MARK: Hero
+"hero.eyebrow.nextShift"  = "Next shift";
+"hero.expand"             = "Expand shift card";
+"hero.collapse"           = "Collapse shift card";
+"hero.onTheClock"         = "On the clock";
+"hero.since %@"           = "since %@";
+"hero.of %@ · %@ left"    = "of %@ · %@ left";
+"hero.nfc.listening"      = "Tap here, then hold your phone to the tag on Truck Mees to clock in";
+"hero.checklist"          = "Open checklist";
+
+// MARK: Week carousel
+"action.toggleMonth" = "Toggle month view";
+"action.back"        = "Back";
+"action.more"        = "More";
+"action.increment"   = "Increase";
+"action.decrement"   = "Decrease";
+
+// MARK: Row / roster
+"row.you"                  = "You";
+"roster.peopleOnShift %lld" = "%lld people on shift";
+
+// MARK: Availability
+"availability.wantThisWeek"        = "Shifts you want this week";
+"availability.standardPerWeek"     = "Standard shifts per week";
+"availability.available"           = "Available";
+"availability.notAvailable"        = "Not available";
+"availability.legend.available"    = "Available";
+"availability.legend.notAvailable" = "Not available";
+"availability.reason.placeholder"  = "Reason (optional)";
+"availability.closesThu"           = "Closes Thu 23:59";
+"availability.agent %lld %lld"     = "You want %1$lld shifts this week (standard %2$lld). The agent will schedule inside your open windows.";
+"availability.saveWeek %lld"       = "Save Week %lld";
+"availability.slider.start"        = "Start hour";
+"availability.slider.end"          = "End hour";
+
+// MARK: Shift detail
+"detail.kicker"          = "Shift detail";
+"detail.status.confirmed" = "Confirmed";
+"detail.role"            = "Role";
+"detail.break"           = "Break";
+"detail.hours"           = "Hours";
+"detail.route"           = "Route";
+"detail.crew"            = "Crew on this truck";
+"detail.gate.title"      = "What you need to do";
+"detail.gate.open %lld %lld" = "Open checklist · %1$lld of %2$lld done";
+"detail.gate.locked.today"   = "The checklist opens once you clock in — hold your phone to the tag on the truck.";
+"detail.gate.locked.future"  = "This shift has not started yet. The checklist opens when you clock in.";
+"detail.nfc.listening"       = "Hold your phone to the tag on the truck to clock in.";
+"detail.requestSwap"     = "Request a swap";
+
+// MARK: Tasks
+"tasks.kicker"                 = "Truck Mees · Paradigm";
+"tasks.title"                  = "Shift checklist";
+"tasks.completedLabel"         = "Completed";
+"tasks.submittedAt %@"         = "Submitted to your manager at %@";
+"tasks.section.beforeService"  = "Before service";
+"tasks.section.tapToComplete"  = "Tap to complete";
+"tasks.submit"                 = "Submit checklist";
+"tasks.footer"                 = "Once you submit, your manager reviews and the inventory agent updates stock counts automatically.";
+"task.enterValue"              = "Enter value";
+"task.photo"                   = "Photo";
+"task.done"                    = "Done";
+"task.todo"                    = "Not done";
+
+// MARK: Hours
+"hours.periodKicker"          = "Period 9 · September";
+"hours.title"                 = "Your hours";
+"hours.approved"              = "Approved";
+"hours.approvedLabel"         = "Approved";
+"hours.pendingLabel"          = "Pending";
+"hours.thisMonth"             = "This month only";
+"hours.pending.sub"           = "1 shift to submit";
+"hours.waitingForYou"         = "Waiting for you";
+"hours.rowLead"               = "Mon 14 Sep · Truck Mike";
+"hours.tile.start"            = "Start";
+"hours.tile.end"              = "End";
+"hours.tile.break"            = "Break";
+"hours.agent.note"            = "Clock-in said 17:04. The scheduling agent pre-filled 17:00 — edit if that's wrong.";
+"hours.submit %@"             = "Submit %@";
+"hours.seeAll"                = "See all →";
+"hours.status.pending"        = "Pending";
+"hours.status.approved"       = "Approved";
+"hours.status.rejected"       = "Rejected";
+
+// MARK: Approved
+"approved.kicker"   = "Approved";
+"approved.eyebrow"  = "Everything worked";
+"approved.since"    = "Since you joined Vietnamama in March";
+
+// MARK: Inbox
+"inbox.unreadKicker %lld" = "%lld unread";
+"inbox.title"             = "Inbox";
+"inbox.accept"            = "Accept";
+"inbox.decline"           = "Decline";
+
+// MARK: Profile
+"profile.role.line"       = "Kitchen · Vietnamama fleet";
+"profile.stat.shifts"     = "Shifts";
+"profile.stat.checklists" = "Checklists";
+"profile.stat.trucks"     = "Trucks";
+"profile.section.account" = "Account";
+"profile.language"        = "Language";
+"profile.notifications"   = "Notifications";
+"profile.payslips"        = "Payslips";
+"profile.contract"        = "Contract (24 h/wk)";
+"profile.help"            = "Help & contact";
+"profile.logout"          = "Log out";
+"profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
+
+// MARK: Swap sheet
+"swap.title"          = "Request a swap";
+"swap.context"        = "Wed 16 Sep · 19:00 – 23:00 · Truck Mees";
+"swap.available.body" = "Available Wed 16 Sep · Off shift";
+"swap.send"           = "Send request";
+"swap.askCrew"        = "Ask the whole crew instead";
+
+// MARK: Add shift (admin)
+"roster.addShift"           = "Add shift";
+"addShift.title"            = "Add shift";
+"addShift.adminBadge"       = "Admin";
+"addShift.description"      = "Rosters people on the chosen day. They see the shift in their app right away.";
+"addShift.field.date"       = "Date";
+"addShift.field.start"      = "Start";
+"addShift.field.end"        = "End";
+"addShift.field.truck"      = "Truck";
+"addShift.field.role"       = "Role";
+"addShift.field.who"        = "Who";
+"addShift.pickCount %lld"   = "%lld selected";
+"addShift.save"             = "Roster this shift";
+"addShift.cancel"           = "Cancel";
+
+// MARK: NFC
+"nfc.tagDetected"          = "Tag detected";
+"nfc.result.clockedIn"     = "You're clocked in";
+"nfc.result.clockedOut"    = "Shift complete";
+"nfc.tile.clockedInAt"     = "Clocked in";
+"nfc.tile.truck"           = "Truck";
+"nfc.tile.workedTotal"     = "Worked";
+"nfc.tile.span"            = "Span";
+"nfc.agent.clockedIn"      = "The agent is watching. Miss the tap-in? Ask a crew member — they can vouch.";
+"nfc.agent.clockedOut"     = "Manager is notified. Hours pre-filled from your clock-in and clock-out.";
+"nfc.cta.openChecklist"    = "Open shift checklist";
+"nfc.cta.reviewHours"      = "Review my hours";
+"nfc.cta.notMe"            = "Not me — undo clock-in";
+"nfc.cta.stayClockedIn"    = "Wasn't done — stay clocked in";
+
+// MARK: Live data (2026-09-28)
+"shifts.loading"            = "Loading your shifts…";
+"shifts.none"               = "No shifts planned yet";
+"hours.prefill.note"        = "Times come from your roster. Adjust them if you worked longer or shorter — your manager reviews them in Foodrun HQ.";
+"hours.rejected %@"         = "Sent back: %@";
+"hours.moreDue %lld"        = "+%lld more";
+"hours.dueCount %lld"       = "%lld shifts to submit";
+"hours.monthEmpty"          = "No hours logged this month.";
+"approved.totalShifts %lld" = "h · %lld shifts";
+"approved.empty"            = "No approved hours yet.";
+"inbox.empty"               = "Nothing here yet. Roster changes and hour approvals show up here.";
+"detail.crew.others %lld"   = "+ %lld colleagues on this shift";
+"roster.empty"              = "Nobody rostered on this day.";
+"addShift.field.activity"   = "Activity";
+"addShift.noActivity"       = "No activity runs on this day. Create one in Foodrun HQ first.";
+"addShift.alreadyRostered"  = "Already rostered";
