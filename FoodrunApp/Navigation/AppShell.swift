@@ -44,6 +44,11 @@ public struct AppShell: View {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.foodrun.background.ignoresSafeArea())
+                // Opaque strip behind the status bar: the screens hide their nav
+                // bars, so scrolled content otherwise runs under the clock.
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    Color.clear.frame(height: 0).background(Color.foodrun.background)
+                }
 
             FRTabBar(
                 selection: Binding(
