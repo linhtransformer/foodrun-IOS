@@ -185,7 +185,12 @@
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Loading your shifts…";
 "shifts.none"               = "No shifts planned yet";
-"hours.prefill.note"        = "Times come from your roster. Adjust them if you worked longer or shorter — your manager reviews them in Foodrun HQ.";
+"hours.tap.title"           = "Phone tap";
+"hours.tap.locked"          = "From the tag on your truck · read-only";
+"hours.tap.stillIn"         = "Still clocked in";
+"hours.tile.hour"           = "Hour";
+"hours.tile.minute"         = "Minute";
+"tasks.forShift"            = "For shift";
 "hours.rejected %@"         = "Sent back: %@";
 "hours.moreDue %lld"        = "+%lld more";
 "hours.dueCount %lld"       = "%lld shifts to submit";

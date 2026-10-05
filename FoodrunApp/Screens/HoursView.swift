@@ -17,6 +17,16 @@ public struct HoursView: View {
     @State private var editEnd = "17:00"
     @State private var editBreak = 0
     @State private var editingShiftId: String?
+    @State private var editingField: TimeField?
+    @State private var tapWindow: TapWindow?
+
+    private enum TimeField { case start, end, brk }
+
+    /// First phone-tap clock-in and the clock-out after it, for the shift being submitted.
+    private struct TapWindow: Equatable {
+        let clockIn: Date
+        let clockOut: Date?
+    }
 
     public init() {}
 
@@ -139,6 +149,7 @@ public struct HoursView: View {
                     Text("hours.moreDue \(dueShifts.count - 1)").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
             }
+            if let tapWindow { tapCard(tapWindow) }
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     Circle().fill(Color.foodrunData(hex: shift.activity.color)).frame(width: 8, height: 8)
@@ -159,16 +170,14 @@ public struct HoursView: View {
                 }
 
                 HStack(spacing: 8) {
-                    timeStepper("hours.tile.start", value: editStart) { editStart = shiftTime(editStart, $0) }
-                    timeStepper("hours.tile.end", value: editEnd) { editEnd = shiftTime(editEnd, $0) }
-                    timeStepper("hours.tile.break", value: "\(editBreak)m") { editBreak = max(0, editBreak + $0) }
+                    timeTile("hours.tile.start", value: editStart, field: .start)
+                    timeTile("hours.tile.end", value: editEnd, field: .end)
+                    timeTile("hours.tile.break", value: "\(editBreak) min", field: .brk)
                 }
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "sparkles").foregroundStyle(Color.foodrun.subject.agentNoteBlue)
-                    Text("hours.prefill.note").frText(FRType.rowSubtitle)
+                if let editingField {
+                    wheel(for: editingField)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                .padding(10)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.agentNoteField))
                 if let err = hours.lastError {
                     Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
                 }
@@ -197,38 +206,105 @@ public struct HoursView: View {
         }
         .onAppear { prefill(shift) }
         .onChange(of: shift.id) { _, _ in prefill(shift) }
+        .task(id: shift.id) { await loadTapWindow(shift) }
     }
 
-    private func timeStepper(_ label: LocalizedStringKey, value: String, step: @escaping (Int) -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            // Value on its own line: a third of the card is too narrow to fit
-            // "10:00" between the two step buttons.
-            Text(value)
-                .font(.system(size: 17, weight: .semibold).monospacedDigit())
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            HStack(spacing: 4) {
-                stepButton("minus") { step(-15) }
-                Spacer(minLength: 0)
-                stepButton("plus") { step(15) }
+    /// Read-only: the times the NFC tag recorded. Kept apart from the editable
+    /// tiles so it's clear these come from the clock, not from the worker.
+    private func tapCard(_ window: TapWindow) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: "wave.3.right")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(Color.foodrun.foreground))
+            VStack(alignment: .leading, spacing: 3) {
+                Text("hours.tap.title").frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Text(verbatim: "\(clockTime(window.clockIn)) – \(window.clockOut.map(clockTime) ?? "…")")
+                    .font(.system(size: 20, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Color.foodrun.foreground)
+                Text(window.clockOut == nil ? "hours.tap.stillIn" : "hours.tap.locked")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
+            Spacer(minLength: 0)
+            Image(systemName: "lock.fill")
+                .font(.system(size: 13))
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
-        .frNeu(.pressed)
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
+        .frNeu(.raised)
+        .accessibilityElement(children: .combine)
     }
 
-    private func stepButton(_ symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: { action(); FRHaptic.light.fire() }) {
-            Image(systemName: symbol)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Color.foodrun.foreground)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.foodrun.card).frame(width: 24, height: 24))
+    private func timeTile(_ label: LocalizedStringKey, value: String, field: TimeField) -> some View {
+        let selected = editingField == field
+        return Button {
+            withAnimation(FRAnimation.subtle) { editingField = selected ? nil : field }
+            FRHaptic.light.fire()
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Text(value)
+                    .font(.system(size: 20, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Color.foodrun.foreground)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(selected ? Color.foodrun.foreground : .clear, lineWidth: 1.5)
+            )
+            .frNeu(.pressed)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func wheel(for field: TimeField) -> some View {
+        switch field {
+        case .start: timeWheel($editStart)
+        case .end: timeWheel($editEnd)
+        case .brk: breakWheel
+        }
+    }
+
+    /// Hour and minute wheels bound to an "HH:mm" string.
+    private func timeWheel(_ time: Binding<String>) -> some View {
+        let hour = Binding<Int>(
+            get: { Int(time.wrappedValue.prefix(2)) ?? 0 },
+            set: { time.wrappedValue = String(format: "%02d:%02d", $0, Int(time.wrappedValue.suffix(2)) ?? 0) }
+        )
+        let minute = Binding<Int>(
+            get: { Int(time.wrappedValue.suffix(2)) ?? 0 },
+            set: { time.wrappedValue = String(format: "%02d:%02d", Int(time.wrappedValue.prefix(2)) ?? 0, $0) }
+        )
+        return HStack(spacing: 0) {
+            Picker("hours.tile.hour", selection: hour) {
+                ForEach(0..<24, id: \.self) { Text(String(format: "%02d", $0)).tag($0) }
+            }
+            .pickerStyle(.wheel)
+            Text(verbatim: ":").font(.system(size: 20, weight: .semibold))
+            Picker("hours.tile.minute", selection: minute) {
+                ForEach(0..<60, id: \.self) { Text(String(format: "%02d", $0)).tag($0) }
+            }
+            .pickerStyle(.wheel)
+        }
+        .frame(height: 150)
+    }
+
+    private var breakWheel: some View {
+        // 5-minute steps, plus whatever odd value an earlier submission stored.
+        let options = Array(Set(Array(stride(from: 0, through: 240, by: 5)) + [editBreak])).sorted()
+        return Picker("hours.tile.break", selection: $editBreak) {
+            ForEach(options, id: \.self) { Text(verbatim: "\($0) min").tag($0) }
+        }
+        .pickerStyle(.wheel)
+        .frame(height: 150)
     }
 
     private var monthLog: some View {
@@ -272,14 +348,24 @@ public struct HoursView: View {
     private func prefill(_ shift: WorkerShift) {
         guard editingShiftId != shift.id else { return }
         editingShiftId = shift.id
-        editStart = shift.start ?? "09:00"
-        editEnd = shift.end ?? "17:00"
+        editingField = nil
+        editStart = String((shift.start ?? "09:00").prefix(5))
+        editEnd = String((shift.end ?? "17:00").prefix(5))
         editBreak = hours.row(activityId: shift.activity.id, day: shift.day)?.break_minutes ?? 0
     }
 
-    private func shiftTime(_ t: String, _ delta: Int) -> String {
-        let total = ((Int(t.prefix(2)) ?? 0) * 60 + (Int(t.suffix(2)) ?? 0) + delta + 1440) % 1440
-        return String(format: "%02d:%02d", total / 60, total % 60)
+    private func loadTapWindow(_ shift: WorkerShift) async {
+        tapWindow = nil
+        guard let events = try? await WorkerAPI.fetchClockEvents(
+            employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day
+        ), let clockIn = events.first(where: { $0.kind == .`in` }) else { return }
+        let clockOut = events.last { $0.kind == .out && $0.event_at > clockIn.event_at }
+        tapWindow = TapWindow(clockIn: clockIn.event_at, clockOut: clockOut?.event_at)
+    }
+
+    private func clockTime(_ date: Date) -> String {
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
+        return f.string(from: date)
     }
 
     private var periodKicker: String {

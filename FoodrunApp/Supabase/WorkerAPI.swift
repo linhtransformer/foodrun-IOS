@@ -13,6 +13,7 @@ import Supabase
 //   submitHours        ↔ useMyHours().submit             (upsert, status 'pending')
 //   fetchInbox/markRead↔ useWorkerInbox                  (worker_notifications)
 //   clock in/out       → ClockStore (RPCs clock_in / clock_out)
+//   fetchClockEvents   ↔ useShiftClock                   (shift_clock_events, read-only)
 
 enum WorkerAPI {
     private static var client: SupabaseClient { SupabaseManager.shared.client }
@@ -58,6 +59,24 @@ enum WorkerAPI {
         let to = SchemaDates.string(cal.date(byAdding: .day, value: 60, to: Date()) ?? Date())
         return try await client
             .rpc("get_my_worker_activities", params: ["p_from": from, "p_to": to])
+            .execute()
+            .value
+    }
+
+    /// Phone-tap clock events for one shift day, oldest first. The window runs to
+    /// 06:00 the next morning so a late close still counts, without reaching the
+    /// next day's shift of a multi-day activity.
+    static func fetchClockEvents(employeeId: UUID, activityId: UUID, day: String) async throws -> [DBShiftClockEvent] {
+        guard let start = SchemaDates.date(day) else { return [] }
+        let iso = ISO8601DateFormatter()
+        return try await client
+            .from("shift_clock_events")
+            .select("*")
+            .eq("employee_id", value: employeeId.uuidString)
+            .eq("activity_id", value: activityId.uuidString)
+            .gte("event_at", value: iso.string(from: start))
+            .lt("event_at", value: iso.string(from: start.addingTimeInterval(30 * 3600)))
+            .order("event_at", ascending: true)
             .execute()
             .value
     }

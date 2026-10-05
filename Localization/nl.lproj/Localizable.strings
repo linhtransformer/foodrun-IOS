@@ -185,7 +185,12 @@
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Je diensten laden…";
 "shifts.none"               = "Nog geen diensten gepland";
-"hours.prefill.note"        = "Tijden komen uit je rooster. Pas ze aan als je langer of korter hebt gewerkt — je manager keurt ze goed in Foodrun HQ.";
+"hours.tap.title"           = "Telefoon-tik";
+"hours.tap.locked"          = "Via de tag op je truck · alleen-lezen";
+"hours.tap.stillIn"         = "Nog ingeklokt";
+"hours.tile.hour"           = "Uur";
+"hours.tile.minute"         = "Minuut";
+"tasks.forShift"            = "Voor dienst";
 "hours.rejected %@"         = "Teruggestuurd: %@";
 "hours.moreDue %lld"        = "+%lld meer";
 "hours.dueCount %lld"       = "%lld diensten in te dienen";
