@@ -46,8 +46,11 @@ public struct FRSegmentedPills<Option: Hashable>: View {
         Text(label(option))
             .frText(FRType.segmented)
             .foregroundStyle(active ? Color.foodrun.foreground : Color(hex: 0x6A6A6A))
-            .frame(maxWidth: .infinity, minHeight: 32)
-            .padding(.horizontal, 10)
+            // One line always: long labels ("Beschikbaarheid") shrink a touch instead of wrapping.
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, minHeight: 40)
             .background(
                 Capsule().fill(active ? Color.foodrun.neuPill : .clear)
             )
