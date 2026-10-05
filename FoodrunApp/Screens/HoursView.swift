@@ -202,13 +202,15 @@ public struct HoursView: View {
     private func timeStepper(_ label: LocalizedStringKey, value: String, step: @escaping (Int) -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            // Value on its own line: a third of the card is too narrow to fit
+            // "10:00" between the two step buttons.
+            Text(value)
+                .font(.system(size: 17, weight: .semibold).monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             HStack(spacing: 4) {
                 stepButton("minus") { step(-15) }
-                Text(value)
-                    .font(.system(size: 14, weight: .semibold).monospacedDigit())
-                    .frame(maxWidth: .infinity)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
                 stepButton("plus") { step(15) }
             }
         }
