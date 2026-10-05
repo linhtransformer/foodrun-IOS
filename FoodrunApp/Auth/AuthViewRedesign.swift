@@ -55,7 +55,9 @@ public struct AuthViewRedesign: View {
     private var fields: some View {
         VStack(spacing: 14) {
             labeledField(label: "auth.email") {
-                TextField("auth.email.placeholder", text: $email)
+                // Verbatim prompt: a LocalizedStringKey would auto-link the address.
+                TextField("auth.email", text: $email,
+                          prompt: Text(verbatim: String(localized: "auth.email.placeholder")))
                     .keyboardType(.emailAddress)
                     .textContentType(.emailAddress)
                     .autocapitalization(.none)
