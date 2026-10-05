@@ -22,7 +22,7 @@ public struct WorkerShift: Identifiable, Hashable {
 
     public var date: Date { SchemaDates.date(day) ?? Date() }
     public var timeLabel: String {
-        guard let start, let end else { return "Tijd volgt" }
+        guard let start, let end else { return FRLanguage.string("shift.timeTBD") }
         return "\(start) – \(end)"
     }
     public var plannedHours: Double {

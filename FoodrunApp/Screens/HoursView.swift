@@ -369,24 +369,19 @@ public struct HoursView: View {
     }
 
     private var periodKicker: String {
-        let f = DateFormatter(); f.dateFormat = "MMMM"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "MMMM"; f.locale = FRLanguage.locale
         return f.string(from: hours.shownMonth).uppercased()
     }
 
     private var monthName: String {
-        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = FRLanguage.locale
         return f.string(from: hours.shownMonth)
     }
 
     private func dayLabel(_ date: Date) -> String {
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
         return f.string(from: date)
     }
 
-    private func formatHours(_ v: Double) -> String {
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "nl_NL")
-        f.minimumFractionDigits = 1; f.maximumFractionDigits = 1
-        return "\(f.string(from: v as NSNumber) ?? "0,0") u"
-    }
+    private func formatHours(_ v: Double) -> String { FRLanguage.hours(v) }
 }

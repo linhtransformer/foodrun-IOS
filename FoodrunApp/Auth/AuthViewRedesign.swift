@@ -64,7 +64,7 @@ public struct AuthViewRedesign: View {
             labeledField(label: "auth.email") {
                 // Verbatim prompt: a LocalizedStringKey would auto-link the address.
                 TextField("auth.email", text: $email,
-                          prompt: Text(verbatim: String(localized: "auth.email.placeholder")))
+                          prompt: Text(verbatim: FRLanguage.string("auth.email.placeholder")))
                     .keyboardType(.emailAddress)
                     .textContentType(.emailAddress)
                     .autocapitalization(.none)

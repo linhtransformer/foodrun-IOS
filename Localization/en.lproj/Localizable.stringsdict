@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Plural rules. Keys match Localizable.strings; these take precedence there. -->
+<plist version="1.0">
+<dict>
+	<key>shifts.count %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld shift</string>
+			<key>other</key>
+			<string>%lld shifts</string>
+		</dict>
+	</dict>
+	<key>hours.dueCount %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld shift to submit</string>
+			<key>other</key>
+			<string>%lld shifts to submit</string>
+		</dict>
+	</dict>
+	<key>roster.peopleOnShift %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld person on shift</string>
+			<key>other</key>
+			<string>%lld people on shift</string>
+		</dict>
+	</dict>
+	<key>detail.crew.others %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>+ %lld colleague on this shift</string>
+			<key>other</key>
+			<string>+ %lld colleagues on this shift</string>
+		</dict>
+	</dict>
+	<key>approved.totalShifts %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>h · %#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld shift</string>
+			<key>other</key>
+			<string>%lld shifts</string>
+		</dict>
+	</dict>
+	<key>availability.agent %lld %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>You want %1$#@n@ this week (standard %2$lld). The agent will schedule inside your open windows.</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%1$lld shift</string>
+			<key>other</key>
+			<string>%1$lld shifts</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

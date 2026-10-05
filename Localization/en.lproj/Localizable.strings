@@ -203,3 +203,13 @@
 "addShift.field.activity"   = "Activity";
 "addShift.noActivity"       = "No activity runs on this day. Create one in Foodrun HQ first.";
 "addShift.alreadyRostered"  = "Already rostered";
+
+// Language picker + shared labels
+"profile.language.system"   = "Phone setting";
+"profile.language.title"    = "Language";
+"unit.hours"                = "h";
+"shift.timeTBD"             = "Time to follow";
+"shift.status.scheduled"    = "Scheduled";
+"shift.status.submitted"    = "Hours submitted";
+"shift.status.approved"     = "Approved";
+"shift.status.rejected"     = "Rejected";

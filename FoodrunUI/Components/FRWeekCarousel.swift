@@ -161,7 +161,7 @@ public struct FRWeekCarousel: View {
 
     private func twoLetterDay(_ day: Date) -> String {
         let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
+        f.locale = FRLanguage.locale
         let raw = f.shortStandaloneWeekdaySymbols[cal.component(.weekday, from: day) - 1]
         return String(raw.prefix(2))
     }

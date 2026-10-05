@@ -86,7 +86,7 @@ public struct InboxView: View {
     }
 
     private func relative(_ date: Date) -> String {
-        let f = RelativeDateTimeFormatter(); f.locale = .autoupdatingCurrent; f.unitsStyle = .short
+        let f = RelativeDateTimeFormatter(); f.locale = FRLanguage.locale; f.unitsStyle = .short
         return f.localizedString(for: date, relativeTo: Date())
     }
 }

@@ -203,3 +203,13 @@
 "addShift.field.activity"   = "Activiteit";
 "addShift.noActivity"       = "Op deze dag loopt geen activiteit. Maak er eerst een aan in Foodrun HQ.";
 "addShift.alreadyRostered"  = "Al ingeroosterd";
+
+// Taalkeuze + gedeelde labels
+"profile.language.system"   = "Telefooninstelling";
+"profile.language.title"    = "Taal";
+"unit.hours"                = "u";
+"shift.timeTBD"             = "Tijd volgt";
+"shift.status.scheduled"    = "Ingeroosterd";
+"shift.status.submitted"    = "Uren ingediend";
+"shift.status.approved"     = "Goedgekeurd";
+"shift.status.rejected"     = "Afgekeurd";

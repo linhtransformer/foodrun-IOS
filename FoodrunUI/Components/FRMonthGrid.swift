@@ -81,7 +81,7 @@ public struct FRMonthGrid: View {
     private func weekdayInitials() -> [String] {
         // Locale-aware, starting Monday. NL: M D W D V Z Z / EN: M T W T F S S.
         let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
+        f.locale = FRLanguage.locale
         return f.veryShortStandaloneWeekdaySymbols.enumerated()
             .sorted { ($0.offset + 6) % 7 < ($1.offset + 6) % 7 }
             .map(\.element)

@@ -53,13 +53,7 @@ public struct FRHoursRow: View {
         }
     }
 
-    private func formatHours() -> String {
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "nl_NL")
-        f.minimumFractionDigits = 1
-        f.maximumFractionDigits = 1
-        return "\(f.string(from: hours as NSNumber) ?? "0,0") h"
-    }
+    private func formatHours() -> String { FRLanguage.hours(hours) }
 }
 
 #Preview("Hours rows") {

@@ -125,7 +125,7 @@ public struct FRShiftRow: View {
     // MARK: - Format
 
     private func dateDayLabel() -> String {
-        let f = DateFormatter(); f.locale = .autoupdatingCurrent; f.dateFormat = "EEE"
+        let f = DateFormatter(); f.locale = FRLanguage.locale; f.dateFormat = "EEE"
         return f.string(from: date).uppercased()
     }
     private func dateDayNumber() -> String {

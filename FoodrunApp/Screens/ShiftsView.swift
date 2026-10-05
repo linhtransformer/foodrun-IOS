@@ -188,7 +188,7 @@ public struct ShiftsView: View {
 
     private func dayLabel(_ date: Date) -> String {
         let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
+        f.locale = FRLanguage.locale
         f.dateFormat = "EEE"
         return f.string(from: date)
     }

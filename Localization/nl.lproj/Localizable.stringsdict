@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Plural rules. Keys match Localizable.strings; these take precedence there. -->
+<plist version="1.0">
+<dict>
+	<key>shifts.count %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld dienst</string>
+			<key>other</key>
+			<string>%lld diensten</string>
+		</dict>
+	</dict>
+	<key>hours.dueCount %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld dienst in te dienen</string>
+			<key>other</key>
+			<string>%lld diensten in te dienen</string>
+		</dict>
+	</dict>
+	<key>roster.peopleOnShift %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld persoon ingepland</string>
+			<key>other</key>
+			<string>%lld mensen ingepland</string>
+		</dict>
+	</dict>
+	<key>detail.crew.others %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>+ %lld collega op deze dienst</string>
+			<key>other</key>
+			<string>+ %lld collega&apos;s op deze dienst</string>
+		</dict>
+	</dict>
+	<key>approved.totalShifts %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>u · %#@n@</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld dienst</string>
+			<key>other</key>
+			<string>%lld diensten</string>
+		</dict>
+	</dict>
+	<key>availability.agent %lld %lld</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Je wilt %1$#@n@ deze week (standaard %2$lld). De agent plant binnen je open uren.</string>
+		<key>n</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%1$lld dienst</string>
+			<key>other</key>
+			<string>%1$lld diensten</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

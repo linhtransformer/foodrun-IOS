@@ -136,12 +136,12 @@ final class AuthViewModel: ObservableObject {
     private func validate(email: String, password: String? = nil) -> Bool {
         let trimmed = email.trimmed
         guard !trimmed.isEmpty, trimmed.contains("@") else {
-            status = .failed(String(localized: "auth.error.invalidEmail"))
+            status = .failed(FRLanguage.string("auth.error.invalidEmail"))
             return false
         }
         if let password {
             guard password.count >= 8 else {
-                status = .failed(String(localized: "auth.error.passwordTooShort"))
+                status = .failed(FRLanguage.string("auth.error.passwordTooShort"))
                 return false
             }
         }

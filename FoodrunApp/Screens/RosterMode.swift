@@ -112,7 +112,7 @@ struct RosterMode: View {
     }
 
     private var dayLabel: String {
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
         return f.string(from: schedule.selectedDate)
     }
 }

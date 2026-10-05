@@ -12,7 +12,7 @@ public struct TasksView: View {
 
     private var shiftDateLine: String? {
         guard let shift else { return nil }
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
         return "\(f.string(from: shift.date)) · \(shift.timeLabel)"
     }
 

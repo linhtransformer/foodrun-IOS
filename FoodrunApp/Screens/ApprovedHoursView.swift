@@ -88,7 +88,7 @@ public struct ApprovedHoursView: View {
                         Text(monthLabel(group.key)).frText(FRType.sectionHeader)
                         Spacer()
                         Rectangle().fill(Color.foodrun.border).frame(height: 1)
-                        Text("\(format(group.rows.map(\.hours).reduce(0, +))) u")
+                        Text(verbatim: FRLanguage.hours(group.rows.map(\.hours).reduce(0, +)))
                             .frText(FRType.rowTitle)
                     }
                     ForEach(group.rows) { row in
@@ -108,19 +108,19 @@ public struct ApprovedHoursView: View {
 
     private func format(_ v: Double) -> String {
         let f = NumberFormatter()
-        f.locale = Locale(identifier: "nl_NL")
+        f.locale = FRLanguage.locale
         f.minimumFractionDigits = 1; f.maximumFractionDigits = 1
         return f.string(from: v as NSNumber) ?? "0,0"
     }
 
     private func monthLabel(_ yyyyMM: String) -> String {
         guard let d = SchemaDates.date("\(yyyyMM)-01") else { return yyyyMM }
-        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "MMMM yyyy"; f.locale = FRLanguage.locale
         return f.string(from: d)
     }
 
     private func dayLabel(_ date: Date) -> String {
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = .autoupdatingCurrent
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
         return f.string(from: date)
     }
 }

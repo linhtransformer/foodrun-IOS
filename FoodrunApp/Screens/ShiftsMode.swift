@@ -55,19 +55,19 @@ struct ShiftsMode: View {
     private var totals: String {
         let list = schedule.upcomingShifts
         let h = list.reduce(0) { $0 + $1.plannedHours }
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "nl_NL")
-        f.minimumFractionDigits = 1
-        f.maximumFractionDigits = 1
-        return "\(list.count) \(list.count == 1 ? "dienst" : "diensten") · \(f.string(from: h as NSNumber) ?? "0,0") u"
+        return "\(FRLanguage.string("shifts.count %lld", list.count)) · \(FRLanguage.hours(h))"
     }
 
     private func statusFor(_ shift: WorkerShift) -> (label: String, color: Color) {
         switch hours.row(activityId: shift.activity.id, day: shift.day)?.status {
-        case .approved?: return ("GOEDGEKEURD", Color.foodrun.subject.positive)
-        case .pending?:  return ("UREN INGEDIEND", Color.foodrun.subject.warning)
-        case .rejected?: return ("AFGEKEURD", Color.foodrun.subject.destructive)
-        case nil:        return ("INGEROOSTERD", Color.foodrun.subject.positive)
+        case .approved?: return (statusLabel("shift.status.approved"), Color.foodrun.subject.positive)
+        case .pending?:  return (statusLabel("shift.status.submitted"), Color.foodrun.subject.warning)
+        case .rejected?: return (statusLabel("shift.status.rejected"), Color.foodrun.subject.destructive)
+        case nil:        return (statusLabel("shift.status.scheduled"), Color.foodrun.subject.positive)
         }
+    }
+
+    private func statusLabel(_ key: String) -> String {
+        FRLanguage.string(key).uppercased(with: FRLanguage.locale)
     }
 }

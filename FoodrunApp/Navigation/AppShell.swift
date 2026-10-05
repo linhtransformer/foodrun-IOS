@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct AppShell: View {
     @Environment(\.scenePhase) private var scenePhase
-    @State private var router = TabRouter()
+    @State private var router: TabRouter
     @State private var schedule: ScheduleStore
     @State private var clock: ClockStore
     @State private var availability: AvailabilityStore
@@ -15,8 +15,9 @@ public struct AppShell: View {
 
     /// Signed-in app: empty stores filled from Supabase (the same tables HQ uses).
     /// `preview: true` swaps in Fixtures for #Preview / the design mirror.
-    public init(preview: Bool = false) {
+    public init(preview: Bool = false, router: TabRouter? = nil) {
         isPreview = preview
+        _router = State(initialValue: router ?? TabRouter())
         _schedule = State(initialValue: preview ? ScheduleStore.preview : ScheduleStore())
         _clock = State(initialValue: preview ? ClockStore.preview : ClockStore())
         _availability = State(initialValue: preview ? AvailabilityStore.preview : AvailabilityStore())

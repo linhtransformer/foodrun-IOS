@@ -141,15 +141,11 @@ public struct ShiftDetailView: View {
     private var submitted: DBEmployeeHours? { hours.row(activityId: activityId, day: SchemaDates.string(date)) }
 
     private var hoursLabel: String {
-        let value = submitted?.hours ?? shift?.plannedHours ?? 0
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "nl_NL")
-        f.minimumFractionDigits = 1; f.maximumFractionDigits = 1
-        return "\(f.string(from: value as NSNumber) ?? "0,0") u"
+        FRLanguage.hours(submitted?.hours ?? shift?.plannedHours ?? 0)
     }
 
     private var longDate: String {
-        let f = DateFormatter(); f.locale = .autoupdatingCurrent; f.dateFormat = "EEEE d MMMM"
+        let f = DateFormatter(); f.locale = FRLanguage.locale; f.dateFormat = "EEEE d MMMM"
         return f.string(from: date)
     }
 
