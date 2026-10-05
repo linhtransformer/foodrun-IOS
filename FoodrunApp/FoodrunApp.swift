@@ -1,8 +1,14 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct FoodrunApp: App {
     @StateObject private var auth = AuthViewModel()
+    @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        UNUserNotificationCenter.current().delegate = NotificationPresenter.shared
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -19,6 +25,22 @@ struct FoodrunApp: App {
                     }
                 }
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { ShiftBackgroundRefresh.schedule() }
+        }
+        .backgroundTask(.appRefresh(ShiftBackgroundRefresh.taskId)) {
+            await ShiftBackgroundRefresh.run()
+        }
+    }
+}
+
+/// Lets shift-change notifications show as a banner while the app is open too.
+final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationPresenter()
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
     }
 }
 

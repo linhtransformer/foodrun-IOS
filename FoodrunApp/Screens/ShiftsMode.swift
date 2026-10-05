@@ -8,6 +8,7 @@ struct ShiftsMode: View {
     @Environment(ScheduleStore.self) private var schedule
     @Environment(HoursStore.self) private var hours
     @Environment(TabRouter.self) private var router
+    @Environment(ShiftChangeStore.self) private var changes
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -63,6 +64,8 @@ struct ShiftsMode: View {
         case .approved?: return (statusLabel("shift.status.approved"), Color.foodrun.subject.positive)
         case .pending?:  return (statusLabel("shift.status.submitted"), Color.foodrun.subject.warning)
         case .rejected?: return (statusLabel("shift.status.rejected"), Color.foodrun.subject.destructive)
+        case nil where changes.isChanged(shift):
+                         return (statusLabel("shift.status.changed"), Color.foodrun.subject.warning)
         case nil:        return (statusLabel("shift.status.scheduled"), Color.foodrun.subject.positive)
         }
     }

@@ -11,6 +11,7 @@ public struct AppShell: View {
     @State private var hours: HoursStore
     @State private var tasks: TasksStore
     @State private var inbox: InboxStore
+    @State private var changes = ShiftChangeStore()
     private let isPreview: Bool
 
     /// Signed-in app: empty stores filled from Supabase (the same tables HQ uses).
@@ -33,6 +34,9 @@ public struct AppShell: View {
     private func loadAll() async {
         guard !isPreview else { return }
         await schedule.load()
+        if schedule.rosterLoaded, let uid = try? await WorkerAPI.currentUserId() {
+            changes.track(schedule.shifts, today: SchemaDates.string(schedule.today), userId: uid)
+        }
         let ids = schedule.employees.map(\.id)
         async let h: Void = hours.load(employeeIds: ids)
         async let a: Void = availability.load(employeeIds: ids)
@@ -65,6 +69,7 @@ public struct AppShell: View {
             .ignoresSafeArea(.container, edges: .bottom)
         }
         .task { await loadAll() }
+        .task { await ShiftChangeStore.requestAuthorization() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await loadAll() } }
         }
@@ -80,6 +85,7 @@ public struct AppShell: View {
         .environment(hours)
         .environment(tasks)
         .environment(inbox)
+        .environment(changes)
         .sheet(isPresented: Binding(
             get: { router.swapSheetOpen },
             set: { router.swapSheetOpen = $0 }
@@ -162,7 +168,7 @@ public struct AppShell: View {
     private var badges: Set<FRTab> {
         var s: Set<FRTab> = []
         if hours.pendingRow != nil { s.insert(.hours) }
-        if inbox.unreadCount > 0 { s.insert(.inbox) }
+        if inbox.unreadCount + changes.unreadCount > 0 { s.insert(.inbox) }
         return s
     }
 

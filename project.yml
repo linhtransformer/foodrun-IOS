@@ -55,6 +55,9 @@ targets:
           - CFBundleURLName: nl.foodrun.app
             CFBundleURLSchemes: [foodrun]
         NSNFCReaderUsageDescription: Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.
+        # Background roster check for shift-change notifications (ShiftBackgroundRefresh).
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [nl.foodrun.app.shift-refresh]
     entitlements:
       path: Supporting/Foodrun.entitlements
       properties:

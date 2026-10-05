@@ -213,3 +213,11 @@
 "shift.status.submitted"    = "Hours submitted";
 "shift.status.approved"     = "Approved";
 "shift.status.rejected"     = "Rejected";
+
+// Shift changes (detected on device)
+"shiftChange.title.time"     = "Shift time changed";
+"shiftChange.title.location" = "Shift location changed";
+"shiftChange.title.added"    = "Shift added";
+"shiftChange.title.removed"  = "Shift removed";
+"shiftChange.title.many"     = "Your shifts changed";
+"shift.status.changed"       = "Changed";

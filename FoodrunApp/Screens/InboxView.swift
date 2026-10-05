@@ -4,20 +4,51 @@ import SwiftUI
 
 public struct InboxView: View {
     @Environment(InboxStore.self) private var inbox
+    @Environment(ShiftChangeStore.self) private var changes
+    @Environment(TabRouter.self) private var router
+
+    /// Server notifications and locally detected shift edits, newest first.
+    private enum Entry: Identifiable {
+        case server(DBWorkerNotification)
+        case change(ShiftChange)
+
+        var id: UUID {
+            switch self {
+            case .server(let n): return n.id
+            case .change(let c): return c.id
+            }
+        }
+        var date: Date {
+            switch self {
+            case .server(let n): return n.created_at
+            case .change(let c): return c.detectedAt
+            }
+        }
+    }
+
+    private var entries: [Entry] {
+        (inbox.items.map(Entry.server) + changes.changes.map(Entry.change)).sorted { $0.date > $1.date }
+    }
 
     public init() {}
 
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                if inbox.items.isEmpty {
+                if entries.isEmpty {
                     Text("inbox.empty")
                         .frText(FRType.rowSubtitle)
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
-                ForEach(inbox.items) { item in
-                    row(item)
-                        .onTapGesture { inbox.markRead(item.id) }
+                ForEach(entries) { entry in
+                    switch entry {
+                    case .server(let item):
+                        row(item)
+                            .onTapGesture { inbox.markRead(item.id) }
+                    case .change(let change):
+                        changeRow(change)
+                            .onTapGesture { open(change) }
+                    }
                 }
             }
             .padding(.horizontal, FRSpacing.screenH.value)
@@ -26,6 +57,44 @@ public struct InboxView: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .refreshable { await inbox.load() }
+    }
+
+    /// A shift edit spotted on this device (see ShiftChangeStore). Tapping opens the shift.
+    private func changeRow(_ change: ShiftChange) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: change.kind == .removed ? "calendar.badge.minus" : "calendar.badge.clock")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                .frame(width: 36, height: 36)
+                .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(Color.foodrun.foreground))
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(ShiftChangeStore.title(change)).frText(FRType.rowTitle)
+                    Spacer()
+                    Text(relative(change.detectedAt))
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    if !change.isRead {
+                        Circle().fill(Color.foodrun.subject.warning).frame(width: 8, height: 8)
+                    }
+                }
+                Text(ShiftChangeStore.body(change)).font(.system(size: 12.5)).foregroundStyle(Color.foodrun.foreground)
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                .fill(Color.foodrun.card)
+        )
+        .frNeu(.raised)
+        .contentShape(Rectangle())
+    }
+
+    private func open(_ change: ShiftChange) {
+        changes.markRead(change.id)
+        guard change.kind != .removed else { return }
+        router.tab = .shifts
+        router.shiftsPath = [.shiftDetail(activityId: change.activityId, date: change.date)]
     }
 
     private func row(_ item: DBWorkerNotification) -> some View {

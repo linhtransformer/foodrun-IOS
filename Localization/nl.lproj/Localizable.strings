@@ -213,3 +213,11 @@
 "shift.status.submitted"    = "Uren ingediend";
 "shift.status.approved"     = "Goedgekeurd";
 "shift.status.rejected"     = "Afgekeurd";
+
+// Dienstwijzigingen (op het toestel gedetecteerd)
+"shiftChange.title.time"     = "Diensttijd gewijzigd";
+"shiftChange.title.location" = "Dienstlocatie gewijzigd";
+"shiftChange.title.added"    = "Dienst toegevoegd";
+"shiftChange.title.removed"  = "Dienst vervallen";
+"shiftChange.title.many"     = "Je diensten zijn gewijzigd";
+"shift.status.changed"       = "Gewijzigd";

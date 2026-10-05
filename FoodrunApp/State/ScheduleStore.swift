@@ -47,6 +47,9 @@ public final class ScheduleStore {
     public var heroExpanded: Bool = false          // bundle §State: starts false
     public var isLoading = false
     public var lastError: String?
+    /// True when the last load fetched the roster. Change tracking only diffs
+    /// real data, never the empty state a failed request leaves behind.
+    public private(set) var rosterLoaded = false
     /// Operator (org owner) context — powers the admin "Add shift" sheet on the
     /// Roster tab. Empty / false for ordinary workers.
     public var isOperator = false
@@ -71,8 +74,10 @@ public final class ScheduleStore {
             employees = emps
             activities = acts
             lastError = nil
+            rosterLoaded = true
         } catch {
             lastError = error.localizedDescription
+            rosterLoaded = false
         }
         do {
             if let ctx = try await WorkerAPI.fetchOperatorContext() {

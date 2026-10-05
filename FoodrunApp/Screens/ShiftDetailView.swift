@@ -8,6 +8,7 @@ public struct ShiftDetailView: View {
     @Environment(TasksStore.self) private var tasks
     @Environment(ScheduleStore.self) private var schedule
     @Environment(HoursStore.self) private var hours
+    @Environment(ShiftChangeStore.self) private var changes
     @Environment(\.openURL) private var openURL
 
     public let activityId: UUID
@@ -39,6 +40,8 @@ public struct ShiftDetailView: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        // Seeing the shift counts as seeing the change.
+        .onAppear { changes.markRead(activityId: activityId, day: SchemaDates.string(date)) }
     }
 
     private var header: some View {
