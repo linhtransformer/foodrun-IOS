@@ -4,6 +4,17 @@ import SwiftUI
 
 public struct TasksView: View {
     @Environment(TasksStore.self) private var tasks
+    @Environment(ScheduleStore.self) private var schedule
+    @State private var submittedAt: Date?
+
+    /// The checklist belongs to the worker's current / next shift.
+    private var shift: WorkerShift? { schedule.nextShift }
+
+    private var shiftDateLine: String? {
+        guard let shift else { return nil }
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = .autoupdatingCurrent
+        return "\(f.string(from: shift.date)) · \(shift.timeLabel)"
+    }
 
     public init() {}
 
@@ -24,7 +35,9 @@ public struct TasksView: View {
                             requiresPhoto: item.requires_photo,
                             onToggle: { tasks.toggle(item.id) },
                             onSetValue: item.requires_value ? { /* value picker */ } : nil,
-                            onPickPhoto: item.requires_photo ? { /* photo picker */ } : nil
+                            onPickPhoto: item.requires_photo ? { /* photo picker */ } : nil,
+                            shift: shift?.activity.name,
+                            shiftDate: shiftDateLine
                         )
                     }
                 }
@@ -44,7 +57,15 @@ public struct TasksView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("tasks.kicker").frText(FRType.kicker).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            Group {
+                if let shift {
+                    Text(verbatim: [shift.activity.food_truck, shift.activity.name].compactMap { $0 }.joined(separator: " · "))
+                } else {
+                    Text("tasks.kicker")
+                }
+            }
+            .frText(FRType.kicker)
+            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             Text("tasks.title").frText(FRType.screenTitle)
         }
     }
@@ -65,8 +86,8 @@ public struct TasksView: View {
                     .tint(Color.foodrun.truck.mees)
             }
             Spacer()
-            VStack(alignment: .trailing) {
-                Text("tasks.submittedAt 23:15")
+            if let submittedAt {
+                Text("tasks.submittedAt \(submittedAt.formatted(date: .omitted, time: .shortened))")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.55))
                     .multilineTextAlignment(.trailing)
@@ -91,7 +112,10 @@ public struct TasksView: View {
     }
 
     private var submit: some View {
-        Button { FRHaptic.success.fire() } label: {
+        Button {
+            submittedAt = Date()
+            FRHaptic.success.fire()
+        } label: {
             Text("tasks.submit")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color.foodrun.backgroundInverseInk)

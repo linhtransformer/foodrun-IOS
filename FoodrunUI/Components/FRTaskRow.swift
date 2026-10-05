@@ -13,6 +13,9 @@ public struct FRTaskRow: View {
     public var onToggle: () -> Void
     public var onSetValue: (() -> Void)?
     public var onPickPhoto: (() -> Void)?
+    /// The shift this task belongs to, plus a small date/time line under it.
+    public var shift: String? = nil
+    public var shiftDate: String? = nil
 
     public var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -49,7 +52,9 @@ public struct FRTaskRow: View {
                     HStack(spacing: 6) {
                         if let onSetValue {
                             Button(action: onSetValue) {
-                                Text(value ?? "task.enterValue")
+                                Group {
+                                    if let value { Text(value) } else { Text("task.enterValue") }
+                                }
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(Color.foodrun.foreground)
                                     .padding(.horizontal, 10).padding(.vertical, 6)
@@ -84,6 +89,26 @@ public struct FRTaskRow: View {
                     Text(completedAt.formatted(date: .omitted, time: .shortened))
                         .font(.system(size: 11))
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                if let shift {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Label {
+                            Text(shift).font(.system(size: 11.5, weight: .semibold))
+                        } icon: {
+                            Image(systemName: "calendar").font(.system(size: 10, weight: .semibold))
+                        }
+                        .labelStyle(.titleAndIcon)
+                        .foregroundStyle(Color.foodrun.mutedForeground)
+                        if let shiftDate {
+                            Text(shiftDate)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        }
+                    }
+                    .lineLimit(1)
+                    .padding(.top, 4)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(Text("tasks.forShift") + Text(verbatim: " \(shift), \(shiftDate ?? "")"))
                 }
             }
             Spacer(minLength: 0)
