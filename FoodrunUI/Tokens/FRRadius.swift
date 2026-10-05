@@ -46,14 +46,3 @@ public enum FRRadius {
         }
     }
 }
-
-// Type-erased Shape used by FRRadius.shape.
-struct AnyShape: Shape {
-    private let path: (CGRect) -> Path
-    init<S: Shape>(_ wrapped: S) {
-        self.path = wrapped.path(in:)
-    }
-    func path(in rect: CGRect) -> Path {
-        path(rect)
-    }
-}

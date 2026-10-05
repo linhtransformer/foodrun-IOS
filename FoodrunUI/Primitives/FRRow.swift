@@ -78,9 +78,9 @@ public struct FRRow<Trailing: View>: View {
         FRRow(icon: "calendar", title: "Volgende dienst", subtitle: "Woensdag 19:00 – 23:00", onTap: {}) {
             Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForeground)
         }
-        FRRow(icon: "clock", title: "Uren indienen", subtitle: "1 in behandeling") {
+        FRRow(icon: "clock", title: "Uren indienen", subtitle: "1 in behandeling", trailing: {
             Text("1").font(Font.foodrun.caption).padding(6).background(Circle().fill(Color.foodrun.subject.alert)).foregroundStyle(Color.foodrun.surface)
-        }
+        })
     }
     .padding()
     .background(Color.foodrun.background)

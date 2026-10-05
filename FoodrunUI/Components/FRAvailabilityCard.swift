@@ -123,10 +123,8 @@ struct DualHandleSlider: View {
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
-            let total = CGFloat(bounds.upperBound - bounds.lowerBound)
-            func x(_ v: Int) -> CGFloat { width * CGFloat(v - bounds.lowerBound) / total }
-            let lowX = x(range.lowerBound)
-            let highX = x(range.upperBound)
+            let lowX = x(range.lowerBound, width: width)
+            let highX = x(range.upperBound, width: width)
 
             ZStack(alignment: .leading) {
                 // Track.
@@ -149,6 +147,11 @@ struct DualHandleSlider: View {
                     .accessibilityValue(Text(String(range.upperBound)))
             }
         }
+    }
+
+    private func x(_ v: Int, width: CGFloat) -> CGFloat {
+        let total = CGFloat(bounds.upperBound - bounds.lowerBound)
+        return width * CGFloat(v - bounds.lowerBound) / total
     }
 
     private func handle(color: Color) -> some View {
