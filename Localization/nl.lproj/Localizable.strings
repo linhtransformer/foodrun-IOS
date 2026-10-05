@@ -192,7 +192,7 @@
 "hours.tile.minute"         = "Minuut";
 "tasks.forShift"            = "Voor dienst";
 "hours.rejected %@"         = "Teruggestuurd: %@";
-"hours.moreDue %lld"        = "+%lld meer";
+"hours.availableFrom %@"    = "Uren indienen kan vanaf %@";
 "hours.dueCount %lld"       = "%lld diensten in te dienen";
 "hours.monthEmpty"          = "Geen uren deze maand.";
 "approved.totalShifts %lld" = "u · %lld diensten";

@@ -192,7 +192,7 @@
 "hours.tile.minute"         = "Minute";
 "tasks.forShift"            = "For shift";
 "hours.rejected %@"         = "Sent back: %@";
-"hours.moreDue %lld"        = "+%lld more";
+"hours.availableFrom %@"    = "You can submit hours from %@";
 "hours.dueCount %lld"       = "%lld shifts to submit";
 "hours.monthEmpty"          = "No hours logged this month.";
 "approved.totalShifts %lld" = "h · %lld shifts";

@@ -25,6 +25,19 @@ public struct WorkerShift: Identifiable, Hashable {
         guard let start, let end else { return FRLanguage.string("shift.timeTBD") }
         return "\(start) – \(end)"
     }
+    /// When the shift is over (Amsterdam time). An end before the start means it
+    /// runs past midnight; no end time means the end of that day.
+    public var endsAt: Date {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        func minutes(_ t: String?) -> Int? {
+            guard let t, t.count >= 5 else { return nil }
+            return (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.dropFirst(3).prefix(2)) ?? 0)
+        }
+        guard let end = minutes(end) else { return cal.date(byAdding: .day, value: 1, to: date) ?? date }
+        let overnight = minutes(start).map { end <= $0 } ?? false
+        return cal.date(byAdding: .minute, value: end + (overnight ? 1440 : 0), to: date) ?? date
+    }
     public var plannedHours: Double {
         guard let start, let end else { return 0 }
         func m(_ t: String) -> Int { (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.dropFirst(3).prefix(2)) ?? 0) }
