@@ -23,6 +23,9 @@
 "auth.password.placeholder" = "Password";
 "auth.login"              = "Log in";
 "auth.makeAccount"        = "Make an account";
+"auth.signUp.confirmationSent" = "Check your email to confirm your account, then log in.";
+"auth.error.invalidEmail" = "Enter a valid email address.";
+"auth.error.passwordTooShort" = "Password must be at least 8 characters.";
 "auth.invite.footer"      = "Joining a team? Open the invite link your\nmanager sent — it connects you automatically.";
 
 // MARK: Shifts / home

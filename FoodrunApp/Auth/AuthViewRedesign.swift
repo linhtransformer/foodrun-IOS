@@ -106,17 +106,27 @@ public struct AuthViewRedesign: View {
 
     private var actions: some View {
         VStack(spacing: 10) {
+            statusMessage
+
             Button {
                 Task { await auth.signIn(email: email, password: password) }
                 FRHaptic.medium.fire()
             } label: {
-                Text("auth.login")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.foodrun.backgroundInverseInk)
-                    .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(Capsule().fill(Color.foodrun.foreground))
-                    .frCTAShadow()
-            }.buttonStyle(.plain)
+                Group {
+                    if isWorking {
+                        ProgressView().tint(Color.foodrun.backgroundInverseInk)
+                    } else {
+                        Text("auth.login")
+                    }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                .frame(maxWidth: .infinity, minHeight: 54)
+                .background(Capsule().fill(Color.foodrun.foreground))
+                .frCTAShadow()
+            }
+            .buttonStyle(.plain)
+            .disabled(isWorking)
 
             Button {
                 Task { await auth.signUp(email: email, password: password) }
@@ -129,7 +139,30 @@ public struct AuthViewRedesign: View {
                 .foregroundStyle(Color.foodrun.foreground)
                 .frame(maxWidth: .infinity, minHeight: 54)
                 .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
-            }.buttonStyle(.plain)
+            }
+            .buttonStyle(.plain)
+            .disabled(isWorking)
+        }
+    }
+
+    private var isWorking: Bool { auth.status == .working }
+
+    // Sign-in / sign-up feedback; without it a failed login looks like a dead button.
+    @ViewBuilder
+    private var statusMessage: some View {
+        switch auth.status {
+        case .failed(let msg):
+            Text(msg)
+                .font(Font.foodrun.caption)
+                .foregroundStyle(Color.foodrun.subject.cost)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        case .signUpConfirmationSent:
+            Text("auth.signUp.confirmationSent")
+                .font(Font.foodrun.caption)
+                .foregroundStyle(Color.foodrun.mutedForeground)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        default:
+            EmptyView()
         }
     }
 

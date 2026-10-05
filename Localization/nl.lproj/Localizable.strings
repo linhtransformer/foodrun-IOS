@@ -23,6 +23,9 @@
 "auth.password.placeholder" = "Wachtwoord";
 "auth.login"              = "Inloggen";
 "auth.makeAccount"        = "Account aanmaken";
+"auth.signUp.confirmationSent" = "Check je e-mail om je account te bevestigen en log daarna in.";
+"auth.error.invalidEmail" = "Voer een geldig e-mailadres in.";
+"auth.error.passwordTooShort" = "Wachtwoord moet minimaal 8 tekens zijn.";
 "auth.invite.footer"      = "Ga je bij een team horen? Open de uitnodigingslink\ndie je manager je stuurde — hij verbindt je automatisch.";
 
 // MARK: Diensten
