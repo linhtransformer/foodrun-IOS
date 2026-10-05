@@ -24,7 +24,7 @@ public struct ShiftsView: View {
                 modeBody
             }
             .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, 44)  // header removed — pull everything up
+            .padding(.top, FRSpacing.screenTop.value)
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())

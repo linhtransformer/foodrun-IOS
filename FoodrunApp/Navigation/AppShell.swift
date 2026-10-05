@@ -52,7 +52,11 @@ public struct AppShell: View {
                 ),
                 badgedTabs: badges
             )
+            // Measured from the screen edge, not the safe area, so the bar sits
+            // just above the home indicator instead of floating 56pt up.
             .padding(.bottom, 22)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(.container, edges: .bottom)
         }
         .task { await loadAll() }
         .onChange(of: scenePhase) { _, phase in

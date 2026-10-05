@@ -13,17 +13,24 @@ public struct AuthViewRedesign: View {
     public init() {}
 
     public var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                brand
-                fields
-                actions
-                Spacer(minLength: 16)
-                footer
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 24) {
+                    Spacer(minLength: 0)
+                    brand
+                    fields
+                    actions
+                    Spacer(minLength: 16)
+                    footer
+                }
+                .padding(.horizontal, FRSpacing.screenH.value)
+                .padding(.top, 24)
+                .padding(.bottom, 12)
+                // Fill the screen so the spacers can centre the form and pin the
+                // footer; it still scrolls once the keyboard takes the space.
+                .frame(minHeight: geo.size.height)
             }
-            .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, 60)
-            .padding(.bottom, 28)
+            .scrollBounceBehavior(.basedOnSize)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())

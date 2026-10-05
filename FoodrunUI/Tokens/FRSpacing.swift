@@ -9,7 +9,7 @@ public enum FRSpacing {
     // Worker-app named constants — encode the bundle's paddings so screens don't
     // sprinkle magic numbers.
     case screenH        // 20pt — base horizontal padding on every screen
-    case screenTop      // 60pt — top clearance (below status bar)
+    case screenTop      // 16pt — gap below the top safe area (iOS already clears the status bar)
     case screenBottom   // 108pt — floating tab bar clearance
     case rowGap         // 8pt — between cards
     case denseGap       // 6pt — between compact rows
@@ -25,7 +25,7 @@ public enum FRSpacing {
         case .xl:              return 24
         case .xxl:             return 32
         case .screenH:         return 20
-        case .screenTop:       return 60
+        case .screenTop:       return 16
         case .screenBottom:    return 108
         case .rowGap:          return 8
         case .denseGap:        return 6
