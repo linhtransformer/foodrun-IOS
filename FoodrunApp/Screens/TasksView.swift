@@ -21,7 +21,6 @@ public struct TasksView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                header
                 progressCard
                 sectionHeader
                 VStack(spacing: 10) {
@@ -53,21 +52,6 @@ public struct TasksView: View {
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Group {
-                if let shift {
-                    Text(verbatim: [shift.activity.food_truck, shift.activity.name].compactMap { $0 }.joined(separator: " · "))
-                } else {
-                    Text("tasks.kicker")
-                }
-            }
-            .frText(FRType.kicker)
-            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            Text("tasks.title").frText(FRType.screenTitle)
-        }
     }
 
     private var progressCard: some View {

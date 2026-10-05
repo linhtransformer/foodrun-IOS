@@ -53,8 +53,6 @@ public struct ShiftDetailView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("action.back"))
-            Text("detail.kicker").frText(FRType.kicker)
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             Spacer()
             Button {
                 // TODO: overflow menu (Slice 11).

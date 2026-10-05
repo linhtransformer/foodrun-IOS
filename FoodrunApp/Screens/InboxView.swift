@@ -10,12 +10,6 @@ public struct InboxView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("inbox.unreadKicker \(inbox.unreadCount)")
-                        .frText(FRType.kicker)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    Text("inbox.title").frText(FRType.screenTitle)
-                }
                 if inbox.items.isEmpty {
                     Text("inbox.empty")
                         .frText(FRType.rowSubtitle)

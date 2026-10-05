@@ -33,7 +33,6 @@ public struct HoursView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                header
                 monthStepper
                 kpis
                 if let shift = dueShifts.first { waitingForYou(shift) }
@@ -67,29 +66,6 @@ public struct HoursView: View {
 
     // MARK: - Sections
 
-    private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(periodKicker).frText(FRType.kicker).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                Text("hours.title").frText(FRType.screenTitle)
-            }
-            Spacer()
-            Button {
-                router.hoursPath.append(.approvedHours)
-            } label: {
-                HStack(spacing: 6) {
-                    Circle().fill(Color.foodrun.subject.positive).frame(width: 6, height: 6)
-                    Text("hours.approved").frText(FRType.segmented)
-                    Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
-                }
-                .padding(.horizontal, 12).padding(.vertical, 8)
-                .background(Capsule().fill(Color.foodrun.card))
-                .frNeu(.raised)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
     private var monthStepper: some View {
         @Bindable var h = hours
         return HStack(spacing: 10) {
@@ -117,15 +93,31 @@ public struct HoursView: View {
 
     private var kpis: some View {
         HStack(spacing: 10) {
-            kpi("hours.approvedLabel", value: hours.approvedMonthTotal, color: Color.foodrun.foreground, sub: "hours.thisMonth")
+            Button {
+                router.hoursPath.append(.approvedHours)
+                FRHaptic.light.fire()
+            } label: {
+                kpi("hours.approvedLabel", value: hours.approvedMonthTotal, color: Color.foodrun.foreground,
+                    sub: "hours.thisMonth", showsChevron: true)
+            }
+            .buttonStyle(.plain)
             kpi("hours.pendingLabel", value: hours.pendingMonthTotal, color: Color.foodrun.subject.warning,
                 sub: "hours.dueCount \(dueShifts.count)")
         }
     }
 
-    private func kpi(_ label: LocalizedStringKey, value: Double, color: Color, sub: LocalizedStringKey) -> some View {
+    private func kpi(_ label: LocalizedStringKey, value: Double, color: Color, sub: LocalizedStringKey,
+                     showsChevron: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            HStack {
+                Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                if showsChevron {
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+            }
             Text(formatHours(value))
                 .font(.system(size: 34, weight: .heavy).monospacedDigit())
                 .tracking(-1)
@@ -366,11 +358,6 @@ public struct HoursView: View {
     private func clockTime(_ date: Date) -> String {
         let f = DateFormatter(); f.dateFormat = "HH:mm"; f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
         return f.string(from: date)
-    }
-
-    private var periodKicker: String {
-        let f = DateFormatter(); f.dateFormat = "MMMM"; f.locale = FRLanguage.locale
-        return f.string(from: hours.shownMonth).uppercased()
     }
 
     private var monthName: String {

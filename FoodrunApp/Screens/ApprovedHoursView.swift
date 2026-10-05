@@ -48,7 +48,6 @@ public struct ApprovedHoursView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("action.back"))
-            Text("approved.kicker").frText(FRType.kicker).foregroundStyle(Color.foodrun.mutedForegroundSoft)
             Spacer()
         }
     }
