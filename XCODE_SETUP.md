@@ -32,10 +32,15 @@ Both are already in `project.yml` — `xcodegen generate` applies them:
 
 The app code for these is done; each needs the matching switch on the self-hosted
 Supabase auth service: edit `/opt/supabase-vietnamama/.env` on the VPS (the names below;
-`docker-compose.yml` maps them to `GOTRUE_*`), then `docker compose up -d auth`.
-As of 2026-10-07 the client IDs are present but both providers are **disabled**, SMTP
-is still the placeholder `smtp.your-provider.com` (no auth email is sent at all) and
-`GOTRUE_URI_ALLOW_LIST` is empty.
+`docker-compose.yml` maps them to `GOTRUE_*`), then
+`docker compose -f docker-compose.yml -f deploy/docker-compose.override.yml up -d auth`.
+
+**Status 2026-10-07: all of this is live** — Resend SMTP (`noreply@foodrun.nl`), Apple +
+Google enabled, redirect allow-list incl. `foodrun://auth-callback`, and the reset email
+template with the 6-digit code (`GOTRUE_MAILER_TEMPLATES_RECOVERY` in
+`deploy/docker-compose.override.yml` → `https://foodrun.nl/email-templates/reset-password.html`,
+served from the HQ repo's `public/`). Verified end to end. The steps below are kept as
+reference for rebuilding the server.
 
 **Email via Resend** (sign-up confirmation, password-reset code, invites):
 1. Resend dashboard → Domains → add `foodrun.nl` → add the DNS records it shows
