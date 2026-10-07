@@ -12,6 +12,8 @@ public struct AppShell: View {
     @State private var tasks: TasksStore
     @State private var inbox: InboxStore
     @State private var changes = ShiftChangeStore()
+    /// Operator-assigned tasks (Tasks tab) — get_my_crew_tasks.
+    @State private var crewTasks = CrewTasksStore()
     private let isPreview: Bool
 
     /// Signed-in app: empty stores filled from Supabase (the same tables HQ uses).
@@ -42,13 +44,18 @@ public struct AppShell: View {
         async let h: Void = hours.load(employeeIds: ids)
         async let a: Void = availability.load(employeeIds: ids)
         async let i: Void = inbox.load()
-        _ = await (h, a, i)
+        async let t: Void = crewTasks.load()
+        _ = await (h, a, i, t)
     }
 
-    /// Tabs shown in the bar — Tasks only when checklists are switched on.
+    /// Tabs shown in the bar — Tasks when operator tasks (or the old sample
+    /// checklist) are switched on.
     private var visibleTabs: [FRTab] {
-        FRTab.allCases.filter { $0 != .tasks || isPreview || AppConfig.Features.checklists }
+        FRTab.allCases.filter { $0 != .tasks || isPreview || AppConfig.Features.crewTasks || AppConfig.Features.checklists }
     }
+
+    /// Real operator tasks unless this is a preview of the design fixtures.
+    private var showsCrewTasks: Bool { AppConfig.Features.crewTasks && !isPreview }
 
     public var body: some View {
         Group {
@@ -100,6 +107,7 @@ public struct AppShell: View {
         .environment(tasks)
         .environment(inbox)
         .environment(changes)
+        .environment(crewTasks)
         .sheet(isPresented: Binding(
             get: { router.swapSheetOpen },
             set: { router.swapSheetOpen = $0 }
@@ -154,8 +162,10 @@ public struct AppShell: View {
             }
         case .tasks:
             NavigationStack(path: Binding(get: { router.tasksPath }, set: { router.tasksPath = $0 })) {
-                TasksView()
-                    .navigationDestination(for: TabRouter.Route.self, destination: destination)
+                Group {
+                    if showsCrewTasks { CrewTasksView() } else { TasksView() }
+                }
+                .navigationDestination(for: TabRouter.Route.self, destination: destination)
             }
         case .hours:
             NavigationStack(path: Binding(get: { router.hoursPath }, set: { router.hoursPath = $0 })) {
@@ -180,8 +190,10 @@ public struct AppShell: View {
         switch route {
         case .shiftDetail(let activityId, let date):
             ShiftDetailView(activityId: activityId, date: date)
+        case .event(let activityId, let date):
+            EventView(activityId: activityId, date: date)
         case .tasks:
-            TasksView()
+            if showsCrewTasks { CrewTasksView() } else { TasksView() }
         case .approvedHours:
             ApprovedHoursView()
         }
@@ -191,6 +203,7 @@ public struct AppShell: View {
         var s: Set<FRTab> = []
         if hours.pendingRow != nil { s.insert(.hours) }
         if inbox.unreadCount + changes.unreadCount > 0 { s.insert(.inbox) }
+        if showsCrewTasks && crewTasks.openCount(on: SchemaDates.string(Date())) > 0 { s.insert(.tasks) }
         return s
     }
 

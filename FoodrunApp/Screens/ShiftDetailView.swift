@@ -29,6 +29,7 @@ public struct ShiftDetailView: View {
                 header
                 summaryCard
                 locationCard
+                if AppConfig.Features.crewTasks { eventCard }
                 crewSection
                 if AppConfig.Features.checklists { gateCard }
                 nfcStrip
@@ -145,6 +146,34 @@ public struct ShiftDetailView: View {
             Text(label).frText(FRType.fieldLabel).foregroundStyle(sub)
             Text(value).frText(FRType.rowTitle).foregroundStyle(ink)
         }.frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Opens the event screen: briefing, dishes, prep, stock and assigned
+    /// tasks — whatever the operator shows this person (HQ → Crew-app).
+    private var eventCard: some View {
+        Button {
+            router.pushOnShifts(.event(activityId: activityId, date: date))
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.neuTrack).frame(width: 56, height: 56)
+                    .overlay(Image(systemName: "doc.text").foregroundStyle(Color.foodrun.foreground))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("detail.event.title").frText(FRType.rowTitle)
+                    Text("detail.event.subtitle").frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+            .foregroundStyle(Color.foodrun.foreground)
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                    .fill(Color.foodrun.card)
+            )
+            .frNeu(.raised)
+        }
+        .buttonStyle(.plain)
     }
 
     private var locationCard: some View {

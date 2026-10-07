@@ -16,6 +16,10 @@ enum AppConfig {
         /// Shift checklists (Tasks tab, hero checklist chip, shift-detail gate).
         /// Workers can't read `tasks` yet (RLS) — see SchemaContract.md → TasksStore.
         static let checklists = false
+        /// Operator-assigned crew tasks (Tasks tab, real data) and the event
+        /// screen (briefing / dishes / prep / stock) — HQ migration
+        /// 20261008120000_crew_app_event_content. Replaces the sample checklist.
+        static let crewTasks = true
         /// "Request a swap" — needs a swap-request table + operator review in HQ.
         static let shiftSwaps = false
         /// "Continue with Google" — needs GOTRUE_EXTERNAL_GOOGLE_ENABLED on the VPS.

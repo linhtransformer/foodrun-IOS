@@ -18,6 +18,8 @@ public final class TabRouter {
 
     public enum Route: Hashable {
         case shiftDetail(activityId: UUID, date: Date)
+        /// Event screen: briefing, dishes, prep, stock + assigned tasks (EventView).
+        case event(activityId: UUID, date: Date)
         case tasks
         case approvedHours
     }
