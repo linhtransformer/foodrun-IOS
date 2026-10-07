@@ -14,6 +14,8 @@ public struct AddShiftSheet: View {
     @State private var start: Date = AddShiftSheet.time(19, 0)
     @State private var end: Date = AddShiftSheet.time(23, 0)
     @State private var picks: Set<UUID> = []
+    /// Days of the chosen activity to roster on — starts with the picked date.
+    @State private var days: Set<String> = []
     @State private var isSaving = false
     @State private var error: String?
 
@@ -30,8 +32,18 @@ public struct AddShiftSheet: View {
         activitiesOnDay.first { $0.id == activityId }
     }
 
-    private var alreadyRostered: Set<String> {
-        Set(selectedActivity?.rosteredIds(on: dayKey) ?? [])
+    /// The chosen activity's days from today on (plus the picked date, even if past).
+    private var activityDays: [String] {
+        guard let a = selectedActivity else { return [] }
+        let today = SchemaDates.string(schedule.today)
+        return SchemaDates.days(from: a.start_date, to: a.end_date).filter { $0 >= today || $0 == dayKey }
+    }
+
+    /// On how many of the selected days this person is already rostered.
+    private func rosteredDays(_ emp: DBEmployee) -> Int {
+        guard let a = selectedActivity else { return 0 }
+        let key = emp.id.uuidString.lowercased()
+        return days.filter { a.rosteredIds(on: $0).contains(key) }.count
     }
 
     public var body: some View {
@@ -42,6 +54,7 @@ public struct AddShiftSheet: View {
                     DatePicker("", selection: $date, displayedComponents: .date).labelsHidden()
                 }
                 activityField
+                if activityDays.count > 1 { daysField }
                 HStack(spacing: 10) {
                     labeled("addShift.field.start") {
                         DatePicker("", selection: $start, displayedComponents: .hourAndMinute).labelsHidden()
@@ -61,9 +74,9 @@ public struct AddShiftSheet: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .background(Color.foodrun.background.ignoresSafeArea())
-        .onAppear { date = schedule.selectedDate; pickDefaultActivity() }
-        .onChange(of: dayKey) { _, _ in pickDefaultActivity() }
-        .onChange(of: activityId) { _, _ in prefillTimes() }
+        .onAppear { date = schedule.selectedDate; pickDefaultActivity(); days = [SchemaDates.string(schedule.selectedDate)] }
+        .onChange(of: dayKey) { _, _ in pickDefaultActivity(); days = [dayKey] }
+        .onChange(of: activityId) { _, _ in prefillTimes(); days = [dayKey] }
     }
 
     // MARK: - Sections
@@ -107,6 +120,48 @@ public struct AddShiftSheet: View {
         }
     }
 
+    private var daysField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("addShift.field.days").frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Spacer()
+                Button {
+                    days = days.count == activityDays.count ? [dayKey] : Set(activityDays)
+                    FRHaptic.light.fire()
+                } label: {
+                    Text(days.count == activityDays.count ? "addShift.days.one" : "addShift.days.all")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(Color.foodrun.foreground)
+                        .underline()
+                }
+                .buttonStyle(.plain)
+            }
+            FlowLayout(spacing: 8) {
+                ForEach(activityDays, id: \.self) { day in
+                    let on = days.contains(day)
+                    Button {
+                        if on { if days.count > 1 { days.remove(day) } } else { days.insert(day) }
+                        FRHaptic.light.fire()
+                    } label: {
+                        Text(verbatim: dayChip(day))
+                            .font(.system(size: 12.5, weight: .semibold))
+                            .foregroundStyle(on ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
+                            .padding(.horizontal, 12).padding(.vertical, 8)
+                            .background(Capsule().fill(on ? Color.foodrun.foreground : Color.foodrun.card))
+                            .frNeu(.raised)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
+        }
+    }
+
+    private func dayChip(_ day: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
+        return f.string(from: SchemaDates.date(day) ?? Date())
+    }
+
     private var crewField: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -116,8 +171,9 @@ public struct AddShiftSheet: View {
             }
             VStack(spacing: 6) {
                 ForEach(schedule.operatorEmployees) { emp in
-                    let key = emp.id.uuidString.lowercased()
-                    let rostered = alreadyRostered.contains(key)
+                    let onDays = rosteredDays(emp)
+                    // Disabled only when they're already on every selected day.
+                    let rostered = !days.isEmpty && onDays == days.count
                     let on = picks.contains(emp.id)
                     Button {
                         if on { picks.remove(emp.id) } else { picks.insert(emp.id) }
@@ -133,6 +189,9 @@ public struct AddShiftSheet: View {
                                 Text(verbatim: emp.fullName).frText(FRType.rowTitle)
                                 if rostered {
                                     Text("addShift.alreadyRostered").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                                } else if onDays > 0 {
+                                    Text(verbatim: String(format: FRLanguage.string("addShift.partlyRostered %lld %lld"), onDays, days.count))
+                                        .frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
                                 }
                             }
                             Spacer()
@@ -186,7 +245,7 @@ public struct AddShiftSheet: View {
 
     // MARK: - Save
 
-    private var canSave: Bool { !isSaving && selectedActivity != nil && !picks.isEmpty }
+    private var canSave: Bool { !isSaving && selectedActivity != nil && !picks.isEmpty && !days.isEmpty }
 
     private func save() async {
         guard let activity = selectedActivity else { return }
@@ -195,7 +254,7 @@ public struct AddShiftSheet: View {
         do {
             try await WorkerAPI.addToRoster(
                 activityId: activity.id,
-                day: dayKey,
+                days: days.sorted(),
                 employeeIds: Array(picks),
                 start: hhmm(start),
                 end: hhmm(end)

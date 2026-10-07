@@ -149,7 +149,7 @@
 "roster.addShift"           = "Add shift";
 "addShift.title"            = "Add shift";
 "addShift.adminBadge"       = "Admin";
-"addShift.description"      = "Rosters people on the chosen day. They see the shift in their app right away.";
+"addShift.description"      = "Rosters people on the chosen days. They see the shift in their app right away.";
 "addShift.field.date"       = "Date";
 "addShift.field.start"      = "Start";
 "addShift.field.end"        = "End";
@@ -291,3 +291,13 @@
 "join.error.session"        = "Your session expired. Log out and in again.";
 "join.error.generic"        = "Couldn’t send your request. Check your connection and try again.";
 "profile.joinAnother"       = "Join another organization";
+
+// Admin rostering
+"addShift.field.days"        = "Days";
+"addShift.days.all"          = "All days";
+"addShift.days.one"          = "Only this day";
+"addShift.partlyRostered %lld %lld" = "Already on %1$lld of %2$lld days";
+"roster.edit.save"           = "Save times";
+"roster.edit.remove"         = "Remove from this day";
+"roster.edit.removeConfirm %@ %@" = "Take %1$@ off %2$@?";
+"roster.edit.hint"           = "Change times or remove";

@@ -149,7 +149,7 @@
 "roster.addShift"           = "Dienst toevoegen";
 "addShift.title"            = "Dienst toevoegen";
 "addShift.adminBadge"       = "Admin";
-"addShift.description"      = "Roostert medewerkers op de gekozen dag. Ze zien de dienst meteen in hun app.";
+"addShift.description"      = "Roostert medewerkers op de gekozen dagen. Ze zien de dienst meteen in hun app.";
 "addShift.field.date"       = "Datum";
 "addShift.field.start"      = "Start";
 "addShift.field.end"        = "Einde";
@@ -291,3 +291,13 @@
 "join.error.session"        = "Je sessie is verlopen. Log uit en weer in.";
 "join.error.generic"        = "Aanvraag versturen lukte niet. Check je verbinding en probeer het opnieuw.";
 "profile.joinAnother"       = "Sluit je aan bij een andere organisatie";
+
+// Inroosteren door admins
+"addShift.field.days"        = "Dagen";
+"addShift.days.all"          = "Alle dagen";
+"addShift.days.one"          = "Alleen deze dag";
+"addShift.partlyRostered %lld %lld" = "Al op %1$lld van %2$lld dagen";
+"roster.edit.save"           = "Tijden opslaan";
+"roster.edit.remove"         = "Van deze dag halen";
+"roster.edit.removeConfirm %@ %@" = "%1$@ van %2$@ halen?";
+"roster.edit.hint"           = "Tijden wijzigen of verwijderen";

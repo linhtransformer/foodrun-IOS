@@ -230,11 +230,54 @@ enum WorkerAPI {
         return (staff, activities)
     }
 
-    /// Roster employees on one day of an activity with a personal window.
+    /// Roster employees on one or more days of an activity with a personal window.
     /// Same writes as HQ's scheduling board (AvailabilityBoard.tsx): append to
     /// daily_employees[day], keep `employees` as the union of all days, and set
-    /// daily_employee_times[day][employee] = { startTime, endTime }.
-    static func addToRoster(activityId: UUID, day: String, employeeIds: [UUID], start: String, end: String) async throws {
+    /// daily_employee_times[day][employee] = { startTime, endTime }. People already
+    /// on a day keep their place; their times are updated.
+    static func addToRoster(activityId: UUID, days: [String], employeeIds: [UUID], start: String, end: String) async throws {
+        let ids = employeeIds.map { $0.uuidString.lowercased() }
+        try await updateRoster(activityId: activityId) { daily, times in
+            for day in days {
+                var dayIds = daily[day] ?? []
+                for id in ids where !dayIds.contains(where: { $0.lowercased() == id }) { dayIds.append(id) }
+                daily[day] = dayIds
+                var dayTimes = times[day] ?? [:]
+                for id in ids { dayTimes[id] = DBDayTimes(startTime: start, endTime: end, active: nil) }
+                times[day] = dayTimes
+            }
+        }
+    }
+
+    /// Change one person's window on one day (HQ: handleSetEmployeeTime).
+    static func setRosterTimes(activityId: UUID, day: String, employeeId: UUID, start: String, end: String) async throws {
+        let id = employeeId.uuidString.lowercased()
+        try await updateRoster(activityId: activityId) { _, times in
+            var dayTimes = times[day] ?? [:]
+            for key in dayTimes.keys where key.lowercased() == id && key != id { dayTimes[key] = nil }
+            dayTimes[id] = DBDayTimes(startTime: start, endTime: end, active: nil)
+            times[day] = dayTimes
+        }
+    }
+
+    /// Take one person off one day (HQ: handleUnassign + clearing their window).
+    static func removeFromRoster(activityId: UUID, day: String, employeeId: UUID) async throws {
+        let id = employeeId.uuidString.lowercased()
+        try await updateRoster(activityId: activityId) { daily, times in
+            // Ids can be stored in either case; compare lower-cased.
+            daily[day] = (daily[day] ?? []).filter { $0.lowercased() != id }
+            var dayTimes = times[day] ?? [:]
+            for key in dayTimes.keys where key.lowercased() == id { dayTimes[key] = nil }
+            times[day] = dayTimes.isEmpty ? nil : dayTimes
+        }
+    }
+
+    /// Read-modify-write of an activity's three roster columns. `employees` is
+    /// always rewritten as the union of every day, like HQ's syncFlatEmployees.
+    private static func updateRoster(
+        activityId: UUID,
+        _ change: (inout [String: [String]], inout [String: [String: DBDayTimes]]) -> Void
+    ) async throws {
         struct RosterRow: Decodable {
             let start_date: String
             let end_date: String
@@ -261,15 +304,8 @@ enum WorkerAPI {
         if daily.isEmpty, let legacy = row.employees, !legacy.isEmpty {
             for d in SchemaDates.days(from: row.start_date, to: row.end_date) { daily[d] = legacy }
         }
-        let ids = employeeIds.map { $0.uuidString.lowercased() }
-        var dayIds = daily[day] ?? []
-        for id in ids where !dayIds.contains(id) { dayIds.append(id) }
-        daily[day] = dayIds
-
         var times = row.daily_employee_times ?? [:]
-        var dayTimes = times[day] ?? [:]
-        for id in ids { dayTimes[id] = DBDayTimes(startTime: start, endTime: end, active: nil) }
-        times[day] = dayTimes
+        change(&daily, &times)
 
         let flat = Array(Set(daily.values.flatMap { $0 })).sorted()
         try await client

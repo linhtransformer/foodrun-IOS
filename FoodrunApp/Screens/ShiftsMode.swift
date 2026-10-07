@@ -12,6 +12,22 @@ struct ShiftsMode: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if schedule.isOperator {
+                // Admins roster people from here too, not only from the Roster view.
+                Button {
+                    router.addShiftOpen = true
+                    FRHaptic.medium.fire()
+                } label: {
+                    Label("roster.addShift", systemImage: "plus")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(Capsule().fill(Color.foodrun.foreground))
+                        .frCTAShadow()
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 6)
+            }
             HStack {
                 Text("shifts.stillToWork.title").frText(FRType.sectionHeader)
                 Spacer()

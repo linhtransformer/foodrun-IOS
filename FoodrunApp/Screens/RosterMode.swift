@@ -10,6 +10,8 @@ import SwiftUI
 struct RosterMode: View {
     @Environment(ScheduleStore.self) private var schedule
     @Environment(TabRouter.self) private var router
+    /// Admin: the rostered person being edited (times / remove).
+    @State private var editing: Entry?
 
     private var dayKey: String { SchemaDates.string(schedule.selectedDate) }
 
@@ -79,7 +81,7 @@ struct RosterMode: View {
             }
             VStack(spacing: 8) {
                 ForEach(entries) { e in
-                    FRRosterRow(
+                    let row = FRRosterRow(
                         name: e.employee.fullName,
                         initials: initials(e.employee.fullName),
                         avatarColor: Color.foodrunData(hex: e.activity.color),
@@ -89,6 +91,13 @@ struct RosterMode: View {
                         time: e.time,
                         isYou: e.isYou
                     )
+                    if schedule.isOperator {
+                        Button { editing = e } label: { row.contentShape(Rectangle()) }
+                            .buttonStyle(.plain)
+                            .accessibilityHint(Text("roster.edit.hint"))
+                    } else {
+                        row
+                    }
                 }
                 if hiddenColleagues > 0 {
                     Text("detail.crew.others \(hiddenColleagues)")
@@ -97,9 +106,12 @@ struct RosterMode: View {
                 }
             }
         }
+        .sheet(item: $editing) { e in
+            RosterEntrySheet(employee: e.employee, activity: e.activity, day: dayKey)
+        }
     }
 
-    private struct Entry: Identifiable {
+    private struct Entry: Identifiable, Hashable {
         let id: String
         let employee: DBEmployee
         let activity: DBActivity
