@@ -117,6 +117,16 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    /// Send the sign-up confirmation email again (Check your email → "Send again").
+    func resendConfirmation(email: String) async -> Bool {
+        do {
+            try await client.auth.resend(email: email.trimmed, type: .signup, emailRedirectTo: AppConfig.authCallback)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     // MARK: - Password reset (6-digit code by email)
     //
     // No deep link needed: Supabase mails a one-time code ({{ .Token }} in the

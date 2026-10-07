@@ -11,8 +11,32 @@ struct SignUpView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var showPassword: Bool = false
+    /// Set once the confirmation email is out: the form makes way for "Check your email".
+    @State private var confirmationSentTo: String?
 
     var body: some View {
+        Group {
+            if let confirmationSentTo {
+                CheckEmailView(email: confirmationSentTo) {
+                    auth.reset()
+                    dismiss()
+                }
+                .transition(.opacity)
+            } else {
+                form
+            }
+        }
+        .animation(FRAnimation.subtle, value: confirmationSentTo)
+        .onChange(of: auth.status) { _, status in
+            if status == .signUpConfirmationSent {
+                confirmationSentTo = email.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        .onAppear { auth.reset() }
+        .onDisappear { auth.reset() }
+    }
+
+    private var form: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -89,7 +113,5 @@ struct SignUpView: View {
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
         .disabled(auth.status == .working)
-        .onAppear { auth.reset() }
-        .onDisappear { auth.reset() }
     }
 }

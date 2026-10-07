@@ -301,3 +301,15 @@
 "roster.edit.remove"         = "Remove from this day";
 "roster.edit.removeConfirm %@ %@" = "Take %1$@ off %2$@?";
 "roster.edit.hint"           = "Change times or remove";
+
+// Check your email (after sign-up)
+"checkEmail.title"         = "Check your email";
+"checkEmail.sentTo"        = "We sent a confirmation link to";
+"checkEmail.body"          = "Open the email and tap the link to confirm your account. You’re logged in straight away.";
+"checkEmail.openMail"      = "Open Mail";
+"checkEmail.backToLogin"   = "Back to log in";
+"checkEmail.noEmail"       = "No email?";
+"checkEmail.resend"        = "Send again";
+"checkEmail.resent"        = "Sent. Check your inbox.";
+"checkEmail.resendFailed"  = "Couldn’t send it. Wait a minute and try again.";
+"checkEmail.spamHint"      = "It can take a minute — also check your spam folder.";
