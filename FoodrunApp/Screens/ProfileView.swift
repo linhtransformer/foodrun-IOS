@@ -89,6 +89,10 @@ public struct ProfileView: View {
 /// "waiting for your employer" screen, which has no tabs.
 struct ProfileAccountSection: View {
     @EnvironmentObject private var auth: AuthViewModel
+    @Environment(ScheduleStore.self) private var schedule
+    /// The waiting screen has its own big "ask an organization" button.
+    var showsJoinRow = true
+    @State private var showJoin = false
     @State private var confirmLogout = false
     @State private var confirmDelete = false
     @State private var deleteFailed = false
@@ -99,6 +103,12 @@ struct ProfileAccountSection: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("profile.section.account").frText(FRType.sectionHeader)
             VStack(spacing: 6) {
+                if showsJoinRow {
+                    // Workers can work for several organizations (one employee row each).
+                    Button { showJoin = true } label: {
+                        row("building.2", "profile.joinAnother", trailing: "chevron.right")
+                    }
+                }
                 Button { showLanguage = true } label: {
                     row("globe", "profile.language", value: FRLanguage.current.displayName, trailing: "chevron.right")
                 }
@@ -121,6 +131,9 @@ struct ProfileAccountSection: View {
                 .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 6)
+        }
+        .sheet(isPresented: $showJoin) {
+            JoinRequestView { await schedule.load() }
         }
         .sheet(isPresented: $showLanguage, onDismiss: applyLanguage) {
             languageSheet

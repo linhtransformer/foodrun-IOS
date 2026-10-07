@@ -14,6 +14,8 @@ import Supabase
 //   fetchInbox/markRead↔ useWorkerInbox                  (worker_notifications)
 //   clock in/out       → ClockStore (RPCs clock_in / clock_out)
 //   fetchClockEvents   ↔ useShiftClock                   (shift_clock_events, read-only)
+//   fetchPublicOrganizations / requestToJoin
+//                      ↔ /me/signup (RPC list_public_organizations, edge fn worker-self-signup)
 
 enum WorkerAPI {
     private static var client: SupabaseClient { SupabaseManager.shared.client }
@@ -30,6 +32,36 @@ enum WorkerAPI {
     /// MeResolver on first /me visit. Idempotent, so calling it on every load is fine.
     static func linkIdentity() async throws {
         try await client.functions.invoke("employee-identity-link", options: FunctionInvokeOptions(method: .post))
+    }
+
+    /// Every organization a worker can ask to join (id + name only). Workers
+    /// can't read `organizations` (RLS); this SECURITY DEFINER RPC is the same
+    /// directory the web's /me/signup picker uses.
+    static func fetchPublicOrganizations() async throws -> [PublicOrganization] {
+        try await client.rpc("list_public_organizations").execute().value
+    }
+
+    /// Ask one or more organizations to employ this account — the web's
+    /// /me/signup. The edge function creates a `pending` employees row per
+    /// organization (an existing approved row stays approved); the operator
+    /// approves or declines in HQ and the worker gets an inbox notification.
+    /// Error replies (non-2xx) carry the same JSON, so they decode too.
+    static func requestToJoin(name: String, dateOfBirth: String, organizationIds: [UUID]) async throws -> JoinRequestResult {
+        struct Body: Encodable {
+            let name: String
+            let date_of_birth: String
+            let organization_ids: [UUID]
+        }
+        let options = FunctionInvokeOptions(
+            method: .post,
+            body: Body(name: name, date_of_birth: dateOfBirth, organization_ids: organizationIds)
+        )
+        do {
+            return try await client.functions.invoke("worker-self-signup", options: options)
+        } catch FunctionsError.httpError(_, let data) {
+            if let result = try? JSONDecoder().decode(JoinRequestResult.self, from: data) { return result }
+            throw FunctionsError.httpError(code: 0, data: data)
+        }
     }
 
     /// All employee rows linked to this worker (one per operator), including ones

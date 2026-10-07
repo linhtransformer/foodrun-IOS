@@ -240,6 +240,25 @@ public struct DBWorkerNotification: Codable, Identifiable, Hashable {
     public let created_at: Date
 }
 
+// MARK: - Join an organization (RPC list_public_organizations, edge fn worker-self-signup)
+
+public struct PublicOrganization: Decodable, Identifiable, Hashable {
+    public let id: UUID
+    public let name: String
+}
+
+/// Reply of `worker-self-signup`. On failure `error` is one of: missing_fields,
+/// bad_dob, too_young (min. 15), company_not_found, recently_declined (with
+/// organization_name + hours_until_retry), unauthorized, invalid_session.
+public struct JoinRequestResult: Decodable {
+    public let ok: Bool
+    public let error: String?
+    public let pending_organization_names: [String]?
+    public let approved_organization_names: [String]?
+    public let organization_name: String?
+    public let hours_until_retry: Int?
+}
+
 // MARK: - tasks (operator-owned; checklists live in the `checklists` JSONB)
 
 public struct DBTaskChecklistItem: Codable, Hashable {

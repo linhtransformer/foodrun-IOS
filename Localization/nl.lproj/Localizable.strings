@@ -266,3 +266,28 @@
 "auth.signUp.intro"         = "Maak een account en vraag je werkgever om je toe te voegen in Foodrun — je diensten verschijnen zodra dat gebeurd is.";
 "auth.signUp.create"        = "Account aanmaken";
 "auth.signUp.passwordHint"  = "Minstens 8 tekens";
+
+// Vraag een organisatie om je in dienst te nemen (JoinRequestView)
+"action.cancel"             = "Annuleren";
+"action.close"              = "Sluiten";
+"action.done"               = "Klaar";
+"notLinked.ask"             = "Vraag een organisatie om je aan te nemen";
+"notLinked.askAnother"      = "Vraag nog een organisatie";
+"notLinked.orByEmail"       = "Of laat je werkgever je toevoegen via e-mail:";
+"join.title"                = "Aansluiten bij een organisatie";
+"join.intro"                = "Kies het foodtruckbedrijf waar je voor werkt (of wilt werken). Zij krijgen je aanvraag in Foodrun HQ en kunnen hem goedkeuren.";
+"join.name"                 = "Volledige naam";
+"join.dateOfBirth"          = "Geboortedatum";
+"join.organizations"        = "Organisaties";
+"join.selected %lld"        = "%lld gekozen";
+"join.search"               = "Zoek een organisatie";
+"join.noResults"            = "Geen organisatie met die naam.";
+"join.send"                 = "Aanvraag versturen";
+"join.sent.title"           = "Aanvraag verstuurd";
+"join.sent.body %@"         = "%@ ziet je aanvraag in Foodrun HQ. Je krijgt hier een bericht zodra ze hem goedkeuren.";
+"join.error.tooYoung"       = "Je moet minstens 15 zijn om via Foodrun te werken.";
+"join.error.companyGone"    = "Een van die organisaties bestaat niet meer. Sluit dit scherm en probeer het opnieuw.";
+"join.error.declined %@ %lld" = "%1$@ heeft je aanvraag net afgewezen. Je kunt het over %2$lld uur opnieuw vragen.";
+"join.error.session"        = "Je sessie is verlopen. Log uit en weer in.";
+"join.error.generic"        = "Aanvraag versturen lukte niet. Check je verbinding en probeer het opnieuw.";
+"profile.joinAnother"       = "Sluit je aan bij een andere organisatie";

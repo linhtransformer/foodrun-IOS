@@ -266,3 +266,28 @@
 "auth.signUp.intro"         = "Make an account, then ask your employer to add you in Foodrun — your shifts show up as soon as they do.";
 "auth.signUp.create"        = "Create account";
 "auth.signUp.passwordHint"  = "At least 8 characters";
+
+// Ask an organization to employ you (JoinRequestView)
+"action.cancel"             = "Cancel";
+"action.close"              = "Close";
+"action.done"               = "Done";
+"notLinked.ask"             = "Ask an organization to hire you";
+"notLinked.askAnother"      = "Ask another organization";
+"notLinked.orByEmail"       = "Or have your employer add you by email:";
+"join.title"                = "Join an organization";
+"join.intro"                = "Pick the food truck company you work for (or want to). They get your request in Foodrun HQ and can approve it.";
+"join.name"                 = "Full name";
+"join.dateOfBirth"          = "Date of birth";
+"join.organizations"        = "Organizations";
+"join.selected %lld"        = "%lld selected";
+"join.search"               = "Search organizations";
+"join.noResults"            = "No organization with that name.";
+"join.send"                 = "Send request";
+"join.sent.title"           = "Request sent";
+"join.sent.body %@"         = "%@ will see your request in Foodrun HQ. You get a message here as soon as they approve it.";
+"join.error.tooYoung"       = "You need to be at least 15 to work via Foodrun.";
+"join.error.companyGone"    = "One of those organizations no longer exists. Close this and try again.";
+"join.error.declined %@ %lld" = "%1$@ declined your request recently. You can ask again in %2$lld hours.";
+"join.error.session"        = "Your session expired. Log out and in again.";
+"join.error.generic"        = "Couldn’t send your request. Check your connection and try again.";
+"profile.joinAnother"       = "Join another organization";

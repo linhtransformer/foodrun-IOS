@@ -10,6 +10,7 @@ struct NotLinkedView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @Environment(ScheduleStore.self) private var schedule
     var onRefresh: () async -> Void
+    @State private var showJoin = false
 
     private var email: String {
         if case .signedIn(let email) = auth.state { return email }
@@ -35,30 +36,42 @@ struct NotLinkedView: View {
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
 
-                emailCard
-
-                steps
+                // Main action: request to join an organization (web /me/signup).
+                AuthPrimaryButton(
+                    title: schedule.hasPendingRequest ? "notLinked.askAnother" : "notLinked.ask",
+                    working: false
+                ) {
+                    showJoin = true
+                }
 
                 Button {
                     Task { await onRefresh() }
                 } label: {
                     ZStack {
                         if schedule.isLoading {
-                            ProgressView().tint(Color.foodrun.backgroundInverseInk)
+                            ProgressView()
                         } else {
                             Text("notLinked.checkAgain")
                         }
                     }
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.foodrun.backgroundInverseInk)
-                    .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(Capsule().fill(Color.foodrun.foreground))
-                    .frCTAShadow()
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.foodrun.foreground)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .disabled(schedule.isLoading)
 
-                ProfileAccountSection()
+                Text("notLinked.orByEmail")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    .padding(.top, 8)
+
+                emailCard
+
+                steps
+
+                ProfileAccountSection(showsJoinRow: false)
                     .padding(.top, 12)
             }
             .padding(.horizontal, FRSpacing.screenH.value)
@@ -66,6 +79,9 @@ struct NotLinkedView: View {
             .padding(.bottom, 40)
         }
         .refreshable { await onRefresh() }
+        .sheet(isPresented: $showJoin) {
+            JoinRequestView(onSent: onRefresh)
+        }
         .background(Color.foodrun.background.ignoresSafeArea())
     }
 
