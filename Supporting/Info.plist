@@ -40,6 +40,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSNFCReaderUsageDescription</key>
 	<string>Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.</string>
 	<key>UIBackgroundModes</key>
