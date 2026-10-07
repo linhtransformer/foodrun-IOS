@@ -58,7 +58,12 @@ targets:
         # Background roster check for shift-change notifications (ShiftBackgroundRefresh).
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [nl.foodrun.app.shift-refresh]
+        # Only standard HTTPS — skips the export-compliance question on every upload.
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: Supporting/Foodrun.entitlements
       properties:
         com.apple.developer.nfc.readersession.formats: [NDEF]
+        # Sign in with Apple (AuthViewRedesign). Needs a paid Apple Developer team;
+        # a free personal team can't sign it — drop this line to build there.
+        com.apple.developer.applesignin: [Default]

@@ -20,6 +20,50 @@ Phase 1 NFC clock-in code that just landed.
   - Value: `Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.`
 - Without this key, `NFCNDEFReaderSession.begin()` traps at runtime.
 
+## 2b. Sign In with Apple capability + iPhone only
+
+Both are already in `project.yml` — `xcodegen generate` applies them:
+- Entitlement `com.apple.developer.applesignin = ["Default"]` (Signing & Capabilities
+  shows **Sign In with Apple**). Needs a paid developer team.
+- `TARGETED_DEVICE_FAMILY: "1"` → iPhone only (General → Supported Destinations).
+  See `APP_STORE_CHECKLIST.md` §2.
+
+## 2c. Auth providers + email (server side, VPS — not Xcode)
+
+The app code for these is done; each needs the matching switch on the self-hosted
+Supabase auth service: edit `/opt/supabase-vietnamama/.env` on the VPS (the names below;
+`docker-compose.yml` maps them to `GOTRUE_*`), then `docker compose up -d auth`.
+As of 2026-10-07 the client IDs are present but both providers are **disabled**, SMTP
+is still the placeholder `smtp.your-provider.com` (no auth email is sent at all) and
+`GOTRUE_URI_ALLOW_LIST` is empty.
+
+**Email via Resend** (sign-up confirmation, password-reset code, invites):
+1. Resend dashboard → Domains → add `foodrun.nl` → add the DNS records it shows
+   (on `send.foodrun.nl` + a DKIM TXT — they don't touch the existing MX).
+2. `.env`: `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`,
+   `SMTP_PASS=<Resend API key>`, `SMTP_ADMIN_EMAIL=no-reply@foodrun.nl`,
+   `SMTP_SENDER_NAME=Foodrun`.
+3. Reset-password template must contain the code: `{{ .Token }}` (the app asks for the
+   6-digit code instead of using a link).
+
+**Redirects:** `.env` `ADDITIONAL_REDIRECT_URLS=foodrun://auth-callback,https://foodrun.nl/**`
+
+**Sign in with Apple** (native, id-token flow):
+1. developer.apple.com → Identifiers → App ID `nl.foodrun.app` → enable Sign In with Apple.
+2. `.env`: `APPLE_ENABLED=true`, and `APPLE_CLIENT_ID` must **include the bundle ID** `nl.foodrun.app` (comma-separate it next to the web
+   Services ID if there is one). Native id-token sign-in needs no secret.
+
+**Google** (OAuth in an in-app browser sheet):
+1. Google Cloud Console → APIs & Services → Credentials → the existing **Web** OAuth
+   client → Authorized redirect URI `https://supabase.foodrun.nl/auth/v1/callback`.
+   OAuth consent screen: app name Foodrun, privacy URL, publish (not "Testing").
+2. `.env`: `GOOGLE_ENABLED=true`, `GOOGLE_CLIENT_ID=<web client id>`,
+   `GOOGLE_SECRET=<secret>` (redirect URI is derived from `API_EXTERNAL_URL`).
+3. If Google is on, Apple must be on too (App Review guideline 4.8).
+
+Until a provider is live, turn its button off in `FoodrunApp/AppConfig.swift`
+(`Features.googleSignIn` / `appleSignIn`) — a button that errors gets the app rejected.
+
 ## 3. (Phase 2 only — do not enable until universal-link setup is ready)
 
 Everything below is aspirational until we serve `apple-app-site-association` on

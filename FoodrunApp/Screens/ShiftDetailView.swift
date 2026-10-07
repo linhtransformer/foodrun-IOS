@@ -30,9 +30,9 @@ public struct ShiftDetailView: View {
                 summaryCard
                 locationCard
                 crewSection
-                gateCard
+                if AppConfig.Features.checklists { gateCard }
                 nfcStrip
-                requestSwap
+                if AppConfig.Features.shiftSwaps { requestSwap }
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, FRSpacing.screenTop.value)
@@ -57,18 +57,8 @@ public struct ShiftDetailView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(Text("action.back"))
             Spacer()
-            Button {
-                // TODO: overflow menu (Slice 11).
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.foodrun.foreground)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(Color.foodrun.card))
-                    .frNeu(.raised)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("action.more"))
+            // Overflow "⋯" menu removed until it has real actions (Slice 11) —
+            // App Review rejects buttons that do nothing.
         }
     }
 

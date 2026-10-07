@@ -32,8 +32,9 @@ enum WorkerAPI {
         try await client.functions.invoke("employee-identity-link", options: FunctionInvokeOptions(method: .post))
     }
 
-    /// All employee rows linked to this worker (one per operator), approved only —
-    /// same filter the web applies before showing shifts/hours.
+    /// All employee rows linked to this worker (one per operator), including ones
+    /// still waiting for the operator's approval. Callers show shifts/hours for
+    /// `isApproved` rows only — same filter the web applies.
     static func fetchMyEmployees() async throws -> [DBEmployee] {
         let uid = try await currentUserId()
         let rows: [DBEmployee] = try await client
@@ -43,7 +44,7 @@ enum WorkerAPI {
             .order("created_at", ascending: true)
             .execute()
             .value
-        return rows.filter(\.isApproved)
+        return rows
     }
 
     /// The worker's activity feed (−60 … +60 days). Workers can't read the

@@ -29,16 +29,18 @@ public enum FRTab: String, CaseIterable, Hashable {
 
 public struct FRTabBar: View {
     @Binding public var selection: FRTab
+    public var tabs: [FRTab]
     public var badgedTabs: Set<FRTab>
 
-    public init(selection: Binding<FRTab>, badgedTabs: Set<FRTab> = []) {
+    public init(selection: Binding<FRTab>, tabs: [FRTab] = FRTab.allCases, badgedTabs: Set<FRTab> = []) {
         self._selection = selection
+        self.tabs = tabs
         self.badgedTabs = badgedTabs
     }
 
     public var body: some View {
         HStack(spacing: 4) {
-            ForEach(FRTab.allCases, id: \.self) { tab in
+            ForEach(tabs, id: \.self) { tab in
                 Button {
                     selection = tab
                     FRHaptic.light.fire()

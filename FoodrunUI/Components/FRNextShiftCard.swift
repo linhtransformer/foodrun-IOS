@@ -184,21 +184,24 @@ public struct FRNextShiftCard: View {
             }
             .buttonStyle(.plain)
 
-            Button(action: onTapChecklist) {
-                HStack(spacing: 6) {
-                    Image(systemName: checklistProgress.0 == checklistProgress.1 ? "checkmark" : "lock.fill")
-                        .font(.system(size: 13, weight: .medium))
-                    Text("\(checklistProgress.0)/\(checklistProgress.1)")
-                        .font(.system(size: 13, weight: .semibold).monospacedDigit())
+            // No checklist for this shift (or checklists switched off) → no chip.
+            if checklistProgress.1 > 0 {
+                Button(action: onTapChecklist) {
+                    HStack(spacing: 6) {
+                        Image(systemName: checklistProgress.0 == checklistProgress.1 ? "checkmark" : "lock.fill")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("\(checklistProgress.0)/\(checklistProgress.1)")
+                            .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                    }
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .frame(minHeight: 44)
+                    .overlay(
+                        Capsule().stroke(Color.foodrun.backgroundInverseInk.opacity(0.28), lineWidth: 1)
+                    )
                 }
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                .frame(minHeight: 44)
-                .overlay(
-                    Capsule().stroke(Color.foodrun.backgroundInverseInk.opacity(0.28), lineWidth: 1)
-                )
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("hero.checklist"))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("hero.checklist"))
         }
     }
 

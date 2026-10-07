@@ -71,6 +71,15 @@ public final class ScheduleStore {
     /// "Today" for all date logic. Real clock in the app; pinned in previews so
     /// fixtures stay meaningful.
     public var today: Date = Date()
+    /// True once the first load finished — until then we don't know whether the
+    /// account is linked, so the "waiting for your employer" screen stays hidden.
+    public var hasLoaded = false
+    /// An employer row exists but still waits for their approval (web self-signup).
+    public var hasPendingRequest = false
+
+    /// Signed in, but no employer has added this account yet (and it isn't an
+    /// operator using the app themselves).
+    public var isUnlinked: Bool { hasLoaded && lastError == nil && employees.isEmpty && !isOperator }
 
     public enum ShiftsMode: String, CaseIterable { case shifts, roster, availability }
 
@@ -84,7 +93,8 @@ public final class ScheduleStore {
         do {
             let emps = try await WorkerAPI.fetchMyEmployees()
             let acts = try await WorkerAPI.fetchWorkerActivities()
-            employees = emps
+            employees = emps.filter(\.isApproved)
+            hasPendingRequest = emps.contains { !$0.isApproved }
             activities = acts
             lastError = nil
             rosterLoaded = true
@@ -105,6 +115,7 @@ public final class ScheduleStore {
         } catch {
             lastError = error.localizedDescription
         }
+        hasLoaded = true
     }
 
     // MARK: - Derived

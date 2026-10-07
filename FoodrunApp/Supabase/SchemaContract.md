@@ -21,6 +21,19 @@ All calls: `WorkerAPI.swift`.
 | 6. Approve / reject | Operator | HQ → Stakeholders → **Uren** | `employee_hours.status / approved_by / approved_at / rejected_reason` |
 | 7. Hear back | Worker | iOS Inbox + Hours status, `/me/inbox` | trigger `notify_worker_on_hours_decision()` → `worker_notifications` |
 
+### Account first, employer second
+
+A worker can make an account in the app before any employer has added them.
+`ScheduleStore.isUnlinked` (no approved `employees` row, not an operator) → AppShell
+shows `NotLinkedView` (their email + Share + "Check again"). The employer adds that
+email in HQ → Stakeholders → Add employee; HQ calls RPC `find_worker_account(p_email)`
+(migration `20261007120000`, operator-only, exact match) to show "has a Foodrun
+account: <name>", and the `employees` INSERT links it via the auto-link trigger.
+"Check again" re-runs `employee-identity-link` + load. Rows still
+`approval_status = 'pending'` (web self-signup) show the "waiting for approval" copy.
+
+Account deletion: Profile → Delete account → edge fn `delete-my-account`.
+
 ## Table binding
 
 | iOS store | Web hook it mirrors | Table(s) / RPC | Notes |

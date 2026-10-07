@@ -16,7 +16,7 @@
 
 // MARK: Inloggen
 "auth.headline"           = "Je diensten.\nEén tik weg.";
-"auth.subheadline"        = "Log in om je rooster te zien, je uren te loggen en je diensten af te ronden.";
+"auth.subheadline"        = "Log in om je rooster te zien, in te klokken en je uren door te geven.";
 "auth.email"              = "E-mail";
 "auth.email.placeholder"  = "jij@voorbeeld.nl";
 "auth.password"           = "Wachtwoord";
@@ -26,7 +26,8 @@
 "auth.signUp.confirmationSent" = "Check je e-mail om je account te bevestigen en log daarna in.";
 "auth.error.invalidEmail" = "Voer een geldig e-mailadres in.";
 "auth.error.passwordTooShort" = "Wachtwoord moet minimaal 8 tekens zijn.";
-"auth.invite.footer"      = "Ga je bij een team horen? Open de uitnodigingslink\ndie je manager je stuurde — hij verbindt je automatisch.";
+
+"auth.invite.footer"      = "Nieuw? Maak een account en vraag je\nwerkgever om je toe te voegen in Foodrun.";
 
 // MARK: Diensten
 "shifts.greeting %@"             = "Hey %@";
@@ -132,15 +133,8 @@
 "inbox.decline"           = "Weigeren";
 
 // MARK: Profiel
-"profile.role.line"       = "Kitchen · Vietnamama-vloot";
-"profile.stat.shifts"     = "Diensten";
-"profile.stat.checklists" = "Checklists";
-"profile.stat.trucks"     = "Trucks";
 "profile.section.account" = "Account";
-"profile.language"        = "Taal";
-"profile.notifications"   = "Meldingen";
-"profile.payslips"        = "Loonstroken";
-"profile.contract"        = "Contract (24 u/wk)";
+"profile.language" = "Taal";
 "profile.help"            = "Hulp & contact";
 "profile.logout"          = "Uitloggen";
 "profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
@@ -175,12 +169,10 @@
 "nfc.tile.truck"           = "Truck";
 "nfc.tile.workedTotal"     = "Gewerkt";
 "nfc.tile.span"            = "Traject";
-"nfc.agent.clockedIn"      = "De agent kijkt mee. Tikken vergeten? Vraag een collega — die kan het bevestigen.";
-"nfc.agent.clockedOut"     = "Manager is op de hoogte. Uren zijn ingevuld op basis van je in- en uitklok.";
+"nfc.agent.clockedIn"      = "Inklokken opgeslagen. Tik dezelfde tag opnieuw aan als je dienst klaar is.";
+"nfc.agent.clockedOut"     = "Uitklokken opgeslagen. Controleer en verstuur je uren bij Uren.";
 "nfc.cta.openChecklist"    = "Dienstchecklist openen";
 "nfc.cta.reviewHours"      = "Mijn uren bekijken";
-"nfc.cta.notMe"            = "Ik was het niet — ongedaan maken";
-"nfc.cta.stayClockedIn"    = "Nog niet klaar — ingeklokt blijven";
 
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Je diensten laden…";
@@ -221,3 +213,48 @@
 "shiftChange.title.removed"  = "Dienst vervallen";
 "shiftChange.title.many"     = "Je diensten zijn gewijzigd";
 "shift.status.changed"       = "Gewijzigd";
+
+// MARK: Account, reset, social login, not-linked (2026-10-07)
+"auth.or" = "of";
+"auth.google" = "Doorgaan met Google";
+"auth.forgotPassword" = "Wachtwoord vergeten?";
+"auth.password.show" = "Wachtwoord tonen";
+"auth.password.hide" = "Wachtwoord verbergen";
+"auth.error.apple" = "Inloggen met Apple lukte niet. Probeer het opnieuw.";
+"auth.status.confirmEmail" = "Bijna klaar — open de mail die we stuurden om je account te bevestigen en log daarna in.";
+"auth.status.magicLinkSent" = "Check je mail voor de inloglink.";
+"auth.reset.title" = "Wachtwoord resetten";
+"auth.reset.intro" = "Vul je e-mailadres in. We sturen je een code van 6 cijfers.";
+"auth.reset.enterCode" = "Vul de code van 6 cijfers uit de mail in.";
+"auth.reset.code" = "Code";
+"auth.reset.send" = "Code versturen";
+"auth.reset.verify" = "Code bevestigen";
+"auth.reset.resend" = "Nieuwe code sturen";
+"auth.reset.sent" = "Als dit e-mailadres een account heeft, is er een code onderweg.";
+"auth.reset.codeInvalid" = "Vul de code van 6 cijfers uit de mail in.";
+"auth.reset.newTitle" = "Kies een nieuw wachtwoord";
+"auth.reset.newIntro" = "Minimaal 8 tekens. Hiermee log je voortaan in.";
+"auth.reset.save" = "Wachtwoord opslaan";
+"legal.privacy" = "Privacybeleid";
+"action.ok" = "OK";
+"profile.stat.shiftsMonth" = "Diensten deze maand";
+"profile.stat.upcoming" = "Gepland";
+"profile.stat.hoursApproved" = "Uren goedgekeurd";
+"profile.logout.confirm" = "Uitloggen bij Foodrun?";
+"profile.deleteAccount" = "Account verwijderen";
+"profile.deleteAccount.title" = "Je account verwijderen?";
+"profile.deleteAccount.body" = "Je login en je koppeling met elke werkgever worden definitief verwijderd. Dit kan niet ongedaan worden gemaakt.";
+"profile.deleteAccount.confirm" = "Account definitief verwijderen";
+"profile.deleteAccount.failed" = "Account verwijderen lukte niet";
+"nfc.cta.done" = "Klaar";
+"nfc.cta.close" = "Sluiten";
+"notLinked.title" = "Vraag je werkgever om je toe te voegen";
+"notLinked.body" = "Je account staat klaar. Je werkgever voegt je toe in Foodrun met het e-mailadres hieronder — daarna verschijnen je diensten hier.";
+"notLinked.pending" = "Je aanvraag wacht op goedkeuring van je werkgever. Zodra die akkoord is, zie je hier je diensten.";
+"notLinked.yourEmail" = "E-mailadres van je account";
+"notLinked.share" = "Stuur naar mijn werkgever";
+"notLinked.shareMessage %@" = "Hoi! Kun je me toevoegen in Foodrun? Mijn account-e-mail is %@ (Stakeholders → Medewerker toevoegen).";
+"notLinked.step1" = "Stuur je werkgever het e-mailadres hierboven.";
+"notLinked.step2" = "Die voegt je toe in Foodrun → Stakeholders → Medewerker toevoegen. Foodrun laat zien dat het jouw account is.";
+"notLinked.step3" = "Tik op “Opnieuw controleren” — of open de app opnieuw.";
+"notLinked.checkAgain" = "Opnieuw controleren";

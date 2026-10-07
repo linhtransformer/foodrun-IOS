@@ -1,11 +1,14 @@
 import SwiftUI
 
-// Bundle §8. Profile.
+// Bundle §8. Profile. Everything here is real: name/email from the linked
+// employee row + auth session, stats from the loaded schedule and hours, and
+// every row does something (App Review rejects dead buttons). Account
+// deletion lives here per guideline 5.1.1(v).
 
 public struct ProfileView: View {
+    @EnvironmentObject private var auth: AuthViewModel
     @Environment(ScheduleStore.self) private var schedule
-    @State private var showLanguage = false
-    @State private var pendingLanguage: FRLanguage?
+    @Environment(HoursStore.self) private var hours
 
     public init() {}
 
@@ -13,48 +16,61 @@ public struct ProfileView: View {
         ScrollView {
             VStack(spacing: 16) {
                 avatar
-                stats
-                account
-                logout
+                if !schedule.employees.isEmpty { stats }
+                ProfileAccountSection()
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, FRSpacing.screenTop.value)
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
-        .sheet(isPresented: $showLanguage, onDismiss: applyLanguage) {
-            languageSheet
-                .presentationDetents([.height(320)])
-                .presentationDragIndicator(.visible)
-        }
+    }
+
+    private var email: String {
+        if case .signedIn(let email) = auth.state { return email }
+        return ""
+    }
+
+    private var displayName: String {
+        let name = schedule.employees.first?.fullName ?? ""
+        return name.isEmpty ? email : name
     }
 
     private var avatar: some View {
         VStack(spacing: 8) {
-            Text(initials())
+            Text(verbatim: initials())
                 .font(.system(size: 30, weight: .semibold))
                 .foregroundStyle(Color.foodrun.foreground)
                 .frame(width: 76, height: 76)
                 .background(Circle().fill(Color.foodrun.truck.mees))
                 .frNeu(.raisedLg)
-            Text(schedule.employees.first?.name ?? "Sanne V.")
+            Text(verbatim: displayName)
                 .font(.system(size: 22, weight: .bold))
-            Text("profile.role.line").frText(FRType.rowSubtitle)
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                .multilineTextAlignment(.center)
+            if displayName != email {
+                Text(verbatim: email).frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
         }
     }
 
     private var stats: some View {
-        HStack(spacing: 10) {
-            statCard("14", "profile.stat.shifts")
-            statCard("92%", "profile.stat.checklists")
-            statCard("3", "profile.stat.trucks")
+        let monthShifts = schedule.shifts.filter {
+            Calendar.current.isDate($0.date, equalTo: schedule.today, toGranularity: .month)
+        }.count
+        let approved = hours.rows.filter { $0.status == .approved }.map(\.hours).reduce(0, +)
+        return HStack(spacing: 10) {
+            statCard("\(monthShifts)", "profile.stat.shiftsMonth")
+            statCard("\(schedule.upcomingShifts.count)", "profile.stat.upcoming")
+            statCard(String(format: "%.0f", approved), "profile.stat.hoursApproved")
         }
     }
+
     private func statCard(_ value: String, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: 4) {
-            Text(value).font(.system(size: 20, weight: .heavy).monospacedDigit())
+            Text(verbatim: value).font(.system(size: 20, weight: .heavy).monospacedDigit())
             Text(label).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                .multilineTextAlignment(.center)
         }
         .padding(14)
         .frame(maxWidth: .infinity)
@@ -62,23 +78,84 @@ public struct ProfileView: View {
         .frNeu(.raised)
     }
 
-    private var account: some View {
+    private func initials() -> String {
+        let parts = displayName.split(separator: " ").prefix(2)
+        let letters = parts.compactMap { $0.first.map(String.init) }.joined()
+        return letters.isEmpty ? "?" : letters.uppercased()
+    }
+}
+
+/// Language, privacy, help, log out, delete account. Shared by Profile and the
+/// "waiting for your employer" screen, which has no tabs.
+struct ProfileAccountSection: View {
+    @EnvironmentObject private var auth: AuthViewModel
+    @State private var confirmLogout = false
+    @State private var confirmDelete = false
+    @State private var deleteFailed = false
+    @State private var showLanguage = false
+    @State private var pendingLanguage: FRLanguage?
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("profile.section.account").frText(FRType.sectionHeader)
             VStack(spacing: 6) {
                 Button { showLanguage = true } label: {
-                    row("globe", "profile.language", value: FRLanguage.current.displayName)
+                    row("globe", "profile.language", value: FRLanguage.current.displayName, trailing: "chevron.right")
                 }
-                .buttonStyle(.plain)
-                row("bell", "profile.notifications")
-                row("doc.text", "profile.payslips")
-                row("building.2", "profile.contract")
-                row("questionmark.circle", "profile.help")
+                Link(destination: AppConfig.privacyURL) {
+                    row("hand.raised", "legal.privacy", trailing: "arrow.up.right")
+                }
+                Link(destination: AppConfig.supportURL) {
+                    row("questionmark.circle", "profile.help", trailing: "envelope")
+                }
+                Button { confirmLogout = true } label: {
+                    row("rectangle.portrait.and.arrow.right", "profile.logout", trailing: nil)
+                }
+                Button { confirmDelete = true } label: {
+                    row("trash", "profile.deleteAccount", trailing: nil, destructive: true)
+                }
             }
+            .buttonStyle(.plain)
+            Text("profile.version")
+                .frText(FRType.rowSubtitle)
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 6)
+        }
+        .sheet(isPresented: $showLanguage, onDismiss: applyLanguage) {
+            languageSheet
+                .presentationDetents([.height(320)])
+                .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog("profile.logout.confirm", isPresented: $confirmLogout, titleVisibility: .visible) {
+            Button("profile.logout", role: .destructive) {
+                FRHaptic.warning.fire()
+                Task { await auth.signOut() }
+            }
+        }
+        .confirmationDialog("profile.deleteAccount.title", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("profile.deleteAccount.confirm", role: .destructive) {
+                Task {
+                    if await auth.deleteAccount() {
+                        FRHaptic.success.fire()
+                    } else {
+                        FRHaptic.error.fire()
+                        deleteFailed = true
+                    }
+                }
+            }
+        } message: {
+            Text("profile.deleteAccount.body")
+        }
+        .alert("profile.deleteAccount.failed", isPresented: $deleteFailed) {
+            Button("action.ok", role: .cancel) {}
+        } message: {
+            if case .failed(let message) = auth.status { Text(verbatim: message) }
         }
     }
 
-    private func row(_ symbol: String, _ label: LocalizedStringKey, value: String? = nil) -> some View {
+    private func row(_ symbol: String, _ label: LocalizedStringKey, value: String? = nil,
+                     trailing: String?, destructive: Bool = false) -> some View {
         HStack(spacing: 12) {
             Image(systemName: symbol).font(.system(size: 15, weight: .medium))
             Text(label).frText(FRType.rowTitle)
@@ -88,12 +165,16 @@ public struct ProfileView: View {
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
-            Image(systemName: "chevron.right")
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            if let trailing {
+                Image(systemName: trailing)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
         }
+        .foregroundStyle(destructive ? Color.foodrun.subject.destructive : Color.foodrun.foreground)
         .padding(14)
         .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
         .frNeu(.raised)
+        .contentShape(Rectangle())
     }
 
     private var languageSheet: some View {
@@ -135,28 +216,5 @@ public struct ProfileView: View {
             FRLanguage.set(pendingLanguage)
         }
         pendingLanguage = nil
-    }
-
-    private var logout: some View {
-        VStack(spacing: 6) {
-            Button { FRHaptic.warning.fire() } label: {
-                HStack {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                    Text("profile.logout")
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.foodrun.subject.destructive)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .overlay(Capsule().stroke(Color.foodrun.subject.destructive, lineWidth: 1))
-            }.buttonStyle(.plain)
-            Text("profile.version")
-                .frText(FRType.rowSubtitle)
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-        }
-    }
-
-    private func initials() -> String {
-        let name = schedule.employees.first?.name ?? "Sanne V."
-        return name.split(separator: " ").compactMap { $0.first.map(String.init) }.joined()
     }
 }

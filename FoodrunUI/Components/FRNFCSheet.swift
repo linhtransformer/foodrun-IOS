@@ -49,6 +49,8 @@ public struct NFCResultSheet: View {
     public let truckName: String
     public let worked: String?          // "4h 12m" for clock-out
     public let span: String?            // "19:02 – 23:14"
+    /// When checklists are off, the clock-in primary button just closes the sheet.
+    public var checklistsEnabled: Bool = true
     public var onOpenChecklist: () -> Void
     public var onDismissUndo: () -> Void
 
@@ -142,12 +144,13 @@ public struct NFCResultSheet: View {
     }
 
     private var primaryCTA: LocalizedStringKey {
-        result == .clockedIn ? "nfc.cta.openChecklist" : "nfc.cta.reviewHours"
+        if result == .clockedIn { return checklistsEnabled ? "nfc.cta.openChecklist" : "nfc.cta.done" }
+        return "nfc.cta.reviewHours"
     }
 
-    private var secondaryCopy: LocalizedStringKey {
-        result == .clockedIn ? "nfc.cta.notMe" : "nfc.cta.stayClockedIn"
-    }
+    // The clock RPCs have no undo, so the secondary button only closes the sheet
+    // and says exactly that (it used to promise "undo clock-in").
+    private var secondaryCopy: LocalizedStringKey { "nfc.cta.close" }
 }
 
 #Preview("Tag detected") {

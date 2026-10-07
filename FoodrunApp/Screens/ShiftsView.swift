@@ -195,5 +195,5 @@ public struct ShiftsView: View {
 }
 
 #Preview {
-    AppShell(preview: true)
+    AppShell(preview: true).environmentObject(AuthViewModel())
 }

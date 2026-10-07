@@ -23,9 +23,10 @@ public struct AppShell: View {
         _clock = State(initialValue: preview ? ClockStore.preview : ClockStore())
         _availability = State(initialValue: preview ? AvailabilityStore.preview : AvailabilityStore())
         _hours = State(initialValue: preview ? HoursStore.preview : HoursStore())
-        // Checklists stay local until tasks RLS lets workers read their assigned
-        // tasks (see SchemaContract.md → TasksStore).
-        _tasks = State(initialValue: TasksStore.preview)
+        // Checklists stay off until tasks RLS lets workers read their assigned
+        // tasks (see SchemaContract.md → TasksStore) — sample data must never
+        // reach real users.
+        _tasks = State(initialValue: preview || AppConfig.Features.checklists ? TasksStore.preview : TasksStore())
         _inbox = State(initialValue: preview ? InboxStore.preview : InboxStore())
     }
 
@@ -44,29 +45,42 @@ public struct AppShell: View {
         _ = await (h, a, i)
     }
 
-    public var body: some View {
-        ZStack(alignment: .bottom) {
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.foodrun.background.ignoresSafeArea())
-                // Opaque strip behind the status bar: the screens hide their nav
-                // bars, so scrolled content otherwise runs under the clock.
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    Color.clear.frame(height: 0).background(Color.foodrun.background)
-                }
+    /// Tabs shown in the bar — Tasks only when checklists are switched on.
+    private var visibleTabs: [FRTab] {
+        FRTab.allCases.filter { $0 != .tasks || isPreview || AppConfig.Features.checklists }
+    }
 
-            FRTabBar(
-                selection: Binding(
-                    get: { router.tab },
-                    set: { router.tab = $0 }
-                ),
-                badgedTabs: badges
-            )
-            // Measured from the screen edge, not the safe area, so the bar sits
-            // just above the home indicator instead of floating 56pt up.
-            .padding(.bottom, 22)
-            .frame(maxHeight: .infinity, alignment: .bottom)
-            .ignoresSafeArea(.container, edges: .bottom)
+    public var body: some View {
+        Group {
+            if schedule.isUnlinked {
+                // Account exists but no employer has added it yet.
+                NotLinkedView(onRefresh: loadAll)
+            } else {
+                ZStack(alignment: .bottom) {
+                    content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.foodrun.background.ignoresSafeArea())
+                        // Opaque strip behind the status bar: the screens hide their nav
+                        // bars, so scrolled content otherwise runs under the clock.
+                        .safeAreaInset(edge: .top, spacing: 0) {
+                            Color.clear.frame(height: 0).background(Color.foodrun.background)
+                        }
+
+                    FRTabBar(
+                        selection: Binding(
+                            get: { router.tab },
+                            set: { router.tab = $0 }
+                        ),
+                        tabs: visibleTabs,
+                        badgedTabs: badges
+                    )
+                    // Measured from the screen edge, not the safe area, so the bar sits
+                    // just above the home indicator instead of floating 56pt up.
+                    .padding(.bottom, 22)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .ignoresSafeArea(.container, edges: .bottom)
+                }
+            }
         }
         .task { await loadAll() }
         .task { await ShiftChangeStore.requestAuthorization() }
@@ -110,9 +124,17 @@ public struct AppShell: View {
                     clockInTime: formatted(clock.clockInAt),
                     truckName: schedule.nextShift.map { $0.activity.food_truck ?? $0.activity.name } ?? "",
                     worked: nil, span: nil,
+                    checklistsEnabled: isPreview || AppConfig.Features.checklists,
                     onOpenChecklist: {
+                        // Primary button: clock-in → checklist (or just close when
+                        // checklists are off); clock-out → "Review my hours".
+                        let result = clock.nfcResult
                         clock.acknowledgeNFC()
-                        router.tab = .tasks
+                        if result == .clockedOut {
+                            router.tab = .hours
+                        } else if isPreview || AppConfig.Features.checklists {
+                            router.tab = .tasks
+                        }
                     },
                     onDismissUndo: { clock.acknowledgeNFC() }
                 )

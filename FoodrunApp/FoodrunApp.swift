@@ -61,6 +61,8 @@ struct RootView: View {
             case .signedOut:
                 AuthViewRedesign()
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
+            case .signedIn where auth.mustSetNewPassword:
+                NewPasswordView()
             case .signedIn:
                 // Rebuilt when the language changes so code-formatted dates and
                 // labels re-render too, not just Text keys.

@@ -16,7 +16,7 @@
 
 // MARK: Auth
 "auth.headline"           = "Your shifts.\nOne tap away.";
-"auth.subheadline"        = "Sign in to see your schedule, log your hours and finish your shift checklists.";
+"auth.subheadline"        = "Sign in to see your schedule, clock in and log your hours.";
 "auth.email"              = "Email";
 "auth.email.placeholder"  = "you@example.com";
 "auth.password"           = "Password";
@@ -26,7 +26,8 @@
 "auth.signUp.confirmationSent" = "Check your email to confirm your account, then log in.";
 "auth.error.invalidEmail" = "Enter a valid email address.";
 "auth.error.passwordTooShort" = "Password must be at least 8 characters.";
-"auth.invite.footer"      = "Joining a team? Open the invite link your\nmanager sent — it connects you automatically.";
+
+"auth.invite.footer"      = "New here? Make an account, then ask your\nemployer to add you in Foodrun.";
 
 // MARK: Shifts / home
 "shifts.greeting %@"             = "Hey %@";
@@ -132,15 +133,8 @@
 "inbox.decline"           = "Decline";
 
 // MARK: Profile
-"profile.role.line"       = "Kitchen · Vietnamama fleet";
-"profile.stat.shifts"     = "Shifts";
-"profile.stat.checklists" = "Checklists";
-"profile.stat.trucks"     = "Trucks";
 "profile.section.account" = "Account";
-"profile.language"        = "Language";
-"profile.notifications"   = "Notifications";
-"profile.payslips"        = "Payslips";
-"profile.contract"        = "Contract (24 h/wk)";
+"profile.language" = "Language";
 "profile.help"            = "Help & contact";
 "profile.logout"          = "Log out";
 "profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
@@ -175,12 +169,10 @@
 "nfc.tile.truck"           = "Truck";
 "nfc.tile.workedTotal"     = "Worked";
 "nfc.tile.span"            = "Span";
-"nfc.agent.clockedIn"      = "The agent is watching. Miss the tap-in? Ask a crew member — they can vouch.";
-"nfc.agent.clockedOut"     = "Manager is notified. Hours pre-filled from your clock-in and clock-out.";
+"nfc.agent.clockedIn"      = "Clock-in saved. Tap the same tag again when your shift ends.";
+"nfc.agent.clockedOut"     = "Clock-out saved. Check and send your hours in the Hours tab.";
 "nfc.cta.openChecklist"    = "Open shift checklist";
 "nfc.cta.reviewHours"      = "Review my hours";
-"nfc.cta.notMe"            = "Not me — undo clock-in";
-"nfc.cta.stayClockedIn"    = "Wasn't done — stay clocked in";
 
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Loading your shifts…";
@@ -221,3 +213,48 @@
 "shiftChange.title.removed"  = "Shift removed";
 "shiftChange.title.many"     = "Your shifts changed";
 "shift.status.changed"       = "Changed";
+
+// MARK: Account, reset, social login, not-linked (2026-10-07)
+"auth.or" = "or";
+"auth.google" = "Continue with Google";
+"auth.forgotPassword" = "Forgot password?";
+"auth.password.show" = "Show password";
+"auth.password.hide" = "Hide password";
+"auth.error.apple" = "Sign in with Apple didn’t work. Try again.";
+"auth.status.confirmEmail" = "Almost there — open the email we sent to confirm your account, then log in.";
+"auth.status.magicLinkSent" = "Check your email for the login link.";
+"auth.reset.title" = "Reset password";
+"auth.reset.intro" = "Enter your email. We’ll send you a 6-digit code.";
+"auth.reset.enterCode" = "Enter the 6-digit code from the email.";
+"auth.reset.code" = "Code";
+"auth.reset.send" = "Send code";
+"auth.reset.verify" = "Confirm code";
+"auth.reset.resend" = "Send a new code";
+"auth.reset.sent" = "If this email has an account, a code is on its way.";
+"auth.reset.codeInvalid" = "Enter the 6-digit code from the email.";
+"auth.reset.newTitle" = "Choose a new password";
+"auth.reset.newIntro" = "At least 8 characters. You’ll use it to log in from now on.";
+"auth.reset.save" = "Save password";
+"legal.privacy" = "Privacy policy";
+"action.ok" = "OK";
+"profile.stat.shiftsMonth" = "Shifts this month";
+"profile.stat.upcoming" = "Upcoming";
+"profile.stat.hoursApproved" = "Hours approved";
+"profile.logout.confirm" = "Log out of Foodrun?";
+"profile.deleteAccount" = "Delete account";
+"profile.deleteAccount.title" = "Delete your account?";
+"profile.deleteAccount.body" = "Your login and your link to every employer are removed for good. This can’t be undone.";
+"profile.deleteAccount.confirm" = "Delete account permanently";
+"profile.deleteAccount.failed" = "Couldn’t delete your account";
+"nfc.cta.done" = "Done";
+"nfc.cta.close" = "Close";
+"notLinked.title" = "Ask your employer to add you";
+"notLinked.body" = "Your account is ready. Your employer adds you in Foodrun with the email below — then your shifts show up here.";
+"notLinked.pending" = "Your request is waiting for your employer’s approval. Your shifts show up here as soon as they accept it.";
+"notLinked.yourEmail" = "Your account email";
+"notLinked.share" = "Send to my employer";
+"notLinked.shareMessage %@" = "Hi! Can you add me in Foodrun? My account email is %@ (Stakeholders → Add employee).";
+"notLinked.step1" = "Send your employer the email above.";
+"notLinked.step2" = "They add you in Foodrun → Stakeholders → Add employee. Foodrun shows them it’s your account.";
+"notLinked.step3" = "Tap “Check again” — or just reopen the app.";
+"notLinked.checkAgain" = "Check again";
