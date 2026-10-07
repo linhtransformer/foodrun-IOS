@@ -1,8 +1,8 @@
-import AuthenticationServices
 import SwiftUI
 
-// Bundle §1 "Sign in (AuthView, revise)". Email + password primary, Make-an-account
-// secondary, then Sign in with Apple / Google. Delegates to AuthViewModel for the
+// Bundle §1 "Sign in (AuthView, revise)". Email + password, then Sign in with
+// Apple / Google right under Log in. "Don't have an account?" at the bottom opens
+// the separate sign-up page (SignUpView). Delegates to AuthViewModel for the
 // Supabase mechanics. "Forgot password?" opens the 6-digit-code reset sheet.
 
 public struct AuthViewRedesign: View {
@@ -11,24 +11,43 @@ public struct AuthViewRedesign: View {
     @State private var password: String = ""
     @State private var showPassword: Bool = false
     @State private var showReset: Bool = false
+    @State private var showSignUp: Bool = false
 
     public init() {}
 
     public var body: some View {
+        NavigationStack {
+            login
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(isPresented: $showSignUp) {
+                    SignUpView()
+                }
+        }
+        .tint(Color.foodrun.foreground)
+    }
+
+    private var login: some View {
         GeometryReader { geo in
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     Spacer(minLength: 0)
                     brand
                     fields
                     statusBanner
-                    actions
-                    socialLogins
+                    VStack(spacing: 14) {
+                        AuthPrimaryButton(title: "auth.login", working: auth.status == .working) {
+                            Task { await auth.signIn(email: email, password: password) }
+                        }
+                        if AppConfig.Features.appleSignIn || AppConfig.Features.googleSignIn {
+                            AuthOrDivider()
+                            SocialSignInButtons()
+                        }
+                    }
                     Spacer(minLength: 16)
                     footer
                 }
                 .padding(.horizontal, FRSpacing.screenH.value)
-                .padding(.top, 24)
+                .padding(.top, 8)
                 .padding(.bottom, 12)
                 // Fill the screen so the spacers can centre the form and pin the
                 // footer; it still scrolls once the keyboard takes the space.
@@ -48,17 +67,17 @@ public struct AuthViewRedesign: View {
     }
 
     private var brand: some View {
-        VStack(spacing: 14) {
-            VStack(spacing: 12) {
+        VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 Image("foodrun-logo")
                     .resizable().scaledToFit()
-                    .frame(height: 76)
+                    .frame(height: 60)
                 Text("Foodrun")
                     .font(.system(size: 20, weight: .bold))
                     .tracking(-0.4)
             }
             Text("auth.headline")
-                .font(.system(size: 30, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .tracking(-0.9)
                 .multilineTextAlignment(.center)
             Text("auth.subheadline")
@@ -67,7 +86,6 @@ public struct AuthViewRedesign: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
         }
-        .padding(.top, 24)
     }
 
     private var fields: some View {
@@ -122,90 +140,23 @@ public struct AuthViewRedesign: View {
         AuthStatusBanner(status: auth.status)
     }
 
-    private var actions: some View {
-        VStack(spacing: 10) {
-            Button {
-                Task { await auth.signIn(email: email, password: password) }
-                FRHaptic.medium.fire()
-            } label: {
-                ZStack {
-                    if auth.status == .working {
-                        ProgressView().tint(Color.foodrun.backgroundInverseInk)
-                    } else {
-                        Text("auth.login")
-                    }
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.foodrun.backgroundInverseInk)
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .background(Capsule().fill(Color.foodrun.foreground))
-                .frCTAShadow()
-            }.buttonStyle(.plain)
-
-            Button {
-                Task { await auth.signUp(email: email, password: password) }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "person.badge.plus")
-                    Text("auth.makeAccount")
-                }
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(Color.foodrun.foreground)
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
-            }.buttonStyle(.plain)
-        }
-    }
-
-    @ViewBuilder
-    private var socialLogins: some View {
-        if AppConfig.Features.appleSignIn || AppConfig.Features.googleSignIn {
-            VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    Rectangle().fill(Color.foodrun.border).frame(height: 1)
-                    Text("auth.or")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    Rectangle().fill(Color.foodrun.border).frame(height: 1)
-                }
-                if AppConfig.Features.appleSignIn {
-                    // Apple's own button — App Review checks it's the standard one.
-                    SignInWithAppleButton(.continue) { request in
-                        auth.prepareAppleRequest(request)
-                    } onCompletion: { result in
-                        Task { await auth.completeAppleSignIn(result) }
-                    }
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 54)
-                    .clipShape(Capsule())
-                }
-                if AppConfig.Features.googleSignIn {
-                    Button {
-                        Task { await auth.signInWithGoogle() }
-                    } label: {
-                        HStack(spacing: 10) {
-                            // TODO(design): swap for Google's official "G" mark asset
-                            // (developers.google.com/identity/branding-guidelines).
-                            Text("G").font(.system(size: 18, weight: .bold))
-                            Text("auth.google")
-                        }
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(Color.foodrun.foreground)
-                        .frame(maxWidth: .infinity, minHeight: 54)
-                        .background(Capsule().fill(Color.foodrun.surface))
-                        .overlay(Capsule().stroke(Color.foodrun.border, lineWidth: 1))
-                    }.buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
     private var footer: some View {
         VStack(spacing: 8) {
-            Text("auth.invite.footer")
-                .frText(FRType.rowSubtitle)
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                .multilineTextAlignment(.center)
+            HStack(spacing: 4) {
+                Text("auth.noAccount")
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Button {
+                    auth.reset()
+                    showSignUp = true
+                } label: {
+                    Text("auth.makeAccount")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.foodrun.foreground)
+                        .underline()
+                }
+                .buttonStyle(.plain)
+            }
+            .font(.system(size: 14))
             Link(destination: AppConfig.privacyURL) {
                 Text("legal.privacy")
                     .font(.system(size: 12, weight: .medium))

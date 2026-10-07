@@ -27,7 +27,6 @@
 "auth.error.invalidEmail" = "Voer een geldig e-mailadres in.";
 "auth.error.passwordTooShort" = "Wachtwoord moet minimaal 8 tekens zijn.";
 
-"auth.invite.footer"      = "Nieuw? Maak een account en vraag je\nwerkgever om je toe te voegen in Foodrun.";
 
 // MARK: Diensten
 "shifts.greeting %@"             = "Hey %@";
@@ -258,3 +257,12 @@
 "notLinked.step2" = "Die voegt je toe in Foodrun → Stakeholders → Medewerker toevoegen. Foodrun laat zien dat het jouw account is.";
 "notLinked.step3" = "Tik op “Opnieuw controleren” — of open de app opnieuw.";
 "notLinked.checkAgain" = "Opnieuw controleren";
+
+// Inlog- / registratiepagina
+"auth.apple"                = "Ga door met Apple";
+"auth.noAccount"            = "Nog geen account?";
+"auth.haveAccount"          = "Heb je al een account?";
+"auth.signUp.title"         = "Account aanmaken";
+"auth.signUp.intro"         = "Maak een account en vraag je werkgever om je toe te voegen in Foodrun — je diensten verschijnen zodra dat gebeurd is.";
+"auth.signUp.create"        = "Account aanmaken";
+"auth.signUp.passwordHint"  = "Minstens 8 tekens";

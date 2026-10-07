@@ -27,7 +27,6 @@
 "auth.error.invalidEmail" = "Enter a valid email address.";
 "auth.error.passwordTooShort" = "Password must be at least 8 characters.";
 
-"auth.invite.footer"      = "New here? Make an account, then ask your\nemployer to add you in Foodrun.";
 
 // MARK: Shifts / home
 "shifts.greeting %@"             = "Hey %@";
@@ -258,3 +257,12 @@
 "notLinked.step2" = "They add you in Foodrun → Stakeholders → Add employee. Foodrun shows them it’s your account.";
 "notLinked.step3" = "Tap “Check again” — or just reopen the app.";
 "notLinked.checkAgain" = "Check again";
+
+// Login / sign-up pages
+"auth.apple"                = "Continue with Apple";
+"auth.noAccount"            = "Don’t have an account?";
+"auth.haveAccount"          = "Already have an account?";
+"auth.signUp.title"         = "Make an account";
+"auth.signUp.intro"         = "Make an account, then ask your employer to add you in Foodrun — your shifts show up as soon as they do.";
+"auth.signUp.create"        = "Create account";
+"auth.signUp.passwordHint"  = "At least 8 characters";
