@@ -7,7 +7,7 @@ import SwiftUI
 // comment so v2 flips it on.
 //
 // Rules:
-//  * Anchor palette: #F3F1EF (canvas) / #1A1A1A (ink) / #FFFFFF (surface).
+//  * Anchor palette: #F8F7F5 (canvas) / #1A1A1A (ink) / #FFFFFF (surface).
 //    No pure #000000 outside the logo asset.
 //  * `Color(hex:)` is restricted to this file — SwiftLint rule enforces it.
 //  * Truck palette is tint-only (chips, dots, borders). Never a CTA fill.
@@ -15,7 +15,7 @@ import SwiftUI
 public extension Color {
     struct Foodrun {
         // Anchor palette (bundle §Token reconciliation).
-        public let background = Color(hex: 0xF3F1EF)          // warm canvas (was #F4F5F0)
+        public let background = Color(hex: 0xF8F7F5)          // warm canvas (was #F3F1EF)
         public let foreground = Color(hex: 0x1A1A1A)
         public let surface = Color(hex: 0xFFFFFF)             // floating white cards
         public let card = Color(hex: 0xFFFFFF)                // was #F4F5F0
