@@ -374,7 +374,7 @@
 "crew.photo.add" = "Photo";
 "crew.photo.added" = "Photo added";
 "crew.prep.progress %lld %lld" = "%lld of %lld packed";
-"crew.prep.shared" = "Same list as the prep portal — ticks show up there and here.";
+"crew.prep.shared" = "Same list as the prep portal — ticks and amounts show up there and here.";
 "crew.prep.note" = "Add a note";
 "crew.prep.notePrompt" = "For example: “2 boxes in the cool box”.";
 "crew.prep.packed" = "Packed";
@@ -383,3 +383,11 @@
 "crew.error.photo" = "That photo could not be saved for this task.";
 "crew.error.prepItem" = "This item is no longer on the prep list.";
 "inbox.taskAssigned" = "NEW TASK";
+"crew.prep.packedLine %@" = "Packed: %@";
+"crew.prep.needed %@" = "Needed: %@";
+"crew.prep.amount" = "Packed amount";
+"crew.prep.amountHint" = "What you actually packed — it goes into the prep checklist. Leave empty for no amount.";
+"crew.prep.noteLabel" = "Note";
+"crew.prep.edit" = "Amount and note";
+"crew.error.prepAmount" = "That amount doesn’t work — check the number and the unit.";
+"crew.stock.notePrompt" = "For example: “2 boxes still in the freezer”.";

@@ -374,7 +374,7 @@
 "crew.photo.add" = "Foto";
 "crew.photo.added" = "Foto toegevoegd";
 "crew.prep.progress %lld %lld" = "%lld van %lld ingepakt";
-"crew.prep.shared" = "Dezelfde lijst als de prep-portal — vinkjes zie je daar én hier.";
+"crew.prep.shared" = "Dezelfde lijst als de prep-portal — vinkjes en aantallen zie je daar én hier.";
 "crew.prep.note" = "Notitie toevoegen";
 "crew.prep.notePrompt" = "Bijvoorbeeld: “2 dozen in de koelbox”.";
 "crew.prep.packed" = "Ingepakt";
@@ -383,3 +383,11 @@
 "crew.error.photo" = "Die foto kon niet bij deze taak worden opgeslagen.";
 "crew.error.prepItem" = "Dit item staat niet meer op de prep-lijst.";
 "inbox.taskAssigned" = "NIEUWE TAAK";
+"crew.prep.packedLine %@" = "Klaargezet: %@";
+"crew.prep.needed %@" = "Nodig: %@";
+"crew.prep.amount" = "Klaargezet";
+"crew.prep.amountHint" = "Wat je echt hebt klaargezet — het komt in de prep-checklist. Leeg laten = geen aantal.";
+"crew.prep.noteLabel" = "Notitie";
+"crew.prep.edit" = "Aantal en notitie";
+"crew.error.prepAmount" = "Dit aantal klopt niet — kijk het getal en de eenheid na.";
+"crew.stock.notePrompt" = "Bijvoorbeeld: “2 dozen nog in de vriezer”.";

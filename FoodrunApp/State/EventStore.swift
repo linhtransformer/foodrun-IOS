@@ -83,17 +83,23 @@ public final class EventStore {
         await setPrep(item, checked: !item.checked, comment: nil)
     }
 
-    /// Note on an item ("" removes it).
+    /// Amount packed and/or note in one save. quantity nil + clearQuantity
+    /// removes the amount; comment nil leaves the note alone ("" removes it).
     @discardableResult
-    public func notePrep(_ item: CrewPrepItem, comment: String) async -> Bool {
-        await setPrep(item, checked: nil, comment: comment)
+    public func detailPrep(_ item: CrewPrepItem, quantity: Double?, unitLevel: Int,
+                           clearQuantity: Bool, comment: String?) async -> Bool {
+        await setPrep(item, checked: nil, comment: comment,
+                      quantity: quantity, unitLevel: unitLevel, clearQuantity: clearQuantity)
     }
 
-    private func setPrep(_ item: CrewPrepItem, checked: Bool?, comment: String?) async -> Bool {
+    private func setPrep(_ item: CrewPrepItem, checked: Bool?, comment: String?,
+                         quantity: Double? = nil, unitLevel: Int? = nil, clearQuantity: Bool = false) async -> Bool {
         savingPrep.insert(item.key)
         defer { savingPrep.remove(item.key) }
         do {
-            try await CrewAPI.setPrepItem(activityId: activityId, key: item.key, checked: checked, comment: comment)
+            try await CrewAPI.setPrepItem(activityId: activityId, key: item.key, checked: checked, comment: comment,
+                                          quantity: quantity, unitLevel: quantity == nil ? nil : unitLevel,
+                                          clearQuantity: clearQuantity)
             await load()
             return true
         } catch {
@@ -109,12 +115,12 @@ public final class EventStore {
     }
 
     @discardableResult
-    public func count(productId: UUID, on day: String, quantity: Double?, unitLevel: Int) async -> Bool {
+    public func count(productId: UUID, on day: String, quantity: Double?, unitLevel: Int, note: String? = nil) async -> Bool {
         saving.insert(productId)
         defer { saving.remove(productId) }
         do {
             try await CrewAPI.count(activityId: activityId, day: day, productId: productId,
-                                    quantity: quantity, unitLevel: unitLevel)
+                                    quantity: quantity, unitLevel: unitLevel, note: note)
             await load()
             return true
         } catch {

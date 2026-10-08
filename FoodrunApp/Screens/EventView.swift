@@ -5,8 +5,8 @@ import SwiftUI
 // given. Pushed from Shift detail ("Briefing & tasks") and from the Tasks tab.
 //
 // Sections: Tasks (always) · Briefing (run-of-show + a personal note) ·
-// Dishes (recipe + ingredients) · Prep (read-only packing list as ticked in
-// the prep portal) · Stock (count products; the count goes to HQ, the stock
+// Dishes (recipe + ingredients) · Prep (the prep portal checklist: tick, amount
+// packed and a note per row) · Stock (count products; the count goes to HQ, the stock
 // itself isn't changed).
 
 public struct EventView: View {
@@ -17,7 +17,7 @@ public struct EventView: View {
     @State private var openDish: CrewDish?
     @State private var answering: CrewTask?
     @State private var counting: CrewStockProduct?
-    @State private var notingPrep: CrewPrepItem?
+    @State private var editingPrep: CrewPrepItem?
 
     public init(activityId: UUID, date: Date) {
         _store = State(initialValue: EventStore(activityId: activityId))
@@ -26,10 +26,9 @@ public struct EventView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 header
                 if let event = store.event {
-                    titleBlock(event)
                     if event.my_days.count > 1 { dayPicker(event) }
                     sectionPicker(event)
                     if let error = store.lastError { errorLine(error) }
@@ -44,7 +43,7 @@ public struct EventView: View {
                 }
             }
             .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, FRSpacing.screenTop.value)
+            .padding(.top, 8)
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
@@ -57,13 +56,14 @@ public struct EventView: View {
         .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
         .sheet(item: $answering) { task in answerSheet(for: task) }
         .sheet(item: $counting) { product in countSheet(for: product) }
-        .sheet(item: $notingPrep) { item in prepNoteSheet(for: item) }
+        .sheet(item: $editingPrep) { item in prepSheet(for: item) }
     }
 
     // MARK: - Chrome
 
+    /// Back arrow with the festival name next to it (truck · location below).
     private var header: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 12) {
             Button { dismiss() } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16, weight: .medium))
@@ -74,20 +74,24 @@ public struct EventView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("action.back"))
-            Spacer()
-        }
-    }
-
-    private func titleBlock(_ event: CrewEvent) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Circle().fill(Color.foodrunData(hex: event.activity.color)).frame(width: 8, height: 8)
-                Text(verbatim: event.activity.food_truck ?? event.activity.name).frText(FRType.eyebrow)
+            if let activity = store.event?.activity {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: activity.name)
+                        .font(.system(size: 20, weight: .bold)).tracking(-0.4)
+                        .lineLimit(2)
+                    let sub = [activity.food_truck, activity.location].compactMap { $0 }.joined(separator: " · ")
+                    if !sub.isEmpty {
+                        HStack(spacing: 6) {
+                            Circle().fill(Color.foodrunData(hex: activity.color)).frame(width: 7, height: 7)
+                            Text(verbatim: sub).lineLimit(1)
+                        }
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    }
+                }
+                .accessibilityElement(children: .combine)
             }
-            Text(verbatim: event.activity.name).font(.system(size: 26, weight: .bold)).tracking(-0.6)
-            if let location = event.activity.location {
-                Text(verbatim: location).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
+            Spacer(minLength: 0)
         }
     }
 
@@ -250,10 +254,7 @@ public struct EventView: View {
             ForEach(dishes) { dish in
                 Button { openDish = dish } label: {
                     HStack(spacing: 12) {
-                        Image(systemName: "fork.knife")
-                            .font(.system(size: 15, weight: .medium))
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(Color.foodrun.neuTrack))
+                        CrewDishThumb(url: dish.imageURL, size: 52)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: dish.name).frText(FRType.rowTitle)
                             Text(verbatim: String(format: FRLanguage.string("crew.dish.ingredientCount %lld"), dish.ingredients.count))
@@ -273,8 +274,8 @@ public struct EventView: View {
         }
     }
 
-    /// Prep checklist — the same list and ticks as the prep portal. Tap a row to
-    /// tick it, the note icon to leave a note ("2 dozen in de koelbox").
+    /// Prep checklist — the same list, ticks and amounts as the prep portal.
+    /// Tap a row to tick it; the pencil opens the amount packed + a note.
     @ViewBuilder
     private func prepSection(_ prep: CrewPrep?, closed: Bool) -> some View {
         let items = prep?.items ?? []
@@ -356,6 +357,12 @@ public struct EventView: View {
                                 .font(.system(size: 12.5, weight: .medium))
                                 .foregroundStyle(Color.foodrun.foreground)
                         }
+                        if let packed = item.packed {
+                            Text(verbatim: String(format: FRLanguage.string("crew.prep.packedLine %@"),
+                                                  CrewFormat.quantity(packed, item.unitNames[safe: item.packed_level ?? 0] ?? item.unit)))
+                                .frText(FRType.rowSubtitle).monospacedDigit()
+                                .foregroundStyle(Color.foodrun.subject.positive)
+                        }
                         if let comment = item.comment {
                             Text(verbatim: comment)
                                 .frText(FRType.rowSubtitle)
@@ -375,15 +382,16 @@ public struct EventView: View {
             .accessibilityLabel(Text(verbatim: item.name))
             .accessibilityValue(Text(LocalizedStringKey(item.checked ? "crew.prep.packed" : "crew.prep.notPacked")))
 
-            Button { notingPrep = item } label: {
-                Image(systemName: item.comment == nil ? "square.and.pencil" : "text.bubble.fill")
-                    .font(.system(size: 15))
-                    .foregroundStyle(item.comment == nil ? Color.foodrun.mutedForegroundSoft : Color.foodrun.subject.agentNoteBlue)
+            let hasDetail = item.packed != nil || item.comment != nil
+            Button { editingPrep = item } label: {
+                Image(systemName: hasDetail ? "pencil.circle.fill" : "square.and.pencil")
+                    .font(.system(size: 17))
+                    .foregroundStyle(hasDetail ? Color.foodrun.subject.agentNoteBlue : Color.foodrun.mutedForegroundSoft)
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(.plain)
             .disabled(closed)
-            .accessibilityLabel(Text("crew.prep.note"))
+            .accessibilityLabel(Text("crew.prep.edit"))
         }
         .padding(.vertical, 10)
     }
@@ -466,36 +474,26 @@ public struct EventView: View {
         }
     }
 
-    private func prepNoteSheet(for item: CrewPrepItem) -> some View {
-        CrewAnswerSheet(
-            title: item.name,
-            prompt: FRLanguage.string("crew.prep.notePrompt"),
-            kind: .text,
-            units: [],
-            initialNumber: nil,
-            initialText: item.comment,
-            initialUnitLevel: 0,
-            canClear: item.comment != nil,
-            onSave: { _, text, _ in await store.notePrep(item, comment: text ?? "") },
-            onClear: { await store.notePrep(item, comment: "") }
-        )
+    private func prepSheet(for item: CrewPrepItem) -> some View {
+        CrewPrepSheet(item: item) { quantity, unitLevel, clearQuantity, comment in
+            await store.detailPrep(item, quantity: quantity, unitLevel: unitLevel,
+                                   clearQuantity: clearQuantity, comment: comment)
+        }
     }
 
     private func countSheet(for product: CrewStockProduct) -> some View {
         let mine = store.myCount(productId: product.product_id, on: day)
-        return CrewAnswerSheet(
+        return CrewCountSheet(
             title: product.name,
             prompt: String(format: FRLanguage.string("crew.stock.prompt %@"), CrewFormat.day(day)),
-            kind: .count,
             units: product.units,
-            initialNumber: mine?.quantity,
-            initialText: nil,
+            initialQuantity: mine?.quantity,
             initialUnitLevel: mine?.unit_level ?? 0,
-            canClear: mine != nil,
-            onSave: { number, _, level in
-                await store.count(productId: product.product_id, on: day, quantity: number, unitLevel: level)
+            initialNote: mine?.note,
+            onSave: { quantity, level, note in
+                await store.count(productId: product.product_id, on: day, quantity: quantity, unitLevel: level, note: note)
             },
-            onClear: { await store.count(productId: product.product_id, on: day, quantity: nil, unitLevel: 0) }
+            onClear: mine == nil ? nil : { await store.count(productId: product.product_id, on: day, quantity: nil, unitLevel: 0) }
         )
     }
 }

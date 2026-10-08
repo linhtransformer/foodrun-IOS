@@ -70,9 +70,12 @@ public struct CrewDish: Decodable, Hashable, Identifiable {
     public let name: String
     public let description: String?
     public let recipe: String?
+    public let image: String?            // public photo URL (HQ → Gerechten)
     public let serving_size: Double?
     public let estimated_quantity: Double?
     public let ingredients: [CrewIngredient]
+
+    public var imageURL: URL? { image.flatMap(URL.init(string:)) }
 }
 
 /// Per-serving amount in the unit the operator chose for the dish.
@@ -98,12 +101,22 @@ public struct CrewPrepItem: Decodable, Hashable, Identifiable {
     public let section: String      // ingredients | equipment | rentals | trailers | addons
     public let product_id: UUID     // product id (vehicle id for trailers)
     public let name: String
-    public let quantity: Double
+    public let quantity: Double          // needed, in units[quantity_level]
     public let unit: String?
+    public let quantity_level: Int?
+    public let units: [String]?          // unit chain, outermost first (["doos", "pak", "ml"])
+    public let packed: Double?           // amount actually packed, in units[packed_level]
+    public let packed_level: Int?
     public let checked: Bool
     public let comment: String?          // crew/packer note on the row
     public let instruction: String?      // operator instruction (HQ → Crew-app → Prep-checklist)
     public var id: String { key }
+
+    /// Units an amount can be entered in (falls back to the row's own unit).
+    public var unitNames: [String] {
+        if let units, !units.isEmpty { return units }
+        return unit.map { [$0] } ?? []
+    }
 }
 
 public struct CrewStock: Decodable, Hashable {

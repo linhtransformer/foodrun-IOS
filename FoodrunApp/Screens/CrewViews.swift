@@ -210,6 +210,19 @@ struct CrewDishSheet: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("action.close"))
                 }
+                if let url = dish.imageURL {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            Rectangle().fill(Color.foodrun.neuTrack)
+                        }
+                    }
+                    .frame(minWidth: 0, maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous))
+                    .accessibilityHidden(true)
+                }
                 if let description = dish.description {
                     Text(verbatim: description).frText(FRType.body).foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
@@ -315,19 +328,12 @@ struct CrewAnswerSheet: View {
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
 
-                if !isText && !units.isEmpty {
-                    if units.count > 1 {
-                        Picker(selection: $unitLevel) {
-                            ForEach(Array(units.enumerated()), id: \.offset) { idx, name in
-                                Text(verbatim: name).tag(idx)
-                            }
-                        } label: { EmptyView() }
-                        .pickerStyle(.menu)
-                        .tint(Color.foodrun.foreground)
-                    } else {
-                        Text(verbatim: units[0]).frText(FRType.rowTitle)
-                    }
+                if !isText && units.count == 1 {
+                    Text(verbatim: units[0]).frText(FRType.rowTitle)
                 }
+            }
+            if !isText && units.count > 1 {
+                CrewUnitChips(units: units, selection: $unitLevel)
             }
 
             Button {
@@ -379,6 +385,300 @@ struct CrewAnswerSheet: View {
             if let initialText { input = initialText }
             unitLevel = min(max(initialUnitLevel, 0), max(units.count - 1, 0))
             focused = true
+        }
+    }
+}
+
+/// One prep row: the amount actually packed (in any unit of the product) and a
+/// note, saved together. The amount is the prep portal's own amount for the
+/// row, so the packer sees it there and HQ in the prep card.
+struct CrewPrepSheet: View {
+    let item: CrewPrepItem
+    let onSave: (_ quantity: Double?, _ unitLevel: Int, _ clearQuantity: Bool, _ comment: String?) async -> Bool
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var amount = ""
+    @State private var unitLevel = 0
+    @State private var note = ""
+    @State private var initialAmount = ""
+    @State private var initialLevel = 0
+    @State private var working = false
+    @FocusState private var focus: Field?
+
+    private enum Field { case amount, note }
+
+    private var units: [String] { item.unitNames }
+    private var trimmedAmount: String { amount.trimmingCharacters(in: .whitespaces) }
+    private var parsed: Double? { CrewFormat.parse(amount) }
+    private var amountValid: Bool {
+        trimmedAmount.isEmpty || (parsed.map { $0 >= 0 && $0 < 1_000_000 } ?? false)
+    }
+    /// Compared with what the sheet opened with, so an untouched amount is not
+    /// re-sent (and not re-attributed to this crew member).
+    private var amountChanged: Bool {
+        trimmedAmount != initialAmount || (!trimmedAmount.isEmpty && unitLevel != initialLevel)
+    }
+    private var noteChanged: Bool {
+        note.trimmingCharacters(in: .whitespacesAndNewlines) != (item.comment ?? "")
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: item.name).font(.system(size: 22, weight: .bold))
+                Text(verbatim: String(format: FRLanguage.string("crew.prep.needed %@"),
+                                      CrewFormat.quantity(item.quantity, item.unit)))
+                    .frText(FRType.rowSubtitle).monospacedDigit()
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                if let instruction = item.instruction {
+                    Label(instruction, systemImage: "info.circle")
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(Color.foodrun.foreground)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("crew.prep.amount").frText(FRType.sectionHeader)
+                HStack(spacing: 10) {
+                    TextField(String("0"), text: $amount)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 28, weight: .bold).monospacedDigit())
+                        .focused($focus, equals: .amount)
+                        .padding(.horizontal, 16).padding(.vertical, 12)
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+                    if units.count == 1 {
+                        Text(verbatim: units[0]).frText(FRType.rowTitle)
+                    }
+                }
+                if units.count > 1 {
+                    CrewUnitChips(units: units, selection: $unitLevel)
+                }
+                Text("crew.prep.amountHint")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("crew.prep.noteLabel").frText(FRType.sectionHeader)
+                TextField(FRLanguage.string("crew.prep.notePrompt"), text: $note, axis: .vertical)
+                    .lineLimit(1...4)
+                    .focused($focus, equals: .note)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+            }
+
+            Button {
+                guard amountChanged || noteChanged else { dismiss(); return }
+                Task {
+                    working = true
+                    let ok = await onSave(
+                        amountChanged && !trimmedAmount.isEmpty ? parsed : nil,
+                        unitLevel,
+                        amountChanged && trimmedAmount.isEmpty,
+                        noteChanged ? note.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+                    )
+                    working = false
+                    if ok { FRHaptic.success.fire(); dismiss() } else { FRHaptic.error.fire() }
+                }
+            } label: {
+                ZStack {
+                    if working { ProgressView().tint(Color.foodrun.backgroundInverseInk) } else { Text("crew.answer.save") }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(Capsule().fill(Color.foodrun.foreground))
+                .opacity(amountValid ? 1 : 0.4)
+            }
+            .buttonStyle(.plain)
+            .disabled(!amountValid || working)
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .padding(.top, 8)
+        .background(Color.foodrun.background.ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .onAppear {
+            if let packed = item.packed { amount = CrewFormat.number(packed) }
+            let level = item.packed_level ?? item.quantity_level ?? 0
+            unitLevel = min(max(level, 0), max(units.count - 1, 0))
+            initialAmount = amount
+            initialLevel = unitLevel
+            note = item.comment ?? ""
+            focus = .amount
+        }
+    }
+}
+
+/// The units of a product as tappable chips ("doos · pak · ml"), so changing
+/// the unit is obvious; the old menu picker read as plain text.
+struct CrewUnitChips: View {
+    let units: [String]
+    @Binding var selection: Int
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(units.enumerated()), id: \.offset) { idx, name in
+                    let active = idx == selection
+                    Button {
+                        selection = idx
+                        FRHaptic.light.fire()
+                    } label: {
+                        Text(verbatim: name)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(active ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
+                            .padding(.horizontal, 14).padding(.vertical, 9)
+                            .background(Capsule().fill(active ? Color.foodrun.foreground : Color.foodrun.card))
+                            .overlay(Capsule().stroke(Color.foodrun.border, lineWidth: active ? 0 : 1))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(active ? .isSelected : [])
+                }
+            }
+        }
+    }
+}
+
+/// Dish photo from HQ, or a fork-and-knife tile when the dish has none.
+struct CrewDishThumb: View {
+    let url: URL?
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.neuTrack)
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Image(systemName: "fork.knife").font(.system(size: 15, weight: .medium))
+                    }
+                }
+            } else {
+                Image(systemName: "fork.knife").font(.system(size: 15, weight: .medium))
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
+/// Count of one event product: the number, the unit it was counted in and an
+/// optional note ("2 dozen nog in de vriezer"). Goes to HQ as a count; the
+/// stock itself only changes when the operator takes it over.
+struct CrewCountSheet: View {
+    let title: String
+    let prompt: String
+    let units: [String]
+    let initialQuantity: Double?
+    let initialUnitLevel: Int
+    let initialNote: String?
+    let onSave: (_ quantity: Double, _ unitLevel: Int, _ note: String?) async -> Bool
+    /// nil when there is no count yet.
+    let onClear: (() async -> Bool)?
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var amount = ""
+    @State private var unitLevel = 0
+    @State private var note = ""
+    @State private var working = false
+    @FocusState private var amountFocused: Bool
+
+    private var parsed: Double? { CrewFormat.parse(amount) }
+    private var canSave: Bool { parsed.map { $0 >= 0 && $0 < 1_000_000 } ?? false }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: title).font(.system(size: 22, weight: .bold))
+                Text(verbatim: prompt).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    TextField(String("0"), text: $amount)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 28, weight: .bold).monospacedDigit())
+                        .focused($amountFocused)
+                        .padding(.horizontal, 16).padding(.vertical, 12)
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+                    if units.count == 1 {
+                        Text(verbatim: units[0]).frText(FRType.rowTitle)
+                    }
+                }
+                if units.count > 1 {
+                    CrewUnitChips(units: units, selection: $unitLevel)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("crew.prep.noteLabel").frText(FRType.sectionHeader)
+                TextField(FRLanguage.string("crew.stock.notePrompt"), text: $note, axis: .vertical)
+                    .lineLimit(1...4)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+            }
+
+            Button {
+                guard let parsed else { return }
+                Task {
+                    working = true
+                    let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let ok = await onSave(parsed, unitLevel, trimmed.isEmpty ? nil : trimmed)
+                    working = false
+                    if ok { FRHaptic.success.fire(); dismiss() } else { FRHaptic.error.fire() }
+                }
+            } label: {
+                ZStack {
+                    if working { ProgressView().tint(Color.foodrun.backgroundInverseInk) } else { Text("crew.answer.save") }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(Capsule().fill(Color.foodrun.foreground))
+                .opacity(canSave ? 1 : 0.4)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSave || working)
+
+            if let onClear {
+                Button {
+                    Task {
+                        working = true
+                        let ok = await onClear()
+                        working = false
+                        if ok { dismiss() }
+                    }
+                } label: {
+                    Text("crew.answer.clear")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.foodrun.subject.destructive)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+                .disabled(working)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .padding(.top, 8)
+        .background(Color.foodrun.background.ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .onAppear {
+            if let initialQuantity { amount = CrewFormat.number(initialQuantity) }
+            unitLevel = min(max(initialUnitLevel, 0), max(units.count - 1, 0))
+            note = initialNote ?? ""
+            amountFocused = true
         }
     }
 }

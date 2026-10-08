@@ -59,11 +59,15 @@ enum CrewAPI {
 
     // MARK: - Prep checklist
 
-    /// Tick/untick (checked) and/or note (comment, "" clears) one prep item.
-    static func setPrepItem(activityId: UUID, key: String, checked: Bool?, comment: String?) async throws {
+    /// One prep item: tick/untick (checked), note (comment, "" clears) and/or
+    /// the amount packed (quantity in units[unitLevel]; clearQuantity removes it).
+    /// The amount lands in the prep checklist itself, so the portal shows it too.
+    static func setPrepItem(activityId: UUID, key: String, checked: Bool?, comment: String?,
+                            quantity: Double? = nil, unitLevel: Int? = nil, clearQuantity: Bool = false) async throws {
         _ = try await client
             .rpc("set_my_prep_item",
-                 params: PrepParams(p_activity_id: activityId, p_key: key, p_checked: checked, p_comment: comment))
+                 params: PrepParams(p_activity_id: activityId, p_key: key, p_checked: checked, p_comment: comment,
+                                    p_quantity: quantity, p_unit_level: unitLevel, p_clear_quantity: clearQuantity))
             .execute()
     }
 
@@ -89,6 +93,8 @@ enum CrewAPI {
             ("invalid_photo_path", "crew.error.photo"),
             ("invalid_item", "crew.error.prepItem"),
             ("prep_not_assigned", "crew.error.prepItem"),
+            ("invalid_quantity", "crew.error.prepAmount"),
+            ("invalid_unit", "crew.error.prepAmount"),
         ] where raw.contains(code) {
             return FRLanguage.string(key)
         }
@@ -126,9 +132,12 @@ private struct PrepParams: Encodable {
     let p_key: String
     let p_checked: Bool?
     let p_comment: String?
+    let p_quantity: Double?
+    let p_unit_level: Int?
+    let p_clear_quantity: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case p_activity_id, p_key, p_checked, p_comment
+        case p_activity_id, p_key, p_checked, p_comment, p_quantity, p_unit_level, p_clear_quantity
     }
 
     func encode(to encoder: Encoder) throws {
@@ -137,6 +146,9 @@ private struct PrepParams: Encodable {
         try c.encode(p_key, forKey: .p_key)
         try c.encode(p_checked, forKey: .p_checked)
         try c.encode(p_comment, forKey: .p_comment)
+        try c.encode(p_quantity, forKey: .p_quantity)
+        try c.encode(p_unit_level, forKey: .p_unit_level)
+        try c.encode(p_clear_quantity, forKey: .p_clear_quantity)
     }
 }
 
