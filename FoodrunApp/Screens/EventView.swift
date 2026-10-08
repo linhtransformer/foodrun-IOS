@@ -106,11 +106,18 @@ public struct EventView: View {
     }
 
     private func sectionPicker(_ event: CrewEvent) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(CrewEventSection.allCases.filter { event.has($0) }) { s in
-                    pill(label(for: s), active: s == section) {
-                        withAnimation(FRAnimation.subtle) { section = s }
+        // Five pills don't fit: centre the active one so the next is always in view.
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(CrewEventSection.allCases.filter { event.has($0) }) { s in
+                        pill(label(for: s), active: s == section) {
+                            withAnimation(FRAnimation.subtle) {
+                                section = s
+                                proxy.scrollTo(s, anchor: .center)
+                            }
+                        }
+                        .id(s)
                     }
                 }
             }

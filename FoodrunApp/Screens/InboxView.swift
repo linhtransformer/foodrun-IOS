@@ -47,7 +47,11 @@ public struct InboxView: View {
                             .onTapGesture {
                                 inbox.markRead(item.id)
                                 // A new crew task from HQ: go to it.
-                                if item.type == .task_assigned && AppConfig.Features.crewTasks { router.tab = .tasks }
+                                if item.type == .task_assigned && AppConfig.Features.crewTasks {
+                                    // Land on the task list, not on whatever was left open in that tab.
+                                    router.tasksPath = []
+                                    router.tab = .tasks
+                                }
                             }
                     case .change(let change):
                         changeRow(change)
