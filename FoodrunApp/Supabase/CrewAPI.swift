@@ -52,6 +52,24 @@ enum CrewAPI {
         return path
     }
 
+    /// Buckets anyone may read (heading photos/PDFs, setup photos, dish photos).
+    private static let publicBuckets: Set<String> = ["script-heading-images", "script-heading-attachments", "dishes"]
+
+    /// A link that opens a briefing file: public buckets directly, private ones
+    /// (tickets, event files, my own files) through a short-lived signed URL —
+    /// the server only signs files this crew member may see (crew_file_ok).
+    static func fileURL(_ file: CrewFile) async throws -> URL {
+        if publicBuckets.contains(file.bucket) {
+            return try client.storage.from(file.bucket).getPublicURL(path: file.path)
+        }
+        return try await client.storage.from(file.bucket).createSignedURL(path: file.path, expiresIn: 600)
+    }
+
+    /// Public image URL for photos shown inline (no network round-trip).
+    static func publicURL(_ file: CrewFile) -> URL? {
+        try? client.storage.from(file.bucket).getPublicURL(path: file.path)
+    }
+
     /// Short-lived link to show an uploaded photo.
     static func photoURL(_ path: String) async throws -> URL {
         try await client.storage.from(photoBucket).createSignedURL(path: path, expiresIn: 3600)

@@ -1,8 +1,22 @@
 import SwiftUI
 
-// Bundle §3 "Shift detail". Summary card + location + crew + gated checklist.
+// Bundle §3 "Shift detail", briefing-first (HQ decision 0038). Opening a shift
+// shows the event straight away, in three tabs:
+//   Draaiboek — what the script portal shows: the day's note, my day + tickets,
+//               what we sell, event details, locations, run-of-show, links,
+//               files, team. Read-only.
+//   Setup     — build-up and teardown.
+//   Taken     — the prep checklist and stock count as tasks, plus the
+//               operator's tasks.
+// What each person sees is set in HQ → Activity → Crew-app (get_my_event).
+
+public enum ShiftTab: String, CaseIterable, Identifiable {
+    case briefing, setup, tasks
+    public var id: String { rawValue }
+}
 
 public struct ShiftDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(TabRouter.self) private var router
     @Environment(ClockStore.self) private var clock
     @Environment(TasksStore.self) private var tasks
@@ -14,9 +28,20 @@ public struct ShiftDetailView: View {
     public let activityId: UUID
     public let date: Date
 
-    public init(activityId: UUID, date: Date) {
+    @State private var store: EventStore
+    @State private var tab: ShiftTab
+    @State private var day: String
+    @State private var openDish: CrewDish?
+    @State private var answering: CrewTask?
+    @State private var showPrep = false
+    @State private var showStock = false
+
+    public init(activityId: UUID, date: Date, startOn tab: ShiftTab = .briefing) {
         self.activityId = activityId
         self.date = date
+        _store = State(initialValue: EventStore(activityId: activityId))
+        _tab = State(initialValue: tab)
+        _day = State(initialValue: SchemaDates.string(date))
     }
 
     /// The rostered shift this screen shows (activity × day), from ScheduleStore.
@@ -25,29 +50,43 @@ public struct ShiftDetailView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 header
                 summaryCard
-                locationCard
-                if AppConfig.Features.crewTasks { eventCard }
-                crewSection
-                if AppConfig.Features.checklists { gateCard }
                 nfcStrip
+                if AppConfig.Features.crewTasks {
+                    crewContent
+                } else {
+                    locationCard
+                    crewSection
+                }
+                if AppConfig.Features.checklists { gateCard }
                 if AppConfig.Features.shiftSwaps { requestSwap }
             }
             .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, FRSpacing.screenTop.value)
+            .padding(.top, 8)
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        .refreshable { if AppConfig.Features.crewTasks { await store.load() } }
+        .task {
+            guard AppConfig.Features.crewTasks else { return }
+            await store.load()
+            settleDay()
+        }
         // Seeing the shift counts as seeing the change.
         .onAppear { changes.markRead(activityId: activityId, day: SchemaDates.string(date)) }
+        .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
+        .sheet(item: $answering) { task in answerSheet(for: task) }
+        .sheet(isPresented: $showPrep) { CrewPrepListSheet(store: store) }
+        .sheet(isPresented: $showStock) { CrewStockListSheet(store: store, day: day) }
     }
 
+    /// Back arrow with the festival name next to it (truck · location below).
     private var header: some View {
-        HStack {
-            Button { router.popOnShifts() } label: {
+        HStack(alignment: .center, spacing: 12) {
+            Button { dismiss() } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(Color.foodrun.foreground)
@@ -57,9 +96,179 @@ public struct ShiftDetailView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("action.back"))
-            Spacer()
-            // Overflow "⋯" menu removed until it has real actions (Slice 11) —
-            // App Review rejects buttons that do nothing.
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: store.event?.activity.name ?? activity?.name ?? "")
+                    .font(.system(size: 20, weight: .bold)).tracking(-0.4)
+                    .lineLimit(2)
+                let sub = [store.event?.activity.food_truck ?? activity?.food_truck,
+                           store.event?.activity.location ?? activity?.location].compactMap { $0 }.joined(separator: " · ")
+                if !sub.isEmpty {
+                    HStack(spacing: 6) {
+                        Circle().fill(Color.foodrunData(hex: activity?.color)).frame(width: 7, height: 7)
+                        Text(verbatim: sub).lineLimit(1)
+                    }
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 0)
+        }
+    }
+
+    // MARK: - Briefing / Setup / Taken
+
+    @ViewBuilder
+    private var crewContent: some View {
+        if let event = store.event {
+            tabPicker(event)
+            if event.my_days.count > 1 && tab != .setup { dayPicker(event) }
+            if let error = store.lastError { errorLine(error) }
+            switch tab {
+            case .briefing:
+                ShiftBriefingContent(event: event, day: day, onOpenDish: { openDish = $0 })
+            case .setup:
+                ShiftSetupContent(briefing: event.briefing)
+            case .tasks:
+                if event.activity.is_closed { closedLine }
+                ShiftTasksContent(store: store, event: event, day: day,
+                                  onOpenDish: { openDish = $0 },
+                                  onAnswer: { answering = $0 },
+                                  onOpenPrep: { showPrep = true },
+                                  onOpenStock: { showStock = true })
+            }
+        } else if store.isLoading {
+            ProgressView().frame(maxWidth: .infinity).padding(.top, 30)
+        } else {
+            locationCard
+            if let error = store.lastError { errorLine(error) }
+        }
+    }
+
+    private func tabPicker(_ event: CrewEvent) -> some View {
+        let open = openCount(event)
+        return HStack(spacing: 4) {
+            ForEach(ShiftTab.allCases) { t in
+                let active = t == tab
+                Button {
+                    withAnimation(FRAnimation.subtle) { tab = t }
+                    FRHaptic.light.fire()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(LocalizedStringKey(tabKey(t)))
+                        if t == .tasks && open > 0 {
+                            Text(verbatim: "\(open)")
+                                .font(.system(size: 11, weight: .bold).monospacedDigit())
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Capsule().fill(active ? Color.foodrun.backgroundInverseInk.opacity(0.2) : Color.foodrun.neuTrack))
+                        }
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(active ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
+                    .frame(maxWidth: .infinity, minHeight: 38)
+                    .background(Capsule().fill(active ? Color.foodrun.foreground : Color.foodrun.card.opacity(0)))
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(active ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .background(Capsule().fill(Color.foodrun.card))
+        .frNeu(.raised)
+    }
+
+    private func tabKey(_ t: ShiftTab) -> String {
+        switch t {
+        case .briefing: return "shift.tab.briefing"
+        case .setup: return "shift.tab.setup"
+        case .tasks: return "shift.tab.tasks"
+        }
+    }
+
+    /// Open items on the selected day: operator tasks, plus the prep list and
+    /// the stock count while they aren't finished.
+    private func openCount(_ event: CrewEvent) -> Int {
+        var n = store.tasks(on: day).filter { store.response(for: $0, on: day)?.done != true }.count
+        if let items = event.prep?.items, items.contains(where: { !$0.checked }) { n += 1 }
+        if let products = event.stock?.products,
+           products.contains(where: { store.myCount(productId: $0.product_id, on: day) == nil }) { n += 1 }
+        return n
+    }
+
+    private func dayPicker(_ event: CrewEvent) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(event.my_days, id: \.self) { d in
+                    let active = d == day
+                    Button {
+                        day = d
+                        FRHaptic.light.fire()
+                    } label: {
+                        Text(verbatim: CrewFormat.day(d))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(active ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(Capsule().fill(active ? Color.foodrun.foreground : Color.foodrun.card))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    /// Open on the shift's own day when it's one of my days, else the first
+    /// upcoming one.
+    private func settleDay() {
+        guard let event = store.event, !event.my_days.contains(day) else { return }
+        let today = SchemaDates.string(Date())
+        day = event.my_days.first { $0 >= today } ?? event.my_days.first ?? day
+    }
+
+    private var closedLine: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "lock")
+            Text("crew.event.closed")
+        }
+        .font(.system(size: 13, weight: .medium))
+        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+    }
+
+    private func errorLine(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.circle")
+            Text(verbatim: text)
+        }
+        .font(.system(size: 13, weight: .medium))
+        .foregroundStyle(Color.foodrun.subject.destructive)
+    }
+
+    @ViewBuilder
+    private func answerSheet(for task: CrewTask) -> some View {
+        let current = store.response(for: task, on: day)
+        if task.kind == .photo {
+            CrewPhotoSheet(
+                title: task.title,
+                prompt: task.instructions,
+                existingPath: current?.photo_path,
+                onSave: { jpeg in await store.answerPhoto(task, on: day, jpeg: jpeg) },
+                onClear: { await store.answer(task, on: day, done: false) }
+            )
+        } else {
+            CrewAnswerSheet(
+                title: task.title,
+                prompt: task.instructions,
+                kind: task.kind,
+                units: task.unit.map { [$0] } ?? [],
+                initialNumber: current?.value_number,
+                initialText: current?.value_text,
+                initialUnitLevel: 0,
+                canClear: current != nil,
+                onSave: { number, text, _ in
+                    await store.answer(task, on: day, done: true, number: number, text: text)
+                },
+                onClear: { await store.answer(task, on: day, done: false) }
+            )
         }
     }
 
@@ -146,34 +355,6 @@ public struct ShiftDetailView: View {
             Text(label).frText(FRType.fieldLabel).foregroundStyle(sub)
             Text(value).frText(FRType.rowTitle).foregroundStyle(ink)
         }.frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// Opens the event screen: briefing, dishes, prep, stock and assigned
-    /// tasks — whatever the operator shows this person (HQ → Crew-app).
-    private var eventCard: some View {
-        Button {
-            router.pushOnShifts(.event(activityId: activityId, date: date))
-        } label: {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.neuTrack).frame(width: 56, height: 56)
-                    .overlay(Image(systemName: "doc.text").foregroundStyle(Color.foodrun.foreground))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("detail.event.title").frText(FRType.rowTitle)
-                    Text("detail.event.subtitle").frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            .foregroundStyle(Color.foodrun.foreground)
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
-                    .fill(Color.foodrun.card)
-            )
-            .frNeu(.raised)
-        }
-        .buttonStyle(.plain)
     }
 
     private var locationCard: some View {

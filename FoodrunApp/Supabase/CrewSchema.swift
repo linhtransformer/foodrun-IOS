@@ -46,15 +46,111 @@ public struct CrewEventActivity: Decodable, Hashable {
     public let is_closed: Bool
 }
 
+/// The event briefing — what the script portal shows on its Draaiboek and Setup
+/// tabs, minus what the operator hid (HQ migration 20261008210000). Everything
+/// but headings/notes is optional so an older server still decodes.
 public struct CrewBriefing: Decodable, Hashable {
     public let headings: [CrewHeading]
-    public let notes: [CrewNote]
+    public let notes: [CrewNote]                 // my day per date: times + operator note
+    public let title: String?
+    public let updated_at: String?               // script (or activity) last edit, shown as "Briefing updated …"
+    public let date: CrewBriefingDate?
+    public let hours: CrewBriefingHours?
+    public let locations: [CrewLocation]?
+    public let event_notes: String?
+    public let food_truck: String?
+    public let overnight_stay: String?
+    public let daily_comments: [CrewDailyComment]?
+    public let links: [CrewLink]?
+    public let files: [CrewFile]?                // event files (activity-files)
+    public let my_tickets: [CrewTicket]?
+    public let unnamed_tickets: [CrewFile]?
+    public let my_files: [CrewFile]?             // my employee files
+    public let team: [CrewTeamDay]?
+    public let setup: CrewSetupBlock?
+    public let teardown: CrewSetupBlock?
+}
+
+public struct CrewBriefingDate: Decodable, Hashable {
+    public let start: String?
+    public let end: String?
+    public let comment: String?
+}
+
+public struct CrewBriefingHours: Decodable, Hashable {
+    public let days: [CrewHoursDay]
+    public let start: String?
+    public let end: String?
+    public let comment: String?
+}
+
+public struct CrewHoursDay: Decodable, Hashable {
+    public let date: String
+    public let start: String?
+    public let end: String?
+}
+
+public struct CrewLocation: Decodable, Hashable {
+    public let name: String?
+    public let address: String?
+    public let notes: String?
+    public let image: String?
+    public let lat: Double?
+    public let lng: Double?
+}
+
+public struct CrewDailyComment: Decodable, Hashable {
+    public let date: String
+    public let text: String
+}
+
+public struct CrewLink: Decodable, Hashable, Identifiable {
+    public let title: String
+    public let url: String
+    public var id: String { url + "|" + title }
+}
+
+/// A stored file: private buckets (activity-files, employee-files) open via a
+/// signed URL, public ones (heading photos/PDFs, setup photos) directly.
+public struct CrewFile: Decodable, Hashable, Identifiable {
+    public let bucket: String
+    public let path: String
+    public let name: String
+    public var id: String { bucket + "/" + path }
+}
+
+/// One of my tickets: for one day, or for every day of the event.
+public struct CrewTicket: Decodable, Hashable, Identifiable {
+    public let bucket: String
+    public let path: String
+    public let name: String
+    public let date: String?
+    public let all_days: Bool?
+    public var id: String { bucket + "/" + path + "|" + (date ?? "") }
+    public var file: CrewFile { CrewFile(bucket: bucket, path: path, name: name) }
+}
+
+public struct CrewTeamDay: Decodable, Hashable {
+    public let date: String
+    public let names: [String]
+}
+
+/// Build-up or teardown (activities.setup_* / teardown_*).
+public struct CrewSetupBlock: Decodable, Hashable {
+    public let note: String?
+    public let date: String?
+    public let start: String?
+    public let end: String?
+    public let comments: String?
+    public let images: [CrewFile]?
 }
 
 public struct CrewHeading: Decodable, Hashable, Identifiable {
     public let id: UUID
     public let name: String
     public let content: String?
+    public let images: [CrewFile]?
+    public let attachments: [CrewFile]?
 }
 
 /// The operator's per-person note for one day (scripts.employee_timestamps).
@@ -74,6 +170,10 @@ public struct CrewDish: Decodable, Hashable, Identifiable {
     public let serving_size: Double?
     public let estimated_quantity: Double?
     public let ingredients: [CrewIngredient]
+    public let price: Double?            // per-event price (activities.dishes)
+    public let coin_price: Double?       // price in coins, when the event uses coins
+    public let allergens: [String]?      // keys: Gluten, Dairy, Eggs, …
+    public let may_contain: String?
 
     public var imageURL: URL? { image.flatMap(URL.init(string:)) }
 }

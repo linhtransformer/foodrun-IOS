@@ -42,6 +42,83 @@ enum CrewFormat {
     static func parse(_ input: String) -> Double? {
         Double(input.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
     }
+
+    /// The event's price for a dish: "€ 14,00", or "3 munten" when the event
+    /// sells in coins.
+    static func price(_ dish: CrewDish) -> String? {
+        if let coins = dish.coin_price {
+            return String(format: FRLanguage.string("briefing.coins %@"), number(coins))
+        }
+        guard let price = dish.price, price > 0 else { return nil }
+        let f = NumberFormatter()
+        f.locale = FRLanguage.locale
+        f.numberStyle = .currency
+        f.currencyCode = "EUR"
+        return f.string(from: price as NSNumber)
+    }
+
+    /// Allergen key from HQ ("Dairy") → the label in the app's language.
+    static func allergen(_ key: String) -> String {
+        let localizationKey = "allergen.\(key)"
+        let label = FRLanguage.string(localizationKey)
+        return label == localizationKey ? key : label
+    }
+
+    /// "woensdag 8 oktober".
+    static func longDay(_ key: String) -> String? {
+        guard let date = SchemaDates.date(key) else { return nil }
+        let f = DateFormatter()
+        f.locale = FRLanguage.locale
+        f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
+        f.dateFormat = "EEEE d MMMM"
+        return f.string(from: date)
+    }
+
+    /// One day, or "wo 8 okt – vr 10 okt".
+    static func dateRange(_ start: String?, _ end: String?) -> String? {
+        guard let start else { return nil }
+        guard let end, end != start else { return longDay(start) ?? start }
+        return "\(day(start)) – \(day(end))"
+    }
+
+    /// Server timestamp → "8 okt 14:02".
+    static func timestamp(_ iso: String) -> String? {
+        let plain = iso.replacingOccurrences(of: #"\.\d+"#, with: "", options: .regularExpression)
+        guard let date = ISO8601DateFormatter().date(from: plain) else { return nil }
+        let f = DateFormatter()
+        f.locale = FRLanguage.locale
+        f.dateFormat = "d MMM HH:mm"
+        return f.string(from: date)
+    }
+
+    /// Text with its web addresses tappable — operators paste links into notes.
+    static func linkified(_ text: String) -> AttributedString {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+            return AttributedString(text)
+        }
+        var out = AttributedString()
+        var cursor = text.startIndex
+        for match in detector.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+            guard let url = match.url, let range = Range(match.range, in: text), range.lowerBound >= cursor else { continue }
+            if cursor < range.lowerBound {
+                out += AttributedString(String(text[cursor..<range.lowerBound]))
+            }
+            var link = AttributedString(String(text[range]))
+            link.link = url
+            out += link
+            cursor = range.upperBound
+        }
+        if cursor < text.endIndex {
+            out += AttributedString(String(text[cursor...]))
+        }
+        return out
+    }
+}
+
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
 }
 
 /// One assigned task. Every kind uses the same card so the purpose reads at a
@@ -274,8 +351,23 @@ struct CrewDishSheet: View {
                     .clipShape(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous))
                     .accessibilityHidden(true)
                 }
+                if let price = CrewFormat.price(dish) {
+                    Text(verbatim: price).font(.system(size: 20, weight: .bold).monospacedDigit())
+                }
                 if let description = dish.description {
                     Text(verbatim: description).frText(FRType.body).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                if let allergens = dish.allergens, !allergens.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("briefing.allergens").frText(FRType.fieldLabel)
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        CrewAllergenChips(allergens: allergens)
+                        if let may = dish.may_contain {
+                            Text(verbatim: String(format: FRLanguage.string("briefing.mayContain %@"), may))
+                                .frText(FRType.rowSubtitle)
+                                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        }
+                    }
                 }
                 if let estimate = dish.estimated_quantity, estimate > 0 {
                     Text(verbatim: String(format: FRLanguage.string("crew.dish.portions %@"), CrewFormat.number(estimate)))
