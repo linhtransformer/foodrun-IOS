@@ -34,6 +34,8 @@ public struct ApprovedHoursView: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        // Hide the whole (empty) bar too, or it pushes the custom header down.
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var header: some View {

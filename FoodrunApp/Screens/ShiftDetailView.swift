@@ -69,6 +69,8 @@ public struct ShiftDetailView: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        // Hide the whole (empty) bar too, or it pushes the custom header down.
+        .toolbar(.hidden, for: .navigationBar)
         .refreshable { if AppConfig.Features.crewTasks { await store.load() } }
         .task {
             guard AppConfig.Features.crewTasks else { return }
