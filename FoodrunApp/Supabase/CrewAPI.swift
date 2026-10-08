@@ -104,6 +104,11 @@ private struct AnswerParams: Encodable {
     let p_value_text: String?
     let p_photo_path: String?
 
+    // Declared by hand: a custom encode(to:) stops Swift synthesizing them.
+    private enum CodingKeys: String, CodingKey {
+        case p_task_id, p_work_date, p_done, p_value_number, p_value_text, p_photo_path
+    }
+
     // Explicit nulls: PostgREST matches the function by argument names.
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
@@ -122,6 +127,10 @@ private struct PrepParams: Encodable {
     let p_checked: Bool?
     let p_comment: String?
 
+    private enum CodingKeys: String, CodingKey {
+        case p_activity_id, p_key, p_checked, p_comment
+    }
+
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(p_activity_id, forKey: .p_activity_id)
@@ -138,6 +147,10 @@ private struct CountParams: Encodable {
     let p_quantity: Double?
     let p_unit_level: Int
     let p_note: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case p_activity_id, p_count_date, p_product_id, p_quantity, p_unit_level, p_note
+    }
 
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
