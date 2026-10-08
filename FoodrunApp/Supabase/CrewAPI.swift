@@ -27,6 +27,14 @@ enum CrewAPI {
             .value
     }
 
+    /// Prep checklist + stock count per event and day, for the Tasks tab.
+    static func fetchLists(from: String, to: String) async throws -> [CrewListEntry] {
+        try await client
+            .rpc("get_my_crew_lists", params: ["p_from": from, "p_to": to])
+            .execute()
+            .value
+    }
+
     /// Answer a task for one day. done=false with no value clears the answer.
     static func answer(taskId: UUID, day: String, done: Bool, number: Double? = nil, text: String? = nil,
                        photoPath: String? = nil) async throws {

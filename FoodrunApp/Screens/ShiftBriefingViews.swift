@@ -331,10 +331,11 @@ struct ShiftSetupContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if briefing?.setup == nil && briefing?.teardown == nil {
+            if briefing?.setup == nil && briefing?.teardown == nil && briefing?.electricity == nil {
                 CrewBriefingEmpty(key: "setup.none")
             }
             if let setup = briefing?.setup { block(setup, icon: "wrench.and.screwdriver", title: "setup.buildUp") }
+            if let power = briefing?.electricity { CrewPowerCard(power: power) }
             if let teardown = briefing?.teardown { block(teardown, icon: "shippingbox", title: "setup.teardown") }
         }
         .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
@@ -370,6 +371,115 @@ struct ShiftSetupContent: View {
                     .onTapGesture { if let url = CrewAPI.publicURL(image) { opening = CrewOpenedURL(url: url) } }
             }
         }
+    }
+}
+
+// MARK: - Stroomplan
+
+/// The electricity plan: which line (230 V / 16 A / 32 A), what's plugged into
+/// each outlet, and the load — same maths as HQ's StroomplanPreview (3680 W
+/// per outlet; an appliance split over outlets shares its wattage).
+struct CrewPowerCard: View {
+    let power: CrewPower
+
+    private static let outletWatts = 3680.0
+
+    var body: some View {
+        CrewBriefingCard(icon: "bolt.fill", title: "power.title") {
+            let counts = countLabels
+            if !counts.isEmpty {
+                CrewFlowChips(items: counts)
+            }
+            ForEach(Array(power.lines.enumerated()), id: \.offset) { index, line in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(verbatim: String(format: FRLanguage.string("power.line %lld"), index + 1) + " · " + lineLabel(line.type))
+                            .frText(FRType.rowTitle)
+                        Spacer()
+                        Text(verbatim: "\(Int(lineWatts(line).rounded())) / \(Int(Self.outletWatts) * outletCount(line.type)) W")
+                            .frText(FRType.rowSubtitle).monospacedDigit()
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    }
+                    ForEach(Array(line.outlets.enumerated()), id: \.offset) { outletIndex, outlet in
+                        let watts = outletWatts(line, outlet)
+                        let over = watts > Self.outletWatts
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(verbatim: "\(outletIndex + 1)")
+                                .font(.system(size: 12, weight: .bold).monospacedDigit())
+                                .frame(width: 24, height: 24)
+                                .background(Circle().fill(over ? Color.foodrun.subject.destructive.opacity(0.15) : Color.foodrun.neuTrack))
+                            VStack(alignment: .leading, spacing: 2) {
+                                if outlet.items.isEmpty {
+                                    Text("power.empty").frText(FRType.rowSubtitle)
+                                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                                }
+                                ForEach(Array(outlet.items.enumerated()), id: \.offset) { _, item in
+                                    Text(verbatim: itemLabel(line, item)).frText(FRType.rowSubtitle)
+                                }
+                            }
+                            Spacer(minLength: 8)
+                            Text(verbatim: "\(Int(watts.rounded())) W")
+                                .frText(FRType.rowSubtitle).monospacedDigit()
+                                .foregroundStyle(over ? Color.foodrun.subject.destructive : Color.foodrun.mutedForegroundSoft)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.background))
+            }
+            if let comment = power.comment {
+                Text(CrewFormat.linkified(comment)).frText(FRType.body)
+            }
+        }
+    }
+
+    private var countLabels: [String] {
+        var out: [String] = []
+        if let n = power.v230, n > 0 { out.append("\(n) × 230 V") }
+        if let n = power.a16, n > 0 { out.append("\(n) × 16 A") }
+        if let n = power.a32, n > 0 { out.append("\(n) × 32 A") }
+        return out
+    }
+
+    private func lineLabel(_ type: String) -> String {
+        switch type {
+        case "16a": return FRLanguage.string("power.type.16a")
+        case "32a": return FRLanguage.string("power.type.32a")
+        default: return FRLanguage.string("power.type.230v")
+        }
+    }
+
+    private func outletCount(_ type: String) -> Int {
+        switch type {
+        case "16a": return 3
+        case "32a": return 6
+        default: return 1
+        }
+    }
+
+    /// Outlets of this line an appliance is split over (1 when not split).
+    private func slices(_ line: CrewPowerLine, _ item: CrewPowerItem) -> Double {
+        guard let split = item.split_id else { return 1 }
+        let n = line.outlets.filter { $0.items.contains { $0.split_id == split } }.count
+        return Double(max(n, 1))
+    }
+
+    private func itemWatts(_ line: CrewPowerLine, _ item: CrewPowerItem) -> Double {
+        item.watts * item.quantity / slices(line, item)
+    }
+
+    private func outletWatts(_ line: CrewPowerLine, _ outlet: CrewPowerOutlet) -> Double {
+        outlet.items.reduce(0) { $0 + itemWatts(line, $1) }
+    }
+
+    private func lineWatts(_ line: CrewPowerLine) -> Double {
+        line.outlets.reduce(0) { $0 + outletWatts(line, $1) }
+    }
+
+    private func itemLabel(_ line: CrewPowerLine, _ item: CrewPowerItem) -> String {
+        let n = slices(line, item)
+        let split = n > 1 ? " (1/\(Int(n)))" : ""
+        return "\(CrewFormat.number(item.quantity))× \(item.name)\(split) · \(Int(itemWatts(line, item).rounded())) W"
     }
 }
 

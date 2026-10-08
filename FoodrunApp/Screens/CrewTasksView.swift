@@ -1,8 +1,10 @@
 import SwiftUI
 
-// Tasks tab: what the operator asked this crew member to do, per day, across
-// their events (HQ → Activity → Crew-app → Taken). Ticks and values go
-// straight back to HQ; tapping the event name opens the full event screen.
+// Tasks tab: what this crew member has to do, per day, across their events —
+// the prep checklist and stock count of each event (as list cards that open
+// the shift on Taken) and the operator's tasks (HQ → Activity → Crew-app).
+// Ticks and values go straight back to HQ; tapping the event name opens the
+// shift.
 
 public struct CrewTasksView: View {
     @Environment(TabRouter.self) private var router
@@ -22,7 +24,7 @@ public struct CrewTasksView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.foodrun.subject.destructive)
                 }
-                if store.occurrences.isEmpty {
+                if store.occurrences.isEmpty && store.lists.isEmpty {
                     if store.isLoading && !store.hasLoaded {
                         ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                     } else {
@@ -40,6 +42,20 @@ public struct CrewTasksView: View {
                                     .frText(FRType.rowSubtitle)
                                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                             }
+                        }
+                        ForEach(group.lists) { entry in
+                            CrewChecklistTaskCard(
+                                symbol: entry.kind == "prep" ? "shippingbox" : "number",
+                                kindKey: entry.kind == "prep" ? "tasks.prep.kind" : "tasks.stock.kind",
+                                title: FRLanguage.string(entry.kind == "prep" ? "tasks.prep.title" : "tasks.stock.title"),
+                                detail: listDetail(entry),
+                                done: entry.done,
+                                total: entry.total,
+                                action: {
+                                    router.tasksPath.append(.event(activityId: entry.activity.id,
+                                                                   date: SchemaDates.date(entry.date) ?? Date()))
+                                }
+                            )
                         }
                         ForEach(group.items) { occ in
                             CrewTaskRow(
@@ -120,6 +136,14 @@ public struct CrewTasksView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 50)
+    }
+
+    /// "Stadsfestival · 2 van 4 ingepakt".
+    private func listDetail(_ entry: CrewListEntry) -> String {
+        let progress = entry.kind == "prep"
+            ? String(format: FRLanguage.string("crew.prep.progress %lld %lld"), entry.done, entry.total)
+            : String(format: FRLanguage.string("tasks.stock.progress %lld %lld"), entry.done, entry.total)
+        return "\(entry.activity.name) · \(progress)"
     }
 
     private func dayTitle(_ key: String) -> String {

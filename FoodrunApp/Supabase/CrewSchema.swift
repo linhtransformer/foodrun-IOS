@@ -69,6 +69,33 @@ public struct CrewBriefing: Decodable, Hashable {
     public let team: [CrewTeamDay]?
     public let setup: CrewSetupBlock?
     public let teardown: CrewSetupBlock?
+    public let electricity: CrewPower?
+}
+
+/// The electricity plan (script portal "Stroom"): lines → outlets → plugged-in
+/// products. Load is computed in the app like HQ's StroomplanPreview.
+public struct CrewPower: Decodable, Hashable {
+    public let comment: String?
+    public let v230: Int?
+    public let a16: Int?
+    public let a32: Int?
+    public let lines: [CrewPowerLine]
+}
+
+public struct CrewPowerLine: Decodable, Hashable {
+    public let type: String          // 230v | 16a | 32a
+    public let outlets: [CrewPowerOutlet]
+}
+
+public struct CrewPowerOutlet: Decodable, Hashable {
+    public let items: [CrewPowerItem]
+}
+
+public struct CrewPowerItem: Decodable, Hashable {
+    public let name: String
+    public let quantity: Double
+    public let watts: Double         // per unit
+    public let split_id: String?     // one appliance spread over several outlets
 }
 
 public struct CrewBriefingDate: Decodable, Hashable {
@@ -293,6 +320,18 @@ public struct CrewTaskOccurrence: Decodable, Hashable, Identifiable {
     public let task: CrewTask
     public let response: CrewTaskResponse?
     public var id: String { "\(task.id.uuidString)|\(date)" }
+}
+
+/// A list-type task for the Tasks tab (get_my_crew_lists): the prep checklist
+/// or the stock count of one event on one day, with progress.
+public struct CrewListEntry: Decodable, Hashable, Identifiable {
+    public let date: String
+    public let kind: String          // prep | stock
+    public let activity: CrewOccurrenceActivity
+    public let done: Int
+    public let total: Int
+    public var id: String { "\(kind)|\(activity.id.uuidString)|\(date)" }
+    public var isFinished: Bool { total > 0 && done >= total }
 }
 
 public struct CrewOccurrenceActivity: Decodable, Hashable {

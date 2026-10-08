@@ -449,3 +449,9 @@
 "allergen.Mustard" = "Mustard";
 "allergen.Sulphites" = "Sulphites";
 "allergen.Lupine" = "Lupin";
+"power.title" = "Power plan";
+"power.line %lld" = "Line %lld";
+"power.type.230v" = "1 × 230 V socket";
+"power.type.16a" = "16 A extension box";
+"power.type.32a" = "32 A power box";
+"power.empty" = "Nothing plugged in";

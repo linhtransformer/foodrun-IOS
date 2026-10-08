@@ -449,3 +449,9 @@
 "allergen.Mustard" = "Mosterd";
 "allergen.Sulphites" = "Sulfiet";
 "allergen.Lupine" = "Lupine";
+"power.title" = "Stroomplan";
+"power.line %lld" = "Groep %lld";
+"power.type.230v" = "1 × 230 V stopcontact";
+"power.type.16a" = "16 A verlengdoos";
+"power.type.32a" = "32 A paddestoel";
+"power.empty" = "Niets aangesloten";

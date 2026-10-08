@@ -9,6 +9,8 @@ import SwiftUI
 @Observable
 public final class CrewTasksStore {
     public var occurrences: [CrewTaskOccurrence] = []
+    /// Prep checklists and stock counts as tasks (get_my_crew_lists).
+    public var lists: [CrewListEntry] = []
     public var isLoading = false
     public var hasLoaded = false
     public var lastError: String?
@@ -28,16 +30,21 @@ public final class CrewTasksStore {
         } catch {
             lastError = CrewAPI.message(for: error)
         }
+        // Separate call: an older server without it still shows the tasks.
+        lists = (try? await CrewAPI.fetchLists(from: from, to: to)) ?? []
     }
 
-    /// Occurrences grouped per day, in date order.
+    /// Tasks and lists grouped per day, in date order.
     public var days: [CrewTaskDay] {
-        let grouped = Dictionary(grouping: occurrences, by: \.date)
-        return grouped.keys.sorted().map { CrewTaskDay(day: $0, items: grouped[$0] ?? []) }
+        let tasksByDay = Dictionary(grouping: occurrences, by: \.date)
+        let listsByDay = Dictionary(grouping: lists, by: \.date)
+        let keys = Set(tasksByDay.keys).union(listsByDay.keys).sorted()
+        return keys.map { CrewTaskDay(day: $0, lists: listsByDay[$0] ?? [], items: tasksByDay[$0] ?? []) }
     }
 
     public func openCount(on day: String) -> Int {
         occurrences.filter { $0.date == day && !($0.response?.done ?? false) }.count
+            + lists.filter { $0.date == day && !$0.isFinished }.count
     }
 
     @discardableResult
@@ -78,6 +85,7 @@ extension CrewTasksStore {
 
 public struct CrewTaskDay: Identifiable {
     public let day: String
+    public let lists: [CrewListEntry]
     public let items: [CrewTaskOccurrence]
     public var id: String { day }
 }
