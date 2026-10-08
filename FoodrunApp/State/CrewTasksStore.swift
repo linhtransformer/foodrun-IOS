@@ -56,6 +56,26 @@ public final class CrewTasksStore {
     }
 }
 
+extension CrewTasksStore {
+    /// Photo task from the Tasks tab. The employee id is this person's row at
+    /// the event's operator (ScheduleStore.employee(for:)).
+    @discardableResult
+    public func answerPhoto(_ occurrence: CrewTaskOccurrence, employeeId: UUID, jpeg: Data) async -> Bool {
+        saving.insert(occurrence.id)
+        defer { saving.remove(occurrence.id) }
+        do {
+            let path = try await CrewAPI.uploadTaskPhoto(activityId: occurrence.activity.id, taskId: occurrence.task.id,
+                                                         employeeId: employeeId, jpeg: jpeg)
+            try await CrewAPI.answer(taskId: occurrence.task.id, day: occurrence.date, done: true, photoPath: path)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
+    }
+}
+
 public struct CrewTaskDay: Identifiable {
     public let day: String
     public let items: [CrewTaskOccurrence]

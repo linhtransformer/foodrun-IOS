@@ -33,6 +33,7 @@ enum CrewFormat {
         case .count: return FRLanguage.string("crew.kind.count")
         case .number: return FRLanguage.string("crew.kind.number")
         case .text: return FRLanguage.string("crew.kind.text")
+        case .photo: return FRLanguage.string("crew.kind.photo")
         case .other: return ""
         }
     }
@@ -75,7 +76,7 @@ struct CrewTaskRow: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isSaving || isClosed)
-                .accessibilityLabel(Text(done ? "crew.task.markOpen" : "crew.task.markDone"))
+                .accessibilityLabel(Text(LocalizedStringKey(done ? "crew.task.markOpen" : "crew.task.markDone")))
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -118,6 +119,25 @@ struct CrewTaskRow: View {
                             Text(verbatim: value).monospacedDigit()
                         } else {
                             Text("crew.task.fill")
+                        }
+                    }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(done ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(Capsule().fill(done ? Color.foodrun.foreground : Color.foodrun.neuTrack))
+                }
+                .buttonStyle(.plain)
+                .disabled(isSaving || isClosed)
+            } else if task.kind == .photo {
+                Button(action: onAnswer) {
+                    Group {
+                        if isSaving {
+                            ProgressView()
+                        } else {
+                            HStack(spacing: 5) {
+                                Image(systemName: done ? "checkmark" : "camera")
+                                Text(LocalizedStringKey(done ? "crew.photo.added" : "crew.photo.add"))
+                            }
                         }
                     }
                     .font(.system(size: 13, weight: .semibold))

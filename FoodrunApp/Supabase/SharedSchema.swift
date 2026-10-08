@@ -219,6 +219,7 @@ public enum WorkerNotificationKind: String, Codable {
     case activity_added, activity_updated
     case hours_approved, hours_rejected
     case approved, declined
+    case task_assigned      // crew task from HQ (trigger crew_notify_task_assigned)
     case other
 
     public init(from decoder: Decoder) throws {

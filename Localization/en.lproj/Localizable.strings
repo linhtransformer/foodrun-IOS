@@ -364,3 +364,22 @@
 "crew.error.valueRequired" = "Fill in a value first.";
 "crew.error.sectionOff" = "Your manager has not turned this on for you.";
 "crew.error.negative" = "A count can’t be below zero.";
+
+// MARK: Crew app — editable prep, photo tasks, task notifications (2026-10-08)
+"crew.kind.photo" = "Photo";
+"crew.photo.take" = "Take photo";
+"crew.photo.library" = "From photos";
+"crew.photo.empty" = "No photo yet";
+"crew.photo.failed" = "The photo could not be sent. Try again.";
+"crew.photo.add" = "Photo";
+"crew.photo.added" = "Photo added";
+"crew.prep.progress %lld %lld" = "%lld of %lld packed";
+"crew.prep.shared" = "Same list as the prep portal — ticks show up there and here.";
+"crew.prep.note" = "Add a note";
+"crew.prep.notePrompt" = "For example: “2 boxes in the cool box”.";
+"crew.prep.packed" = "Packed";
+"crew.prep.notPacked" = "Not packed";
+"crew.prep.group.trailers" = "Trailers";
+"crew.error.photo" = "That photo could not be saved for this task.";
+"crew.error.prepItem" = "This item is no longer on the prep list.";
+"inbox.taskAssigned" = "NEW TASK";

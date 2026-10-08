@@ -44,7 +44,11 @@ public struct InboxView: View {
                     switch entry {
                     case .server(let item):
                         row(item)
-                            .onTapGesture { inbox.markRead(item.id) }
+                            .onTapGesture {
+                                inbox.markRead(item.id)
+                                // A new crew task from HQ: go to it.
+                                if item.type == .task_assigned && AppConfig.Features.crewTasks { router.tab = .tasks }
+                            }
                     case .change(let change):
                         changeRow(change)
                             .onTapGesture { open(change) }
@@ -101,6 +105,10 @@ public struct InboxView: View {
         HStack(alignment: .top, spacing: 12) {
             agentAvatar(item)
             VStack(alignment: .leading, spacing: 4) {
+                if item.type == .task_assigned {
+                    Text("inbox.taskAssigned").frText(FRType.fieldLabel)
+                        .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
+                }
                 HStack {
                     Text(item.title).frText(FRType.rowTitle)
                     Spacer()

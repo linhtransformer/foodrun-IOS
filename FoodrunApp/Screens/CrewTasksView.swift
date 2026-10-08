@@ -7,6 +7,7 @@ import SwiftUI
 public struct CrewTasksView: View {
     @Environment(TabRouter.self) private var router
     @Environment(CrewTasksStore.self) private var store
+    @Environment(ScheduleStore.self) private var schedule
     @State private var openDish: CrewDish?
     @State private var answering: CrewTaskOccurrence?
 
@@ -72,7 +73,26 @@ public struct CrewTasksView: View {
         .refreshable { await store.load() }
         .task { await store.load() }
         .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
-        .sheet(item: $answering) { occ in
+        .sheet(item: $answering) { occ in answerSheet(for: occ) }
+    }
+
+    @ViewBuilder
+    private func answerSheet(for occ: CrewTaskOccurrence) -> some View {
+        // This person's employee row at the event's operator (photo path).
+        let employeeId = schedule.activities.first(where: { $0.id == occ.activity.id })
+            .flatMap { schedule.employee(for: $0) }?.id
+        if occ.task.kind == .photo {
+            CrewPhotoSheet(
+                title: occ.task.title,
+                prompt: occ.task.instructions,
+                existingPath: occ.response?.photo_path,
+                onSave: { jpeg in
+                    guard let employeeId else { return false }
+                    return await store.answerPhoto(occ, employeeId: employeeId, jpeg: jpeg)
+                },
+                onClear: { await store.answer(occ, done: false) }
+            )
+        } else {
             CrewAnswerSheet(
                 title: occ.task.title,
                 prompt: occ.task.instructions,

@@ -28,11 +28,42 @@ enum CrewAPI {
     }
 
     /// Answer a task for one day. done=false with no value clears the answer.
-    static func answer(taskId: UUID, day: String, done: Bool, number: Double? = nil, text: String? = nil) async throws {
+    static func answer(taskId: UUID, day: String, done: Bool, number: Double? = nil, text: String? = nil,
+                       photoPath: String? = nil) async throws {
         _ = try await client
             .rpc("submit_my_task_response",
                  params: AnswerParams(p_task_id: taskId, p_work_date: day, p_done: done,
-                                      p_value_number: number, p_value_text: text))
+                                      p_value_number: number, p_value_text: text, p_photo_path: photoPath))
+            .execute()
+    }
+
+    // MARK: - Photo tasks (private bucket crew-task-photos)
+
+    static let photoBucket = "crew-task-photos"
+
+    /// Uploads a JPEG under <activity>/<task>/<employee>/<timestamp>.jpg — the
+    /// path the storage policy and submit_my_task_response insist on.
+    static func uploadTaskPhoto(activityId: UUID, taskId: UUID, employeeId: UUID, jpeg: Data) async throws -> String {
+        let path = [activityId, taskId, employeeId].map { $0.uuidString.lowercased() }.joined(separator: "/")
+            + "/\(Int(Date().timeIntervalSince1970 * 1000)).jpg"
+        _ = try await client.storage
+            .from(photoBucket)
+            .upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: false))
+        return path
+    }
+
+    /// Short-lived link to show an uploaded photo.
+    static func photoURL(_ path: String) async throws -> URL {
+        try await client.storage.from(photoBucket).createSignedURL(path: path, expiresIn: 3600)
+    }
+
+    // MARK: - Prep checklist
+
+    /// Tick/untick (checked) and/or note (comment, "" clears) one prep item.
+    static func setPrepItem(activityId: UUID, key: String, checked: Bool?, comment: String?) async throws {
+        _ = try await client
+            .rpc("set_my_prep_item",
+                 params: PrepParams(p_activity_id: activityId, p_key: key, p_checked: checked, p_comment: comment))
             .execute()
     }
 
@@ -55,6 +86,8 @@ enum CrewAPI {
             ("value_required", "crew.error.valueRequired"),
             ("section_not_enabled", "crew.error.sectionOff"),
             ("negative_count", "crew.error.negative"),
+            ("invalid_photo_path", "crew.error.photo"),
+            ("invalid_item", "crew.error.prepItem"),
         ] where raw.contains(code) {
             return FRLanguage.string(key)
         }
@@ -68,6 +101,7 @@ private struct AnswerParams: Encodable {
     let p_done: Bool
     let p_value_number: Double?
     let p_value_text: String?
+    let p_photo_path: String?
 
     // Explicit nulls: PostgREST matches the function by argument names.
     func encode(to encoder: Encoder) throws {
@@ -77,6 +111,22 @@ private struct AnswerParams: Encodable {
         try c.encode(p_done, forKey: .p_done)
         try c.encode(p_value_number, forKey: .p_value_number)
         try c.encode(p_value_text, forKey: .p_value_text)
+        try c.encode(p_photo_path, forKey: .p_photo_path)
+    }
+}
+
+private struct PrepParams: Encodable {
+    let p_activity_id: UUID
+    let p_key: String
+    let p_checked: Bool?
+    let p_comment: String?
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(p_activity_id, forKey: .p_activity_id)
+        try c.encode(p_key, forKey: .p_key)
+        try c.encode(p_checked, forKey: .p_checked)
+        try c.encode(p_comment, forKey: .p_comment)
     }
 }
 

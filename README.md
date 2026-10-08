@@ -32,7 +32,7 @@ You need Xcode 15.4 or newer.
 4. **Add the Supabase Swift SDK.**
    `File → Add Package Dependencies…`
    URL: `https://github.com/supabase/supabase-swift`
-   Dependency Rule: **Up to Next Major Version** from `2.0.0`.
+   Dependency Rule: **Up to Next Major Version** from `2.20.0`.
    Add the `Supabase` product to the `Foodrun` target.
 
 5. **Configure Supabase URL + anon key.**

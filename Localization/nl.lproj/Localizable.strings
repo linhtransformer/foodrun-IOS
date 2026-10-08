@@ -364,3 +364,22 @@
 "crew.error.valueRequired" = "Vul eerst een waarde in.";
 "crew.error.sectionOff" = "Je manager heeft dit niet voor je aangezet.";
 "crew.error.negative" = "Een telling kan niet onder nul.";
+
+// MARK: Crew app — editable prep, photo tasks, task notifications (2026-10-08)
+"crew.kind.photo" = "Foto";
+"crew.photo.take" = "Foto maken";
+"crew.photo.library" = "Uit foto’s";
+"crew.photo.empty" = "Nog geen foto";
+"crew.photo.failed" = "De foto kon niet worden verstuurd. Probeer het opnieuw.";
+"crew.photo.add" = "Foto";
+"crew.photo.added" = "Foto toegevoegd";
+"crew.prep.progress %lld %lld" = "%lld van %lld ingepakt";
+"crew.prep.shared" = "Dezelfde lijst als de prep-portal — vinkjes zie je daar én hier.";
+"crew.prep.note" = "Notitie toevoegen";
+"crew.prep.notePrompt" = "Bijvoorbeeld: “2 dozen in de koelbox”.";
+"crew.prep.packed" = "Ingepakt";
+"crew.prep.notPacked" = "Niet ingepakt";
+"crew.prep.group.trailers" = "Aanhangers";
+"crew.error.photo" = "Die foto kon niet bij deze taak worden opgeslagen.";
+"crew.error.prepItem" = "Dit item staat niet meer op de prep-lijst.";
+"inbox.taskAssigned" = "NIEUWE TAAK";

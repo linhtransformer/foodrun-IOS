@@ -55,6 +55,53 @@ public final class EventStore {
         }
     }
 
+    /// Photo task: upload the picture, then mark the task done with its path.
+    @discardableResult
+    public func answerPhoto(_ task: CrewTask, on day: String, jpeg: Data) async -> Bool {
+        guard let employeeId = event?.employee_id else { return false }
+        saving.insert(task.id)
+        defer { saving.remove(task.id) }
+        do {
+            let path = try await CrewAPI.uploadTaskPhoto(activityId: activityId, taskId: task.id,
+                                                         employeeId: employeeId, jpeg: jpeg)
+            try await CrewAPI.answer(taskId: task.id, day: day, done: true, photoPath: path)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
+    }
+
+    // MARK: - Prep checklist (shared with the prep portal)
+
+    /// Prep keys with a save in flight.
+    public var savingPrep: Set<String> = []
+
+    @discardableResult
+    public func togglePrep(_ item: CrewPrepItem) async -> Bool {
+        await setPrep(item, checked: !item.checked, comment: nil)
+    }
+
+    /// Note on an item ("" removes it).
+    @discardableResult
+    public func notePrep(_ item: CrewPrepItem, comment: String) async -> Bool {
+        await setPrep(item, checked: nil, comment: comment)
+    }
+
+    private func setPrep(_ item: CrewPrepItem, checked: Bool?, comment: String?) async -> Bool {
+        savingPrep.insert(item.key)
+        defer { savingPrep.remove(item.key) }
+        do {
+            try await CrewAPI.setPrepItem(activityId: activityId, key: item.key, checked: checked, comment: comment)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
+    }
+
     // MARK: - Stock counts
 
     public func myCount(productId: UUID, on day: String) -> CrewStockCount? {

@@ -12,7 +12,7 @@ options:
 packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
-    from: 2.0.0
+    from: 2.20.0   # upload(_:data:options:) used by CrewAPI.uploadTaskPhoto
 
 settings:
   base:
@@ -55,6 +55,8 @@ targets:
           - CFBundleURLName: nl.foodrun.app
             CFBundleURLSchemes: [foodrun]
         NSNFCReaderUsageDescription: Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.
+        # Photo tasks (CrewPhotoViews.swift). The library uses PhotosPicker, which needs no permission.
+        NSCameraUsageDescription: Foodrun uses the camera when a task asks you for a photo, for example of your truck set-up.
         # Background roster check for shift-change notifications (ShiftBackgroundRefresh).
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [nl.foodrun.app.shift-refresh]

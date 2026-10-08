@@ -84,20 +84,24 @@ public struct CrewIngredient: Decodable, Hashable, Identifiable {
     public var id: UUID { product_id }
 }
 
-/// Read-only prep list. `checked` is what packers ticked in the prep portal.
+/// Prep checklist — the same list and ticks as the prep portal. Editable from
+/// the app (set_my_prep_item); the server merges per item, so the app and the
+/// portal can tick at the same time.
 public struct CrewPrep: Decodable, Hashable {
     public let updated_at: String?
+    public let editable: Bool?
     public let items: [CrewPrepItem]
 }
 
 public struct CrewPrepItem: Decodable, Hashable, Identifiable {
-    public let key: String          // ing-/equip-/addon-<productId>, same keys as the portal
-    public let section: String      // ingredients | equipment | rentals | addons
-    public let product_id: UUID
+    public let key: String          // ing-/equip-/addon-/trailer-<id>, same keys as the portal
+    public let section: String      // ingredients | equipment | rentals | trailers | addons
+    public let product_id: UUID     // product id (vehicle id for trailers)
     public let name: String
     public let quantity: Double
     public let unit: String?
     public let checked: Bool
+    public let comment: String?
     public var id: String { key }
 }
 
@@ -125,7 +129,7 @@ public struct CrewStockCount: Decodable, Hashable {
 }
 
 public enum CrewTaskKind: String, Decodable, Hashable {
-    case check, count, number, text, other
+    case check, count, number, text, photo, other
 
     public init(from decoder: Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
@@ -164,6 +168,7 @@ public struct CrewTaskResponse: Decodable, Hashable {
     public let done: Bool
     public let value_number: Double?
     public let value_text: String?
+    public let photo_path: String?       // crew-task-photos/<activity>/<task>/<employee>/<file>
     public let responded_at: String?
 }
 
