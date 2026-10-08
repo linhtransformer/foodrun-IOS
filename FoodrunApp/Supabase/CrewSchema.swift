@@ -101,7 +101,8 @@ public struct CrewPrepItem: Decodable, Hashable, Identifiable {
     public let quantity: Double
     public let unit: String?
     public let checked: Bool
-    public let comment: String?
+    public let comment: String?          // crew/packer note on the row
+    public let instruction: String?      // operator instruction (HQ → Crew-app → Prep-checklist)
     public var id: String { key }
 }
 

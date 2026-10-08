@@ -88,6 +88,7 @@ enum CrewAPI {
             ("negative_count", "crew.error.negative"),
             ("invalid_photo_path", "crew.error.photo"),
             ("invalid_item", "crew.error.prepItem"),
+            ("prep_not_assigned", "crew.error.prepItem"),
         ] where raw.contains(code) {
             return FRLanguage.string(key)
         }

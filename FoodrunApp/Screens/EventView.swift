@@ -351,6 +351,11 @@ public struct EventView: View {
                             .frText(FRType.rowTitle)
                             .strikethrough(item.checked, color: Color.foodrun.mutedForegroundSoft)
                             .foregroundStyle(item.checked ? Color.foodrun.mutedForegroundSoft : Color.foodrun.foreground)
+                        if let instruction = item.instruction {
+                            Label(instruction, systemImage: "info.circle")
+                                .font(.system(size: 12.5, weight: .medium))
+                                .foregroundStyle(Color.foodrun.foreground)
+                        }
                         if let comment = item.comment {
                             Text(verbatim: comment)
                                 .frText(FRType.rowSubtitle)
