@@ -391,3 +391,8 @@
 "crew.prep.edit" = "Amount and note";
 "crew.error.prepAmount" = "That amount doesn’t work — check the number and the unit.";
 "crew.stock.notePrompt" = "For example: “2 boxes still in the freezer”.";
+
+// Task card status
+"crew.status.open"          = "Open";
+"crew.status.done"          = "Done";
+"crew.task.doneLabel"       = "Done";

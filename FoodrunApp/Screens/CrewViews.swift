@@ -44,7 +44,11 @@ enum CrewFormat {
     }
 }
 
-/// One assigned task. Tick tasks toggle in place; value tasks open a sheet.
+/// One assigned task. Every kind uses the same card so the purpose reads at a
+/// glance: type icon + type label + status on top, title / instructions /
+/// event / chip in the middle, and one full-width action at the bottom —
+/// grey while open, green with the answer once done (tap to change).
+/// Tick tasks toggle in place; value and photo tasks open a sheet.
 struct CrewTaskRow: View {
     let task: CrewTask
     let response: CrewTaskResponse?
@@ -58,103 +62,150 @@ struct CrewTaskRow: View {
     var onOpenEvent: (() -> Void)? = nil
 
     private var done: Bool { response?.done ?? false }
+    private var isTick: Bool { task.kind == .check || task.kind == .other }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            if task.kind == .check || task.kind == .other {
-                Button(action: onToggle) {
-                    ZStack {
-                        if isSaving {
-                            ProgressView()
-                        } else {
-                            Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                                .font(.system(size: 24, weight: .regular))
-                                .foregroundStyle(done ? Color.foodrun.subject.positive : Color.foodrun.mutedForegroundSoft)
-                        }
-                    }
-                    .frame(width: 32, height: 32)
-                }
-                .buttonStyle(.plain)
-                .disabled(isSaving || isClosed)
-                .accessibilityLabel(Text(LocalizedStringKey(done ? "crew.task.markOpen" : "crew.task.markDone")))
-            }
-
+        VStack(alignment: .leading, spacing: 12) {
+            header
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: task.title)
                     .frText(FRType.rowTitle)
-                    .strikethrough(done && task.kind == .check, color: Color.foodrun.mutedForegroundSoft)
-                    .foregroundStyle(done && task.kind == .check ? Color.foodrun.mutedForegroundSoft : Color.foodrun.foreground)
-                if let eventName {
-                    if let onOpenEvent {
-                        Button(action: onOpenEvent) {
-                            HStack(spacing: 4) {
-                                Text(verbatim: eventName)
-                                Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold))
-                            }
-                            .frText(FRType.rowSubtitle)
-                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        Text(verbatim: eventName)
-                            .frText(FRType.rowSubtitle)
-                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    }
-                }
                 if let instructions = task.instructions, !instructions.isEmpty {
                     Text(verbatim: instructions)
                         .frText(FRType.rowSubtitle)
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
+                eventLink
                 refChip
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            if task.kind.asksValue {
-                Button(action: onAnswer) {
-                    Group {
-                        if isSaving {
-                            ProgressView()
-                        } else if let value = valueText {
-                            Text(verbatim: value).monospacedDigit()
-                        } else {
-                            Text("crew.task.fill")
-                        }
-                    }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(done ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(Capsule().fill(done ? Color.foodrun.foreground : Color.foodrun.neuTrack))
-                }
-                .buttonStyle(.plain)
-                .disabled(isSaving || isClosed)
-            } else if task.kind == .photo {
-                Button(action: onAnswer) {
-                    Group {
-                        if isSaving {
-                            ProgressView()
-                        } else {
-                            HStack(spacing: 5) {
-                                Image(systemName: done ? "checkmark" : "camera")
-                                Text(LocalizedStringKey(done ? "crew.photo.added" : "crew.photo.add"))
-                            }
-                        }
-                    }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(done ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(Capsule().fill(done ? Color.foodrun.foreground : Color.foodrun.neuTrack))
-                }
-                .buttonStyle(.plain)
-                .disabled(isSaving || isClosed)
-            }
+            actionButton
         }
         .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
                 .fill(Color.foodrun.card)
         )
         .frNeu(.raised)
+    }
+
+    // MARK: - Pieces
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            Image(systemName: kindSymbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(done ? Color.foodrun.subject.positive : Color.foodrun.foreground)
+                .frame(width: 30, height: 30)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(done ? Color.foodrun.subject.positive.opacity(0.14) : Color.foodrun.neuTrack)
+                )
+            Text(LocalizedStringKey(kindKey))
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(1.1)
+                .textCase(.uppercase)
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            Spacer(minLength: 8)
+            Text(LocalizedStringKey(done ? "crew.status.done" : "crew.status.open"))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(done ? Color.foodrun.subject.positive : Color.foodrun.mutedForegroundSoft)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var eventLink: some View {
+        if let eventName {
+            if let onOpenEvent {
+                Button(action: onOpenEvent) {
+                    HStack(spacing: 4) {
+                        Text(verbatim: eventName)
+                        Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold))
+                    }
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(verbatim: eventName)
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+        }
+    }
+
+    /// The one action, same place and size for every kind.
+    private var actionButton: some View {
+        Button(action: isTick ? onToggle : onAnswer) {
+            HStack(spacing: 6) {
+                if isSaving {
+                    ProgressView()
+                } else {
+                    Image(systemName: done ? "checkmark" : actionSymbol)
+                        .font(.system(size: 13, weight: .bold))
+                    actionLabel
+                }
+            }
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(done ? Color.foodrun.subject.positive : Color.foodrun.foreground)
+            .frame(maxWidth: .infinity, minHeight: 40)
+            .background(
+                Capsule().fill(done ? Color.foodrun.subject.positive.opacity(0.12) : Color.foodrun.neuTrack)
+            )
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(isSaving || isClosed)
+        .opacity(isClosed ? 0.4 : 1)
+        .accessibilityLabel(Text(LocalizedStringKey(isTick ? (done ? "crew.task.markOpen" : "crew.task.markDone") : actionKey)))
+    }
+
+    @ViewBuilder
+    private var actionLabel: some View {
+        if done, let value = valueText {
+            Text(verbatim: value).monospacedDigit().lineLimit(1)
+        } else {
+            Text(LocalizedStringKey(actionKey))
+        }
+    }
+
+    // MARK: - Per kind
+
+    private var kindKey: String {
+        switch task.kind {
+        case .check, .other: return "crew.kind.check"
+        case .count: return "crew.kind.count"
+        case .number: return "crew.kind.number"
+        case .text: return "crew.kind.text"
+        case .photo: return "crew.kind.photo"
+        }
+    }
+
+    private var kindSymbol: String {
+        switch task.kind {
+        case .check, .other: return "checkmark"
+        case .count: return "number"
+        case .number: return "textformat.123"
+        case .text: return "text.alignleft"
+        case .photo: return "camera"
+        }
+    }
+
+    private var actionSymbol: String {
+        switch task.kind {
+        case .check, .other: return "circle"
+        case .count, .number, .text: return "square.and.pencil"
+        case .photo: return "camera"
+        }
+    }
+
+    private var actionKey: String {
+        switch task.kind {
+        case .check, .other: return done ? "crew.task.doneLabel" : "crew.task.markDone"
+        case .count, .number, .text: return "crew.task.fill"
+        case .photo: return done ? "crew.photo.added" : "crew.photo.take"
+        }
     }
 
     private var valueText: String? {

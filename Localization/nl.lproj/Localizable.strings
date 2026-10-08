@@ -391,3 +391,8 @@
 "crew.prep.edit" = "Aantal en notitie";
 "crew.error.prepAmount" = "Dit aantal klopt niet — kijk het getal en de eenheid na.";
 "crew.stock.notePrompt" = "Bijvoorbeeld: “2 dozen nog in de vriezer”.";
+
+// Status op de taakkaart
+"crew.status.open"          = "Open";
+"crew.status.done"          = "Klaar";
+"crew.task.doneLabel"       = "Gedaan";
