@@ -455,3 +455,4 @@
 "power.type.16a" = "16 A verlengdoos";
 "power.type.32a" = "32 A paddestoel";
 "power.empty" = "Niets aangesloten";
+"auth.sessionExpired"       = "Je bent uitgelogd omdat je sessie is verlopen. Log opnieuw in.";

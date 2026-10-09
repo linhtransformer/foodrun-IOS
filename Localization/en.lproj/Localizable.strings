@@ -455,3 +455,4 @@
 "power.type.16a" = "16 A extension box";
 "power.type.32a" = "32 A power box";
 "power.empty" = "Nothing plugged in";
+"auth.sessionExpired"       = "You were logged out because your session expired. Log in again.";

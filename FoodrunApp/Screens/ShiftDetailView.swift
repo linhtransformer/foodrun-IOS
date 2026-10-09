@@ -48,15 +48,18 @@ public struct ShiftDetailView: View {
     private var shift: WorkerShift? { schedule.shift(activityId: activityId, day: SchemaDates.string(date)) }
     private var activity: DBActivity? { shift?.activity ?? schedule.activities.first { $0.id == activityId } }
 
+    /// Summary card starts folded (like the Shifts hero) so the tabs sit high.
+    @State private var summaryExpanded = false
+
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header
                 summaryCard
-                nfcStrip
                 if AppConfig.Features.crewTasks {
                     crewContent
                 } else {
+                    nfcStrip
                     locationCard
                     crewSection
                 }
@@ -124,6 +127,7 @@ public struct ShiftDetailView: View {
     private var crewContent: some View {
         if let event = store.event {
             tabPicker(event)
+            nfcStrip
             if event.my_days.count > 1 && tab != .setup { dayPicker(event) }
             if let error = store.lastError { errorLine(error) }
             switch tab {
@@ -140,8 +144,10 @@ public struct ShiftDetailView: View {
                                   onOpenStock: { showStock = true })
             }
         } else if store.isLoading {
+            nfcStrip
             ProgressView().frame(maxWidth: .infinity).padding(.top, 30)
         } else {
+            nfcStrip
             locationCard
             if let error = store.lastError { errorLine(error) }
         }
@@ -293,7 +299,78 @@ public struct ShiftDetailView: View {
             ? Color.foodrun.backgroundInverseInk.opacity(0.15)
             : Color.foodrun.border
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return ZStack(alignment: .topTrailing) {
+            Group {
+                if summaryExpanded {
+                    summaryExpandedBody(ink: ink, sub: sub, statusFill: statusFill, statusInk: statusInk, divider: divider)
+                        .padding(18)
+                } else {
+                    summaryCollapsedBody(ink: ink, sub: sub, statusFill: statusFill, statusInk: statusInk)
+                        .padding(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 44))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Same toggle as the Shifts hero (FRNextShiftCard).
+            Button {
+                withAnimation(FRAnimation.subtle) { summaryExpanded.toggle() }
+                FRHaptic.light.fire()
+            } label: {
+                Image(systemName: summaryExpanded ? "minus" : "plus")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ink)
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(ink.opacity(0.12)))
+            }
+            .buttonStyle(.plain)
+            .padding(10)
+            .accessibilityLabel(Text(summaryExpanded ? "hero.collapse" : "hero.expand"))
+        }
+        .background(
+            RoundedRectangle(cornerRadius: FRRadius.hero.value, style: .continuous)
+                .fill(isTodayShift ? Color.foodrun.foreground : Color.foodrun.card)
+        )
+        .shadow(color: .black.opacity(isTodayShift ? 0.22 : 0), radius: isTodayShift ? 14 : 0, y: isTodayShift ? 8 : 0)
+        .modifier(SummaryCardNeu(applyNeu: !isTodayShift))
+    }
+
+    /// Folded: truck + status, then "10:00 – 18:00  do · Kitchen".
+    private func summaryCollapsedBody(ink: Color, sub: Color, statusFill: Color, statusInk: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Circle().fill(Color.foodrunData(hex: activity?.color)).frame(width: 6, height: 6)
+                Text(verbatim: activity?.food_truck ?? activity?.name ?? "")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(ink.opacity(0.85))
+                    .lineLimit(1)
+                Text("detail.status.confirmed")
+                    .font(.system(size: 9, weight: .heavy))
+                    .tracking(1.2)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Capsule().fill(statusFill))
+                    .foregroundStyle(statusInk)
+            }
+            HStack(spacing: 8) {
+                Text(verbatim: "\(shift?.start ?? "--:--") – \(shift?.end ?? "--:--")")
+                    .font(.system(size: 20, weight: .heavy).monospacedDigit())
+                    .tracking(-0.4)
+                    .foregroundStyle(ink)
+                Text(verbatim: [shortDay, shift?.employee.roles?.first].compactMap { $0 }.joined(separator: " · "))
+                    .font(.system(size: 12))
+                    .foregroundStyle(sub)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var shortDay: String {
+        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; f.locale = FRLanguage.locale
+        return f.string(from: date)
+    }
+
+    private func summaryExpandedBody(ink: Color, sub: Color, statusFill: Color, statusInk: Color, divider: Color) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Circle().fill(Color.foodrunData(hex: activity?.color)).frame(width: 7, height: 7)
@@ -322,13 +399,6 @@ public struct ShiftDetailView: View {
                 col("detail.hours", hoursLabel, sub: sub, ink: ink)
             }
         }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: FRRadius.hero.value, style: .continuous)
-                .fill(isTodayShift ? Color.foodrun.foreground : Color.foodrun.card)
-        )
-        .shadow(color: .black.opacity(isTodayShift ? 0.22 : 0), radius: isTodayShift ? 14 : 0, y: isTodayShift ? 8 : 0)
-        .modifier(SummaryCardNeu(applyNeu: !isTodayShift))
     }
 
     /// Only apply the neumorphic pair on the white card variant — on the black

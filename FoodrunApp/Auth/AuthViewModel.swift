@@ -47,6 +47,11 @@ final class AuthViewModel: ObservableObject {
 
     private var client: SupabaseClient { SupabaseManager.shared.client }
 
+    /// Set while the user logs out or deletes their account, so a signedOut
+    /// event from anything else (the server refusing the refresh token, e.g.
+    /// after a password reset) can be explained on the login screen.
+    private var expectingSignOut = false
+
     func bootstrap() async {
         do {
             let session = try await client.auth.session
@@ -66,6 +71,12 @@ final class AuthViewModel: ObservableObject {
                     }
                 case .signedOut:
                     await MainActor.run {
+                        let wasSignedIn: Bool
+                        if case .signedIn = self.state { wasSignedIn = true } else { wasSignedIn = false }
+                        if wasSignedIn && !self.expectingSignOut {
+                            self.status = .failed(FRLanguage.string("auth.sessionExpired"))
+                        }
+                        self.expectingSignOut = false
                         self.state = .signedOut
                         self.mustSetNewPassword = false
                     }
@@ -252,6 +263,7 @@ final class AuthViewModel: ObservableObject {
     }
 
     func signOut() async {
+        expectingSignOut = true
         try? await client.auth.signOut()
     }
 
@@ -262,6 +274,7 @@ final class AuthViewModel: ObservableObject {
         status = .working
         do {
             try await client.functions.invoke("delete-my-account", options: FunctionInvokeOptions(method: .post))
+            expectingSignOut = true
             try? await client.auth.signOut(scope: .local)
             status = .idle
             return true
