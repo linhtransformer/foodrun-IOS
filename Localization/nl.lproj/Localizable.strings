@@ -455,10 +455,8 @@
 "power.type.16a" = "16 A verlengdoos";
 "power.type.32a" = "32 A paddestoel";
 "power.empty" = "Niets aangesloten";
-<<<<<<< Updated upstream
 "auth.sessionExpired"       = "Je bent uitgelogd omdat je sessie is verlopen. Log opnieuw in.";
 "detail.nfc.clockOutHint"   = "Tik en houd je telefoon tegen de tag om uit te klokken.";
-=======
 "pin.add" = "Locatie pinnen";
 "pin.title" = "Locatie pinnen";
 "pin.hint" = "Schuif de kaart tot de pin op de goede plek staat.";
@@ -476,4 +474,3 @@
 "pin.deleteConfirm" = "Deze pin verwijderen?";
 "crew.error.pin" = "Deze pin kon niet worden opgeslagen. Geef hem een naam en probeer het opnieuw.";
 "pin.failed" = "Pin opslaan lukte niet. Controleer je verbinding en probeer het opnieuw.";
->>>>>>> Stashed changes
