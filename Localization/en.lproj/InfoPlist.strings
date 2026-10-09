@@ -1,0 +1,3 @@
+"NSCameraUsageDescription" = "Foodrun uses the camera when a task asks you for a photo, for example of your truck set-up.";
+"NSLocationWhenInUseUsageDescription" = "Foodrun uses your location when you pin a spot on the event, for example where your truck stands.";
+"NSNFCReaderUsageDescription" = "Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.";

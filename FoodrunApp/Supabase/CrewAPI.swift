@@ -60,6 +60,36 @@ enum CrewAPI {
         return path
     }
 
+    // MARK: - Location pins
+
+    /// Upload a pin photo to the public location-pins bucket
+    /// (crew/<activity>/<employee>/<ms>.jpg) and return its public URL.
+    static func uploadPinPhoto(activityId: UUID, employeeId: UUID, jpeg: Data) async throws -> URL {
+        let path = "crew/" + [activityId, employeeId].map { $0.uuidString.lowercased() }.joined(separator: "/")
+            + "/\(Int(Date().timeIntervalSince1970 * 1000)).jpg"
+        _ = try await client.storage
+            .from("location-pins")
+            .upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: false))
+        return try client.storage.from("location-pins").getPublicURL(path: path)
+    }
+
+    /// Pin a location on the event (the script portal's "Pin a Location").
+    static func submitPin(activityId: UUID, name: String, latitude: Double, longitude: Double,
+                          address: String?, notes: String?, imageURL: String?) async throws {
+        _ = try await client
+            .rpc("submit_my_location_pin",
+                 params: PinParams(p_activity_id: activityId, p_name: name, p_lat: latitude, p_lng: longitude,
+                                   p_address: address, p_notes: notes, p_image_url: imageURL))
+            .execute()
+    }
+
+    /// Remove a pin I placed.
+    static func deletePin(activityId: UUID, pinId: String) async throws {
+        _ = try await client
+            .rpc("delete_my_location_pin", params: DeletePinParams(p_activity_id: activityId, p_pin_id: pinId))
+            .execute()
+    }
+
     /// Buckets anyone may read (heading photos/PDFs, setup photos, dish photos).
     private static let publicBuckets: Set<String> = ["script-heading-images", "script-heading-attachments", "dishes"]
 
@@ -120,6 +150,7 @@ enum CrewAPI {
             ("invalid_item", "crew.error.prepItem"),
             ("prep_not_assigned", "crew.error.prepItem"),
             ("invalid_quantity", "crew.error.prepAmount"),
+            ("invalid_pin", "crew.error.pin"),
             ("invalid_unit", "crew.error.prepAmount"),
         ] where raw.contains(code) {
             return FRLanguage.string(key)
@@ -151,6 +182,37 @@ private struct AnswerParams: Encodable {
         try c.encode(p_value_text, forKey: .p_value_text)
         try c.encode(p_photo_path, forKey: .p_photo_path)
     }
+}
+
+private struct PinParams: Encodable {
+    let p_activity_id: UUID
+    let p_name: String
+    let p_lat: Double
+    let p_lng: Double
+    let p_address: String?
+    let p_notes: String?
+    let p_image_url: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case p_activity_id, p_name, p_lat, p_lng, p_address, p_notes, p_image_url
+    }
+
+    // Explicit nulls: PostgREST matches the function by argument names.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(p_activity_id, forKey: .p_activity_id)
+        try c.encode(p_name, forKey: .p_name)
+        try c.encode(p_lat, forKey: .p_lat)
+        try c.encode(p_lng, forKey: .p_lng)
+        try c.encode(p_address, forKey: .p_address)
+        try c.encode(p_notes, forKey: .p_notes)
+        try c.encode(p_image_url, forKey: .p_image_url)
+    }
+}
+
+private struct DeletePinParams: Encodable {
+    let p_activity_id: UUID
+    let p_pin_id: String
 }
 
 private struct PrepParams: Encodable {

@@ -11,12 +11,15 @@ import SwiftUI
 // MARK: - Draaiboek
 
 struct ShiftBriefingContent: View {
+    let store: EventStore
     let event: CrewEvent
     let day: String
     let onOpenDish: (CrewDish) -> Void
 
     @State private var opening: CrewOpenedURL?
     @State private var openError: String?
+    @State private var pinning = false
+    @State private var deleting: CrewLocation?
 
     private var briefing: CrewBriefing? { event.briefing }
     private var dishes: [CrewDish] { event.dishes ?? [] }
@@ -34,9 +37,7 @@ struct ShiftBriefingContent: View {
             if !dishes.isEmpty { menuCard }
             if let briefing {
                 eventCard(briefing)
-                ForEach(Array((briefing.locations ?? []).enumerated()), id: \.offset) { _, location in
-                    CrewLocationCard(location: location)
-                }
+                locationsSection(briefing)
                 ForEach(briefing.headings) { heading in headingCard(heading) }
                 linksCard(briefing)
                 filesCard(briefing)
@@ -49,6 +50,62 @@ struct ShiftBriefingContent: View {
             }
         }
         .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
+        .sheet(isPresented: $pinning) {
+            let start = (briefing?.locations ?? []).first { $0.lat != nil && $0.lng != nil }
+            CrewPinSheet(startLatitude: start?.lat, startLongitude: start?.lng) { name, lat, lng, address, notes, photo in
+                await store.addPin(name: name, latitude: lat, longitude: lng, address: address, notes: notes, photo: photo)
+            }
+        }
+        .confirmationDialog(
+            FRLanguage.string("pin.deleteConfirm"),
+            isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+            titleVisibility: .visible,
+            presenting: deleting
+        ) { location in
+            Button(FRLanguage.string("pin.delete"), role: .destructive) {
+                Task {
+                    let ok = await store.deletePin(location)
+                    if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
+                }
+            }
+        }
+    }
+
+    // MARK: Locations + pins
+
+    /// The event's locations and pins, then "Locatie pinnen" so the crew can
+    /// mark a spot themselves (like the script portal's Pin a Location).
+    @ViewBuilder
+    private func locationsSection(_ briefing: CrewBriefing) -> some View {
+        let closed = event.activity.is_closed
+        ForEach(Array((briefing.locations ?? []).enumerated()), id: \.offset) { _, location in
+            CrewLocationCard(location: location,
+                             onDelete: (location.mine ?? false) && !closed ? { deleting = location } : nil)
+                // Rows are keyed by index: when a pin above is removed, the next
+                // location slides into this slot — reset the card so its map
+                // (initialPosition) re-centres instead of showing the old spot.
+                .id(location)
+        }
+        if !closed {
+            Button { pinning = true } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "mappin.and.ellipse")
+                    Text("pin.add")
+                    Spacer()
+                    Image(systemName: "plus")
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.foreground)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(
+                    RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                        .strokeBorder(Color.foodrun.mutedForegroundSoft.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4]))
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     // MARK: Today
@@ -532,6 +589,8 @@ struct CrewInfoRow: View {
 /// notes and a Route button that opens Apple Maps.
 struct CrewLocationCard: View {
     let location: CrewLocation
+    /// Set for a pin I placed: shows a remove button.
+    var onDelete: (() -> Void)? = nil
     @Environment(\.openURL) private var openURL
 
     private var coordinate: CLLocationCoordinate2D? {
@@ -576,6 +635,26 @@ struct CrewLocationCard: View {
             }
             if let image = location.image, let url = URL(string: image) {
                 CrewRemoteImage(url: url)
+            }
+            if location.added_by != nil || onDelete != nil {
+                HStack(spacing: 8) {
+                    if let by = location.added_by {
+                        Label(String(format: FRLanguage.string("pin.addedBy %@"), by), systemImage: "mappin")
+                            .frText(FRType.rowSubtitle)
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    }
+                    Spacer(minLength: 8)
+                    if let onDelete {
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Color.foodrun.subject.destructive)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("pin.delete"))
+                    }
+                }
             }
         }
         .padding(14)

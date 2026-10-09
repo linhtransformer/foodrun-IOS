@@ -124,6 +124,9 @@ public struct CrewLocation: Decodable, Hashable {
     public let image: String?
     public let lat: Double?
     public let lng: Double?
+    public let added_by: String?     // crew member who pinned it from the app
+    public let pin_id: String?
+    public let mine: Bool?           // I pinned it → I may remove it
 }
 
 public struct CrewDailyComment: Decodable, Hashable {

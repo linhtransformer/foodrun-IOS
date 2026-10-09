@@ -108,6 +108,42 @@ public final class EventStore {
         }
     }
 
+    // MARK: - Location pins
+
+    /// Pin a location on the event; the photo (optional) goes up first.
+    @discardableResult
+    public func addPin(name: String, latitude: Double, longitude: Double, address: String?,
+                       notes: String?, photo: Data?) async -> Bool {
+        guard let employeeId = event?.employee_id else { return false }
+        do {
+            var imageURL: String?
+            if let photo {
+                imageURL = try await CrewAPI.uploadPinPhoto(activityId: activityId, employeeId: employeeId, jpeg: photo).absoluteString
+            }
+            try await CrewAPI.submitPin(activityId: activityId, name: name, latitude: latitude, longitude: longitude,
+                                        address: address, notes: notes, imageURL: imageURL)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
+    }
+
+    /// Remove a pin I placed.
+    @discardableResult
+    public func deletePin(_ location: CrewLocation) async -> Bool {
+        guard let pinId = location.pin_id else { return false }
+        do {
+            try await CrewAPI.deletePin(activityId: activityId, pinId: pinId)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
+    }
+
     // MARK: - Stock counts
 
     public func myCount(productId: UUID, on day: String) -> CrewStockCount? {

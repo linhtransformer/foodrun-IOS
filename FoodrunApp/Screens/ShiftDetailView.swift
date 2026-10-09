@@ -136,7 +136,7 @@ public struct ShiftDetailView: View {
             if let error = store.lastError { errorLine(error) }
             switch tab {
             case .briefing:
-                ShiftBriefingContent(event: event, day: day, onOpenDish: { openDish = $0 })
+                ShiftBriefingContent(store: store, event: event, day: day, onOpenDish: { openDish = $0 })
             case .setup:
                 ShiftSetupContent(briefing: event.briefing)
             case .tasks:
