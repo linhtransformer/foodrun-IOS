@@ -202,16 +202,18 @@ struct CrewPinSheet: View {
                 Button { locator.request() } label: {
                     HStack(spacing: 6) {
                         if locator.locating {
-                            ProgressView()
+                            ProgressView().tint(Color.foodrun.backgroundInverseInk)
                         } else {
                             Image(systemName: "location.fill")
                         }
                         Text("pin.useMyLocation")
                     }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.foodrun.foreground)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(Capsule().fill(Color.foodrun.card))
+                    // Black pill so it stands out on top of the map.
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(Capsule().fill(Color.foodrun.foreground))
+                    .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
                 }
                 .buttonStyle(.plain)
                 .padding(10)
