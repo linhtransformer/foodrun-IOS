@@ -76,6 +76,10 @@ public struct ShiftDetailView: View {
         .toolbar(.hidden, for: .navigationBar)
         .refreshable { if AppConfig.Features.crewTasks { await store.load() } }
         .task {
+            if schedule.isToday(date), let emp = shift?.employee.id {
+                clock.activityId = activityId
+                await clock.refreshLatestEvent(employeeId: emp)
+            }
             guard AppConfig.Features.crewTasks else { return }
             await store.load()
             settleDay()
@@ -306,7 +310,7 @@ public struct ShiftDetailView: View {
                         .padding(18)
                 } else {
                     summaryCollapsedBody(ink: ink, sub: sub, statusFill: statusFill, statusInk: statusInk)
-                        .padding(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 44))
+                        .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 44))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -334,34 +338,67 @@ public struct ShiftDetailView: View {
         .modifier(SummaryCardNeu(applyNeu: !isTodayShift))
     }
 
-    /// Folded: truck + status, then "10:00 – 18:00  do · Kitchen".
+    /// Folded: one line — "10:00 – 18:00  vr 9 okt  BEVESTIGD".
+    /// No event name: the screen header already shows it.
     private func summaryCollapsedBody(ink: Color, sub: Color, statusFill: Color, statusInk: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Circle().fill(Color.foodrunData(hex: activity?.color)).frame(width: 6, height: 6)
-                Text(verbatim: activity?.food_truck ?? activity?.name ?? "")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(ink.opacity(0.85))
-                    .lineLimit(1)
-                Text("detail.status.confirmed")
-                    .font(.system(size: 9, weight: .heavy))
-                    .tracking(1.2)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(Capsule().fill(statusFill))
-                    .foregroundStyle(statusInk)
-            }
-            HStack(spacing: 8) {
-                Text(verbatim: "\(shift?.start ?? "--:--") – \(shift?.end ?? "--:--")")
-                    .font(.system(size: 20, weight: .heavy).monospacedDigit())
-                    .tracking(-0.4)
-                    .foregroundStyle(ink)
-                Text(verbatim: [shortDay, shift?.employee.roles?.first].compactMap { $0 }.joined(separator: " · "))
+        HStack(spacing: 8) {
+            Text(verbatim: "\(shift?.start ?? "--:--") – \(shift?.end ?? "--:--")")
+                .font(.system(size: 20, weight: .heavy).monospacedDigit())
+                .tracking(-0.4)
+                .foregroundStyle(ink)
+                .layoutPriority(1)
+            // Role lives in the opened card; with it the line truncates.
+            // While clocked in it's today anyway, and the chip needs the room.
+            if !clockedInHere {
+                Text(verbatim: shortDay)
                     .font(.system(size: 12))
                     .foregroundStyle(sub)
                     .lineLimit(1)
             }
+            Spacer(minLength: 0)
+            if clockedInHere {
+                clockedInChip
+            } else {
+                Text("detail.status.confirmed")
+                    .font(.system(size: 9, weight: .heavy))
+                    .tracking(1.2)
+                    .textCase(.uppercase)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .padding(.horizontal, 6).padding(.vertical, 3)
+                    .background(Capsule().fill(statusFill))
+                    .foregroundStyle(statusInk)
+            }
         }
+    }
+
+    /// "● INGEKLOKT 10:02" — replaces BEVESTIGD while on the clock. Tapping it
+    /// arms the NFC reader to clock out (the hint strip is hidden by then).
+    private var clockedInChip: some View {
+        Button { armNFCReader() } label: {
+            HStack(spacing: 4) {
+                Circle().fill(Color.foodrun.subject.onTheClockGreen).frame(width: 6, height: 6)
+                Text("nfc.tile.clockedInAt")
+                if let at = clock.clockInAt {
+                    Text(verbatim: clockTime(at)).monospacedDigit()
+                }
+            }
+            .font(.system(size: 9, weight: .heavy))
+            .tracking(1.2)
+            .textCase(.uppercase)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.horizontal, 6).padding(.vertical, 3)
+            .background(Capsule().fill(Color.foodrun.subject.onTheClockGreen.opacity(0.18)))
+            .foregroundStyle(Color.foodrun.subject.onTheClockGreen)
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("detail.nfc.clockOutHint"))
+    }
+
+    private func clockTime(_ d: Date) -> String {
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
+        return f.string(from: d)
     }
 
     private var shortDay: String {
@@ -370,22 +407,25 @@ public struct ShiftDetailView: View {
     }
 
     private func summaryExpandedBody(ink: Color, sub: Color, statusFill: Color, statusInk: Color, divider: Color) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // No event name here: the screen header already shows it.
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                HStack(spacing: 6) {
-                    Circle().fill(Color.foodrunData(hex: activity?.color)).frame(width: 7, height: 7)
-                    Text(verbatim: activity?.food_truck ?? activity?.name ?? "").frText(FRType.eyebrow).foregroundStyle(ink)
+                Text(verbatim: longDate)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(sub)
+                    .lineLimit(1)
+                if clockedInHere {
+                    clockedInChip
+                } else {
+                    Text("detail.status.confirmed")
+                        .frText(FRType.fieldLabel)
+                        .fixedSize()
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Capsule().fill(statusFill))
+                        .foregroundStyle(statusInk)
                 }
-                Text("detail.status.confirmed")
-                    .frText(FRType.fieldLabel)
-                    .padding(.horizontal, 8).padding(.vertical, 3)
-                    .background(Capsule().fill(statusFill))
-                    .foregroundStyle(statusInk)
-                Spacer()
+                Spacer(minLength: 30)   // room for the − toggle
             }
-            Text(verbatim: longDate)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(sub)
             HStack(alignment: .lastTextBaseline, spacing: 8) {
                 Text(verbatim: shift?.start ?? "--:--").font(.system(size: 44, weight: .heavy).monospacedDigit()).tracking(-1.5)
                     .foregroundStyle(ink)
@@ -558,7 +598,20 @@ public struct ShiftDetailView: View {
         )
     }
 
+    /// Clocked in on this shift right now (today, same activity).
+    private var clockedInHere: Bool {
+        clock.clockedIn && clock.activityId == activityId && schedule.isToday(date)
+    }
+
+    /// The "hold your phone to the tag" hint. Gone once clocked in; the
+    /// green "Ingeklokt" chip on the shift card then arms the reader for
+    /// clocking out.
+    @ViewBuilder
     private var nfcStrip: some View {
+        if !clockedInHere { nfcHint }
+    }
+
+    private var nfcHint: some View {
         Button { armNFCReader() } label: {
             HStack(spacing: 8) {
                 Image(systemName: "wave.3.right")

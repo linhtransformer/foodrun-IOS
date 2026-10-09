@@ -1,8 +1,7 @@
 import SwiftUI
 
-// Signature recessed-track / raised-pill segmented control.
-// Bundle §2 "Mode pills": track #E8E5E0 with paired inset shadow, 6pt padding;
-// active pill #FBFAF7 with the raised pair; inactive ink #6A6A6A.
+// Segmented control: white raised track, active option a black pill — the
+// same style as the shift screen's tabs (ShiftDetailView.tabPicker).
 
 public struct FRSegmentedPills<Option: Hashable>: View {
     public let options: [Option]
@@ -27,34 +26,26 @@ public struct FRSegmentedPills<Option: Hashable>: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(6)
-        .background(
-            Capsule().fill(Color.foodrun.neuTrack)
-        )
-        .overlay(
-            // Inset "pressed" look on the track.
-            Capsule()
-                .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                .blur(radius: 0.5)
-        )
+        .padding(4)
+        .background(Capsule().fill(Color.foodrun.card))
+        .frNeu(.raised)
         .accessibilityElement(children: .contain)
     }
 
+    // Same look as the shift screen's Draaiboek / Setup / Taken tabs:
+    // white track, active option a black pill with light text.
     @ViewBuilder
     private func pill(_ option: Option) -> some View {
         let active = option == selection
         Text(label(option))
-            .frText(FRType.segmented)
-            .foregroundStyle(active ? Color.foodrun.foreground : Color(hex: 0x6A6A6A))
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(active ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
             // One line always: long labels ("Beschikbaarheid") shrink a touch instead of wrapping.
             .lineLimit(1)
             .minimumScaleFactor(0.8)
             .padding(.horizontal, 6)
-            .frame(maxWidth: .infinity, minHeight: 40)
-            .background(
-                Capsule().fill(active ? Color.foodrun.neuPill : .clear)
-            )
-            .frNeu(active ? .raised : .inset)
+            .frame(maxWidth: .infinity, minHeight: 38)
+            .background(Capsule().fill(active ? Color.foodrun.foreground : Color.clear))
             .contentShape(Capsule())
             .accessibilityAddTraits(active ? [.isSelected, .isButton] : .isButton)
     }

@@ -456,3 +456,4 @@
 "power.type.32a" = "32 A paddestoel";
 "power.empty" = "Niets aangesloten";
 "auth.sessionExpired"       = "Je bent uitgelogd omdat je sessie is verlopen. Log opnieuw in.";
+"detail.nfc.clockOutHint"   = "Tik en houd je telefoon tegen de tag om uit te klokken.";
