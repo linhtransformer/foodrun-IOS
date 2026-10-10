@@ -474,3 +474,4 @@
 "pin.deleteConfirm" = "Remove this pin?";
 "crew.error.pin" = "That pin couldn't be saved. Give it a name and try again.";
 "pin.failed" = "Saving the pin didn't work. Check your connection and try again.";
+"crew.tasksTab.week" = "This week";

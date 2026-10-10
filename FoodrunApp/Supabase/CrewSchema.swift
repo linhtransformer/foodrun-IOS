@@ -287,8 +287,11 @@ public enum CrewTaskKind: String, Decodable, Hashable {
 
 public struct CrewTask: Decodable, Hashable, Identifiable {
     public let id: UUID
-    public let activity_id: UUID
+    public let activity_id: UUID?        // nil for a week goal
     public let work_date: String?        // nil = every day of the event
+    public let week_start: String?       // week goal: the Monday of its week
+    public let checklist_id: UUID?       // rows of one applied checklist share this
+    public let checklist_title: String?
     public let title: String
     public let instructions: String?
     public let kind: CrewTaskKind
@@ -324,6 +327,39 @@ public struct CrewTaskOccurrence: Decodable, Hashable, Identifiable {
     public let task: CrewTask
     public let response: CrewTaskResponse?
     public var id: String { "\(task.id.uuidString)|\(date)" }
+}
+
+/// A goal for the week, not tied to a shift (get_my_week_goals). Answered once
+/// per person with work_date = week_start.
+public struct CrewWeekGoal: Decodable, Hashable, Identifiable {
+    public let week_start: String
+    public let task: CrewTask
+    public let response: CrewTaskResponse?
+    public var id: String { task.id.uuidString }
+}
+
+/// Tasks that came from one checklist (HQ → Taken → Bibliotheek), or the
+/// loose tasks (title nil). Built in the app from CrewTask.checklist_id.
+public struct CrewTaskGroup<Item>: Identifiable {
+    public let id: String
+    public let title: String?
+    public let items: [Item]
+
+    /// Loose tasks first, then one group per checklist in first-seen order.
+    public static func build(_ items: [Item], task: (Item) -> CrewTask) -> [CrewTaskGroup<Item>] {
+        var order: [String] = []
+        var byKey: [String: [Item]] = [:]
+        var titles: [String: String] = [:]
+        for item in items {
+            let t = task(item)
+            let key = t.checklist_id?.uuidString ?? ""
+            if byKey[key] == nil { order.append(key) }
+            byKey[key, default: []].append(item)
+            if let title = t.checklist_title { titles[key] = title }
+        }
+        let sorted = order.filter { $0.isEmpty } + order.filter { !$0.isEmpty }
+        return sorted.map { CrewTaskGroup(id: $0.isEmpty ? "loose" : $0, title: $0.isEmpty ? nil : titles[$0], items: byKey[$0] ?? []) }
+    }
 }
 
 /// A list-type task for the Tasks tab (get_my_crew_lists): the prep checklist

@@ -35,6 +35,14 @@ enum CrewAPI {
             .value
     }
 
+    /// My goals for the week that starts on `weekStart` (a Monday).
+    static func fetchWeekGoals(weekStart: String) async throws -> [CrewWeekGoal] {
+        try await client
+            .rpc("get_my_week_goals", params: ["p_week_start": weekStart])
+            .execute()
+            .value
+    }
+
     /// Answer a task for one day. done=false with no value clears the answer.
     static func answer(taskId: UUID, day: String, done: Bool, number: Double? = nil, text: String? = nil,
                        photoPath: String? = nil) async throws {

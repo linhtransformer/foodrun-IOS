@@ -43,27 +43,60 @@ struct ShiftTasksContent: View {
                     action: onOpenStock
                 )
             }
-            ForEach(list) { task in
-                let response = store.response(for: task, on: day)
-                CrewTaskRow(
-                    task: task,
-                    response: response,
-                    isSaving: store.saving.contains(task.id),
-                    isClosed: event.activity.is_closed,
-                    onToggle: {
-                        Task {
-                            let ok = await store.answer(task, on: day, done: !(response?.done ?? false))
-                            if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
-                        }
-                    },
-                    onAnswer: { onAnswer(task) },
-                    onOpenDish: onOpenDish
-                )
+            ForEach(CrewTaskGroup.build(list, task: { $0 })) { checklist in
+                if let title = checklist.title {
+                    CrewChecklistHeader(title: title,
+                                        done: checklist.items.filter { store.response(for: $0, on: day)?.done ?? false }.count,
+                                        total: checklist.items.count)
+                }
+                ForEach(checklist.items) { task in
+                    let response = store.response(for: task, on: day)
+                    CrewTaskRow(
+                        task: task,
+                        response: response,
+                        isSaving: store.saving.contains(task.id),
+                        isClosed: event.activity.is_closed,
+                        onToggle: {
+                            Task {
+                                let ok = await store.answer(task, on: day, done: !(response?.done ?? false))
+                                if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
+                            }
+                        },
+                        onAnswer: { onAnswer(task) },
+                        onOpenDish: onOpenDish
+                    )
+                }
             }
             if list.isEmpty && prepItems.isEmpty && products.isEmpty {
                 CrewBriefingEmpty(key: "crew.tasks.none")
             }
         }
+    }
+}
+
+/// Title row above the tasks of one checklist, with its progress.
+struct CrewChecklistHeader: View {
+    let title: String
+    let done: Int
+    let total: Int
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "checklist")
+                .font(.system(size: 11, weight: .semibold))
+            Text(verbatim: title)
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(1.1)
+                .textCase(.uppercase)
+            Spacer(minLength: 8)
+            Text(verbatim: "\(done)/\(total)")
+                .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                .foregroundStyle(done >= total && total > 0 ? Color.foodrun.subject.positive : Color.foodrun.mutedForegroundSoft)
+        }
+        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 6)
+        .accessibilityElement(children: .combine)
     }
 }
 

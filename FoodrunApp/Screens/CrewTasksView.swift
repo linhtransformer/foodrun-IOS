@@ -12,6 +12,7 @@ public struct CrewTasksView: View {
     @Environment(ScheduleStore.self) private var schedule
     @State private var openDish: CrewDish?
     @State private var answering: CrewTaskOccurrence?
+    @State private var answeringGoal: CrewWeekGoal?
 
     public init() {}
 
@@ -24,13 +25,14 @@ public struct CrewTasksView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.foodrun.subject.destructive)
                 }
-                if store.occurrences.isEmpty && store.lists.isEmpty {
+                if store.occurrences.isEmpty && store.lists.isEmpty && store.weekGoals.isEmpty {
                     if store.isLoading && !store.hasLoaded {
                         ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                     } else {
                         emptyState
                     }
                 }
+                if !store.weekGoals.isEmpty { weekSection }
                 ForEach(store.days) { group in
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
@@ -57,7 +59,13 @@ public struct CrewTasksView: View {
                                 }
                             )
                         }
-                        ForEach(group.items) { occ in
+                        ForEach(CrewTaskGroup.build(group.items, task: { $0.task })) { checklist in
+                          if let title = checklist.title {
+                              CrewChecklistHeader(title: title,
+                                                  done: checklist.items.filter { $0.response?.done ?? false }.count,
+                                                  total: checklist.items.count)
+                          }
+                          ForEach(checklist.items) { occ in
                             CrewTaskRow(
                                 task: occ.task,
                                 response: occ.response,
@@ -77,6 +85,7 @@ public struct CrewTasksView: View {
                                                                    date: SchemaDates.date(occ.date) ?? Date()))
                                 }
                             )
+                          }
                         }
                     }
                 }
@@ -90,6 +99,60 @@ public struct CrewTasksView: View {
         .task { await store.load() }
         .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
         .sheet(item: $answering) { occ in answerSheet(for: occ) }
+        .sheet(item: $answeringGoal) { goal in goalSheet(for: goal) }
+    }
+
+    /// Goals for this week, not tied to a shift (HQ → Taken → Weekdoelen).
+    private var weekSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("crew.tasksTab.week").frText(FRType.sectionHeader)
+                Spacer()
+                if store.openWeekGoals > 0 {
+                    Text(verbatim: String(format: FRLanguage.string("crew.tasksTab.open %lld"), store.openWeekGoals))
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+            }
+            ForEach(CrewTaskGroup.build(store.weekGoals, task: { $0.task })) { checklist in
+                if let title = checklist.title {
+                    CrewChecklistHeader(title: title,
+                                        done: checklist.items.filter { $0.response?.done ?? false }.count,
+                                        total: checklist.items.count)
+                }
+                ForEach(checklist.items) { goal in
+                    CrewTaskRow(
+                        task: goal.task,
+                        response: goal.response,
+                        isSaving: store.saving.contains(goal.id),
+                        isClosed: false,
+                        onToggle: {
+                            Task {
+                                let ok = await store.answer(goal, done: !(goal.response?.done ?? false))
+                                if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
+                            }
+                        },
+                        onAnswer: { answeringGoal = goal },
+                        onOpenDish: { openDish = $0 }
+                    )
+                }
+            }
+        }
+    }
+
+    private func goalSheet(for goal: CrewWeekGoal) -> some View {
+        CrewAnswerSheet(
+            title: goal.task.title,
+            prompt: goal.task.instructions,
+            kind: goal.task.kind,
+            units: goal.task.unit.map { [$0] } ?? [],
+            initialNumber: goal.response?.value_number,
+            initialText: goal.response?.value_text,
+            initialUnitLevel: 0,
+            canClear: goal.response != nil,
+            onSave: { number, text, _ in await store.answer(goal, done: true, number: number, text: text) },
+            onClear: { await store.answer(goal, done: false) }
+        )
     }
 
     @ViewBuilder

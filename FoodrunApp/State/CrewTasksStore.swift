@@ -11,6 +11,8 @@ public final class CrewTasksStore {
     public var occurrences: [CrewTaskOccurrence] = []
     /// Prep checklists and stock counts as tasks (get_my_crew_lists).
     public var lists: [CrewListEntry] = []
+    /// This week's goals, not tied to a shift (get_my_week_goals).
+    public var weekGoals: [CrewWeekGoal] = []
     public var isLoading = false
     public var hasLoaded = false
     public var lastError: String?
@@ -30,8 +32,36 @@ public final class CrewTasksStore {
         } catch {
             lastError = CrewAPI.message(for: error)
         }
-        // Separate call: an older server without it still shows the tasks.
+        // Separate calls: an older server without them still shows the tasks.
         lists = (try? await CrewAPI.fetchLists(from: from, to: to)) ?? []
+        weekGoals = (try? await CrewAPI.fetchWeekGoals(weekStart: Self.weekStart(of: today))) ?? []
+    }
+
+    /// The Monday of the week `date` falls in (Amsterdam), as yyyy-MM-dd.
+    static func weekStart(of date: Date) -> String {
+        var cal = Calendar(identifier: .iso8601)
+        cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        let monday = cal.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+        return SchemaDates.string(monday)
+    }
+
+    public var openWeekGoals: Int {
+        weekGoals.filter { !($0.response?.done ?? false) }.count
+    }
+
+    /// Tick or answer a week goal (once for the week).
+    @discardableResult
+    public func answer(_ goal: CrewWeekGoal, done: Bool, number: Double? = nil, text: String? = nil) async -> Bool {
+        saving.insert(goal.id)
+        defer { saving.remove(goal.id) }
+        do {
+            try await CrewAPI.answer(taskId: goal.task.id, day: goal.week_start, done: done, number: number, text: text)
+            await load()
+            return true
+        } catch {
+            lastError = CrewAPI.message(for: error)
+            return false
+        }
     }
 
     /// Tasks and lists grouped per day, in date order.
