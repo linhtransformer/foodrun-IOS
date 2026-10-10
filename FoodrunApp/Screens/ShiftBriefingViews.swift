@@ -268,9 +268,10 @@ struct ShiftBriefingContent: View {
 
     // MARK: Run-of-show
 
+    /// A script heading: the same card as the others, with the icon the
+    /// operator picked for it in the script editor.
     private func headingCard(_ heading: CrewHeading) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(verbatim: heading.name).frText(FRType.rowTitle)
+        CrewBriefingCard(icon: CrewFormat.headingSymbol(heading.icon), verbatim: heading.name) {
             if let content = heading.content {
                 Text(CrewFormat.linkified(content)).frText(FRType.body)
                     .foregroundStyle(Color.foodrun.bodySoft)
@@ -287,10 +288,6 @@ struct ShiftBriefingContent: View {
                 }
             }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
-        .frNeu(.raised)
     }
 
     // MARK: Links, files, team
@@ -545,8 +542,21 @@ struct CrewPowerCard: View {
 /// A titled card on the off-white ground (same surface as the task cards).
 struct CrewBriefingCard<Content: View>: View {
     let icon: String
-    let title: LocalizedStringKey
-    @ViewBuilder let content: Content
+    let title: Text
+    let content: Content
+
+    init(icon: String, title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.icon = icon
+        self.title = Text(title)
+        self.content = content()
+    }
+
+    /// Operator-written title (a script heading): shown as typed.
+    init(icon: String, verbatim title: String, @ViewBuilder content: () -> Content) {
+        self.icon = icon
+        self.title = Text(verbatim: title)
+        self.content = content()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -555,7 +565,7 @@ struct CrewBriefingCard<Content: View>: View {
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 28, height: 28)
                     .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.foodrun.neuTrack))
-                Text(title).frText(FRType.sectionHeader)
+                title.frText(FRType.sectionHeader)
                 Spacer(minLength: 0)
             }
             content

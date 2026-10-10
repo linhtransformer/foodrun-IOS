@@ -179,6 +179,7 @@ public struct CrewHeading: Decodable, Hashable, Identifiable {
     public let id: UUID
     public let name: String
     public let content: String?
+    public let icon: String?         // card icon key chosen in the script editor
     public let images: [CrewFile]?
     public let attachments: [CrewFile]?
 }

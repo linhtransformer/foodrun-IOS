@@ -57,6 +57,38 @@ enum CrewFormat {
         return f.string(from: price as NSNumber)
     }
 
+    /// Card icon key from the script editor (script_headings.icon) → SF Symbol.
+    /// The keys are shared with HQ (src/components/crew-preview/headingIcons.ts).
+    static func headingSymbol(_ key: String?) -> String {
+        switch key {
+        case "megaphone": return "megaphone"
+        case "info": return "info.circle"
+        case "alert": return "exclamationmark.triangle"
+        case "clock": return "clock"
+        case "calendar": return "calendar"
+        case "map-pin": return "mappin.and.ellipse"
+        case "car": return "car"
+        case "truck": return "box.truck"
+        case "users": return "person.3"
+        case "shirt": return "tshirt"
+        case "utensils": return "fork.knife"
+        case "flame": return "flame"
+        case "droplet": return "drop"
+        case "coins": return "eurosign.circle"
+        case "ticket": return "ticket"
+        case "music": return "music.note"
+        case "sun": return "sun.max"
+        case "phone": return "phone"
+        case "wifi": return "wifi"
+        case "trash": return "trash"
+        case "shield": return "shield"
+        case "star": return "star"
+        case "sparkles": return "sparkles"
+        case "heart": return "heart"
+        default: return "megaphone"
+        }
+    }
+
     /// Allergen key from HQ ("Dairy") → the label in the app's language.
     static func allergen(_ key: String) -> String {
         let localizationKey = "allergen.\(key)"
