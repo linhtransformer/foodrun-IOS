@@ -404,7 +404,7 @@
 "briefing.myDay" = "Jouw dag";
 "briefing.ticket" = "Ticket";
 "briefing.menu" = "Wat we verkopen";
-"briefing.mayContain %@" = "Kan sporen bevatten van %@";
+"briefing.mayContain %@" = "Kan bevatten: %@";
 "briefing.allergens" = "Allergenen";
 "briefing.coins %@" = "%@ munten";
 "briefing.event" = "Event";
