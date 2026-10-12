@@ -40,6 +40,9 @@ targets:
         PRODUCT_NAME: Foodrun
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+        # Apple Developer team "Ha Linh Tran" (paid, Individual). Set here because
+        # Foodrun.xcodeproj is regenerated; picking the team in Xcode gets overwritten.
+        DEVELOPMENT_TEAM: GWU44KGDJZ
         SUPPORTS_MACCATALYST: NO
         # Assets.xcassets/AppIcon.appiconset — one 1024×1024 image (the Foodrun logo,
         # full square, no transparency); Xcode makes the smaller sizes.
