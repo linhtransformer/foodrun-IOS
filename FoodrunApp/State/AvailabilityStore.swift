@@ -12,6 +12,10 @@ import SwiftUI
 public final class AvailabilityStore {
     public enum State: String, Codable { case available, unavailable, unset }
 
+    /// Window a day starts with, for both "available" and "not available":
+    /// 07:00 – 23:00, a full truck day. The worker narrows it with the slider.
+    public static let defaultWindow: ClosedRange<Int> = 7...23
+
     public var state: [String: State] = [:]              // "YYYY-MM-DD" → state
     public var window: [String: ClosedRange<Int>] = [:]  // hour range 0…24
     public var reason: [String: String] = [:]
@@ -27,7 +31,7 @@ public final class AvailabilityStore {
     }
 
     public func windowFor(_ date: Date) -> ClosedRange<Int> {
-        window[ScheduleStore.iso(date)] ?? (7...15)
+        window[ScheduleStore.iso(date)] ?? Self.defaultWindow
     }
 
     public func reasonFor(_ date: Date) -> String {
@@ -83,7 +87,7 @@ public final class AvailabilityStore {
         do {
             for day in dirty.sorted() {
                 let s = state[day] ?? .unset
-                let w = window[day] ?? (7...15)
+                let w = window[day] ?? Self.defaultWindow
                 let status: String? = s == .unset ? nil : s.rawValue
                 let slots = status.map { [DBAvailabilitySlot(start: w.lowerBound * 60, end: w.upperBound * 60, status: $0)] }
                 let note = (reason[day] ?? "").trimmingCharacters(in: .whitespaces)

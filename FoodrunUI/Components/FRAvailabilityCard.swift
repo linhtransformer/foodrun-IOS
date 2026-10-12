@@ -187,7 +187,7 @@ struct DualHandleSlider: View {
 
 #Preview("Availability card") {
     struct H: View {
-        @State var window: ClosedRange<Int> = 7...15
+        @State var window: ClosedRange<Int> = 7...23
         @State var state: AvailabilityStore.State = .available
         @State var reason = ""
         var body: some View {

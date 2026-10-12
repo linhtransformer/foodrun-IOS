@@ -29,7 +29,6 @@ struct AvailabilityMode: View {
             )
 
             legendAndCloses
-            agentNote
             saveWeek
         }
     }
@@ -53,22 +52,6 @@ struct AvailabilityMode: View {
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(Capsule().fill(Color.foodrun.subject.warningPill))
         }
-    }
-
-    private var agentNote: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(Color.foodrun.foreground)
-            Text("availability.agent \(3) \(4)")
-                .font(.system(size: 12.5))
-                .foregroundStyle(Color.foodrun.foreground)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.foodrun.truck.mees.opacity(0.3))
-        )
     }
 
     private var saveWeek: some View {
