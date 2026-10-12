@@ -13,6 +13,8 @@ struct SubmitHoursCard: View {
     @State private var editStart = "09:00"
     @State private var editEnd = "17:00"
     @State private var editBreak = 0
+    /// Optional note for the manager (employee_hours.comment).
+    @State private var note = ""
     @State private var prefilled = false
     @State private var editingField: TimeField?
     @State private var tapWindow: TapWindow?
@@ -61,12 +63,19 @@ struct SubmitHoursCard: View {
                     wheel(for: editingField)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
+                TextField("hours.note.placeholder", text: $note, axis: .vertical)
+                    .lineLimit(1...4)
+                    .font(.system(size: 14))
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
+                    .frNeu(.pressed)
+                    .accessibilityLabel(Text("hours.note.label"))
                 if let err = hours.lastError {
                     Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
                 }
                 Button {
                     Task {
-                        if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: nil) {
+                        if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: trimmedNote) {
                             FRHaptic.success.fire()
                         } else {
                             FRHaptic.error.fire()
@@ -198,12 +207,19 @@ struct SubmitHoursCard: View {
         return Double(max(0, mins - editBreak)) / 60
     }
 
+    private var trimmedNote: String? {
+        let t = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? nil : t
+    }
+
     private func prefill() {
         guard !prefilled else { return }
         prefilled = true
         editStart = String((shift.start ?? "09:00").prefix(5))
         editEnd = String((shift.end ?? "17:00").prefix(5))
-        editBreak = hours.row(activityId: shift.activity.id, day: shift.day)?.break_minutes ?? 0
+        let existing = hours.row(activityId: shift.activity.id, day: shift.day)
+        editBreak = existing?.break_minutes ?? 0
+        note = existing?.comment ?? ""
     }
 
     private func loadTapWindow() async {

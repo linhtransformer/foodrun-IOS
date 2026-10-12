@@ -475,3 +475,5 @@
 "crew.error.pin" = "Deze pin kon niet worden opgeslagen. Geef hem een naam en probeer het opnieuw.";
 "pin.failed" = "Pin opslaan lukte niet. Controleer je verbinding en probeer het opnieuw.";
 "crew.tasksTab.week" = "Deze week";
+"hours.note.placeholder"    = "Notitie voor je manager (optioneel)";
+"hours.note.label"          = "Notitie";
