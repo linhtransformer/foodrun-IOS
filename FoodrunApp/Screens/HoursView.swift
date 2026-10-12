@@ -13,11 +13,6 @@ public struct HoursView: View {
     @Environment(ScheduleStore.self) private var schedule
     @Environment(TabRouter.self) private var router
 
-    /// Which due shift's card is open. Defaults to the first; nil after the
-    /// worker folds the open one.
-    @State private var expandedShiftId: String?
-    @State private var collapsedAll = false
-
     public init() {}
 
     public var body: some View {
@@ -61,14 +56,11 @@ public struct HoursView: View {
         }
     }
 
-    private var openShiftId: String? {
-        if collapsedAll { return nil }
-        if let id = expandedShiftId, dueShifts.contains(where: { $0.id == id }) { return id }
-        return dueShifts.first?.id
-    }
-
+    /// Submitted hours of the shown month, newest day first.
     private var monthRows: [DBEmployeeHours] {
-        hours.rows.filter { Calendar.current.isDate($0.workDay, equalTo: hours.shownMonth, toGranularity: .month) }
+        hours.rows
+            .filter { Calendar.current.isDate($0.workDay, equalTo: hours.shownMonth, toGranularity: .month) }
+            .sorted { $0.work_date > $1.work_date }
     }
 
     // MARK: - Sections
@@ -149,16 +141,7 @@ public struct HoursView: View {
                 }
             }
             ForEach(dueShifts) { shift in
-                SubmitHoursCard(shift: shift, expanded: openShiftId == shift.id) {
-                    withAnimation(FRAnimation.subtle) {
-                        if openShiftId == shift.id {
-                            collapsedAll = true
-                        } else {
-                            collapsedAll = false
-                            expandedShiftId = shift.id
-                        }
-                    }
-                }
+                SubmitHoursCard(shift: shift)
             }
             ForEach(runningShifts) { shift in
                 lockedRow(shift)
@@ -209,14 +192,22 @@ public struct HoursView: View {
                     )
             }
             VStack(spacing: 6) {
+                // Same row as the Shifts list: date block, shift time, place, and on
+                // the right the review status with the hours that were submitted.
                 ForEach(monthRows) { row in
                     let activity = schedule.activities.first { $0.id == row.activity_id }
-                    FRHoursRow(
+                    let shift = schedule.shift(activityId: row.activity_id, day: row.work_date)
+                    let status = statusFor(row.status)
+                    FRShiftRow(
+                        density: .compact,
+                        time: shift?.timeLabel ?? formatHours(row.hours),
+                        truckName: activity?.food_truck ?? activity?.name ?? "",
                         truckColor: Color.foodrunData(hex: activity?.color),
-                        dayLabel: dayLabel(row.workDay),
-                        venue: activity?.name ?? "—",
-                        hours: row.hours,
-                        status: row.status
+                        venue: activity?.location ?? activity?.name ?? "—",
+                        role: formatHours(row.hours),
+                        status: status.label,
+                        statusColor: status.color,
+                        date: row.workDay
                     )
                 }
             }
@@ -236,4 +227,15 @@ public struct HoursView: View {
     }
 
     private func formatHours(_ v: Double) -> String { FRLanguage.hours(v) }
+
+    private func statusFor(_ status: HoursStatus) -> (label: String, color: Color) {
+        switch status {
+        case .pending:
+            return (FRLanguage.string("hours.status.pending").uppercased(with: FRLanguage.locale), Color.foodrun.subject.warning)
+        case .approved:
+            return (FRLanguage.string("hours.status.approved").uppercased(with: FRLanguage.locale), Color.foodrun.subject.positive)
+        case .rejected:
+            return (FRLanguage.string("hours.status.rejected").uppercased(with: FRLanguage.locale), Color.foodrun.subject.destructive)
+        }
+    }
 }

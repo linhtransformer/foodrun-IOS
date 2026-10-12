@@ -206,6 +206,7 @@ final class AuthViewModel: ObservableObject {
         case .failure(let error):
             // The user closing the sheet isn't an error worth showing.
             if (error as? ASAuthorizationError)?.code == .canceled { return }
+            print("Apple sign-in failed (Apple sheet): \(error)")
             status = .failed(error.localizedDescription)
         case .success(let authorization):
             guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
@@ -228,6 +229,7 @@ final class AuthViewModel: ObservableObject {
                 }
                 status = .idle
             } catch {
+                print("Apple sign-in failed (Supabase id-token exchange): \(error)")
                 status = .failed(error.localizedDescription)
             }
         }

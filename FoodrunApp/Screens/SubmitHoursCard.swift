@@ -9,8 +9,6 @@ struct SubmitHoursCard: View {
     @Environment(HoursStore.self) private var hours
 
     let shift: WorkerShift
-    let expanded: Bool
-    let onToggle: () -> Void
 
     @State private var editStart = "09:00"
     @State private var editEnd = "17:00"
@@ -31,28 +29,15 @@ struct SubmitHoursCard: View {
         let rejected = hours.row(activityId: shift.activity.id, day: shift.day)
         let payable = payableHours
         VStack(alignment: .leading, spacing: 10) {
-            if expanded, let tapWindow { tapCard(tapWindow) }
+            if let tapWindow { tapCard(tapWindow) }
             VStack(alignment: .leading, spacing: 10) {
-                Button(action: { onToggle(); FRHaptic.light.fire() }) {
-                    HStack(spacing: 8) {
-                        Circle().fill(Color.foodrunData(hex: shift.activity.color)).frame(width: 8, height: 8)
-                        Text(verbatim: "\(dayLabel(shift.date)) · \(shift.activity.food_truck ?? shift.activity.name)")
-                            .frText(FRType.rowTitle)
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        if !expanded {
-                            Text(verbatim: FRLanguage.hours(shift.plannedHours))
-                                .frText(FRType.rowSubtitle)
-                                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                        }
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                            .rotationEffect(.degrees(expanded ? 180 : 0))
-                    }
-                    .contentShape(Rectangle())
+                HStack(spacing: 8) {
+                    Circle().fill(Color.foodrunData(hex: shift.activity.color)).frame(width: 8, height: 8)
+                    Text(verbatim: "\(dayLabel(shift.date)) · \(shift.activity.food_truck ?? shift.activity.name)")
+                        .frText(FRType.rowTitle)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
                 }
-                .buttonStyle(.plain)
 
                 Text([shift.activity.name, shift.activity.location].compactMap { $0 }.joined(separator: " · "))
                     .frText(FRType.rowSubtitle)
@@ -67,45 +52,42 @@ struct SubmitHoursCard: View {
                         .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.subject.destructive.opacity(0.1)))
                 }
 
-                if expanded {
-                    HStack(spacing: 8) {
-                        timeTile("hours.tile.start", value: editStart, field: .start)
-                        timeTile("hours.tile.end", value: editEnd, field: .end)
-                        timeTile("hours.tile.break", value: "\(editBreak) min", field: .brk)
-                    }
-                    if let editingField {
-                        wheel(for: editingField)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                    if let err = hours.lastError {
-                        Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
-                    }
-                    Button {
-                        Task {
-                            if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: nil) {
-                                FRHaptic.success.fire()
-                            } else {
-                                FRHaptic.error.fire()
-                            }
-                        }
-                    } label: {
-                        Text("hours.submit \(FRLanguage.hours(payable))")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.foodrun.backgroundInverseInk)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Capsule().fill(payable > 0 ? Color.foodrun.foreground : Color.foodrun.disabledInk))
-                            .frCTAShadow()
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(hours.isSubmitting || payable <= 0)
+                HStack(spacing: 8) {
+                    timeTile("hours.tile.start", value: editStart, field: .start)
+                    timeTile("hours.tile.end", value: editEnd, field: .end)
+                    timeTile("hours.tile.break", value: "\(editBreak) min", field: .brk)
                 }
+                if let editingField {
+                    wheel(for: editingField)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+                if let err = hours.lastError {
+                    Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
+                }
+                Button {
+                    Task {
+                        if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: nil) {
+                            FRHaptic.success.fire()
+                        } else {
+                            FRHaptic.error.fire()
+                        }
+                    }
+                } label: {
+                    Text("hours.submit \(FRLanguage.hours(payable))")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(Capsule().fill(payable > 0 ? Color.foodrun.foreground : Color.foodrun.disabledInk))
+                        .frCTAShadow()
+                }
+                .buttonStyle(.plain)
+                .disabled(hours.isSubmitting || payable <= 0)
             }
             .padding(16)
             .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
             .frNeu(.raised)
         }
         .onAppear(perform: prefill)
-        .onChange(of: expanded) { _, open in if !open { editingField = nil } }
         .task(id: shift.id) { await loadTapWindow() }
     }
 
