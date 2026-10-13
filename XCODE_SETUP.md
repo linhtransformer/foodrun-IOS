@@ -70,30 +70,21 @@ reference for rebuilding the server.
 Until a provider is live, turn its button off in `FoodrunApp/AppConfig.swift`
 (`Features.googleSignIn` / `appleSignIn`) — a button that errors gets the app rejected.
 
-## 3. (Phase 2 only — do not enable until universal-link setup is ready)
+## 3. Associated Domains (live since 2026-10-13)
 
-Everything below is aspirational until we serve `apple-app-site-association` on
-`foodrun.nl`. Leaving it enabled without the server-side file causes tag reads to
-silently fall back to Safari.
+Already in `project.yml` — `xcodegen generate` applies it:
+`com.apple.developer.associated-domains = ["applinks:foodrun.nl", "webcredentials:foodrun.nl"]`.
 
-- Signing & Capabilities → `+ Capability` → **Associated Domains**.
-- Add domain: `applinks:foodrun.nl`.
-- Then serve at `https://foodrun.nl/.well-known/apple-app-site-association`:
-  ```json
-  {
-    "applinks": {
-      "apps": [],
-      "details": [
-        {
-          "appID": "<TEAM_ID>.nl.foodrun.app",
-          "paths": [ "/clock/*" ]
-        }
-      ]
-    }
-  }
-  ```
-- Serve with `Content-Type: application/json` (no `.json` extension in the URL).
-- Validate at <https://search.developer.apple.com/appsearch-validation-tool/>.
+- **applinks** — a clock tag holds `https://foodrun.nl/clock/<token>`. Scanned with the
+  app closed, iOS opens Foodrun (`FoodrunApp.onContinueUserActivity` →
+  `ScannedClockTag` → `ClockStore.clockWithTag`). The site serves
+  `/.well-known/apple-app-site-association` (HQ repo) with appID
+  `GWU44KGDJZ.nl.foodrun.app` and path `/clock/*`.
+- **webcredentials** — lets iOS offer to save and fill the Foodrun password. Needs
+  `"webcredentials": { "apps": ["GWU44KGDJZ.nl.foodrun.app"] }` in the same file.
+
+iOS caches the association file per install: after changing it, delete and reinstall
+the app to test.
 
 ## Verification (real device — CoreNFC does not run in the simulator)
 

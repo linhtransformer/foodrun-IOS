@@ -1,45 +1,49 @@
 import Foundation
 
-// Pure parser for Foodrun clock-in tag URLs.
+// Pure parser for Foodrun clock-tag links.
 //
-// Every truck's NFC tag holds one URL: `https://foodrun.nl/clock/<truck_slug>`.
-// The same tag toggles clock-in and clock-out — the app decides direction based
-// on the worker's latest shift_clock_events row (see ClockStore.handleTagRead).
+// Every truck and every vestiging has an NFC tag that holds one link:
+// `https://foodrun.nl/clock/<token>`. The token is a secret made in HQ (32
+// URL-safe characters); the app does not interpret it — it sends it to the
+// server (RPC clock_with_tag), which checks it, finds the worker's shift there
+// today and clocks in or out.
 //
-// This parser is deliberately paranoid: the reader is armed while the worker
-// is on Shifts / Shift detail, and we can't stop random tags from being read.
-// Anything that isn't a foodrun.nl clock URL is ignored.
-//
-// Reused by both the foreground `NFCNDEFReaderSession` callback and, once we
-// ship Phase 2, the background `NSUserActivity` handler.
+// The same link reaches the app three ways, all through this parser:
+//  * the foreground NFC reader (the worker taps the strip on a shift),
+//  * a universal link when a tag is scanned with the app closed
+//    (Associated Domains applinks:foodrun.nl),
+//  * `foodrun://clock/<token>` from the web page for phones that opened the
+//    link in a browser.
+// Anything else is ignored: the reader can't stop random tags being read.
 
 public struct NFCTagAction: Equatable {
-    /// Truck slug from `/clock/<slug>`. Empty string is rejected in parse.
-    public let truckSlug: String
-    /// The full URL that was on the tag — kept for the audit trail in
-    /// shift_clock_events.tag_id (or an equivalent server-side log).
+    /// The secret from `/clock/<token>`, sent to the server as is.
+    public let token: String
+    /// The full link that was read.
     public let sourceURL: URL
 
-    /// Returns nil if the URL is not one of ours. Callers should treat nil as
-    /// "ignore this tag, do not surface it to the user."
+    /// Returns nil if the link is not a Foodrun clock link.
     public static func parse(_ url: URL) -> NFCTagAction? {
-        // Require https + foodrun.nl (or subdomain). The web PWA already sits
-        // on foodrun.nl; the association file lives there too when Phase 2
-        // ships. Anything else is not our tag.
-        guard url.scheme == "https" else { return nil }
-        guard let host = url.host?.lowercased(), host == "foodrun.nl" || host.hasSuffix(".foodrun.nl") else {
+        let token: String?
+        switch url.scheme?.lowercased() {
+        case "https":
+            guard let host = url.host?.lowercased(), host == "foodrun.nl" || host.hasSuffix(".foodrun.nl") else {
+                return nil
+            }
+            let parts = url.pathComponents.filter { $0 != "/" }
+            guard parts.count == 2, parts[0] == "clock" else { return nil }
+            token = parts[1]
+        case "foodrun":
+            // foodrun://clock/<token> — "clock" is the host, the token the path.
+            guard url.host?.lowercased() == "clock" else { return nil }
+            let parts = url.pathComponents.filter { $0 != "/" }
+            guard parts.count == 1 else { return nil }
+            token = parts[0]
+        default:
             return nil
         }
-
-        // Path shape: /clock/<slug>. Slug must be non-empty and simple —
-        // rejecting anything with a `..` or `/` inside blocks trivial
-        // spoofing attempts written by a rogue tag writer.
-        let parts = url.pathComponents.filter { $0 != "/" }
-        guard parts.count >= 2, parts[0] == "clock" else { return nil }
-        let slug = parts[1]
-        guard !slug.isEmpty, !slug.contains(".."), !slug.contains("/") else { return nil }
-
-        return NFCTagAction(truckSlug: slug, sourceURL: url)
+        guard let token, isPlausible(token) else { return nil }
+        return NFCTagAction(token: token, sourceURL: url)
     }
 
     /// Convenience for the raw-string overload — the foreground reader hands us
@@ -47,5 +51,13 @@ public struct NFCTagAction: Equatable {
     public static func parse(_ rawURL: String) -> NFCTagAction? {
         guard let url = URL(string: rawURL) else { return nil }
         return parse(url)
+    }
+
+    /// URL-safe characters only, and long enough to be a secret rather than a
+    /// guessable name. The server is what actually validates it.
+    private static func isPlausible(_ token: String) -> Bool {
+        let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")
+        return token.count >= 16 && token.count <= 128
+            && token.unicodeScalars.allSatisfy(allowed.contains)
     }
 }

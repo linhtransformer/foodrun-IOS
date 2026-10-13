@@ -78,8 +78,8 @@ targets:
         # Sign in with Apple (AuthViewRedesign). Needs a paid Apple Developer team;
         # a free personal team can't sign it — drop this line to build there.
         com.apple.developer.applesignin: [Default]
-        # Password AutoFill: lets iOS offer to save and fill the Foodrun password.
-        # Works once https://foodrun.nl/.well-known/apple-app-site-association lists
-        # this app under "webcredentials" (HQ repo). applinks:foodrun.nl (open the
-        # app from a scanned clock tag) is added together with its handler.
-        com.apple.developer.associated-domains: ["webcredentials:foodrun.nl"]
+        # applinks: a scanned clock tag (https://foodrun.nl/clock/<token>) opens the app
+        # (FoodrunApp.onContinueUserActivity → ScannedClockTag). webcredentials: lets
+        # iOS offer to save and fill the Foodrun password. Both rely on
+        # https://foodrun.nl/.well-known/apple-app-site-association (HQ repo).
+        com.apple.developer.associated-domains: ["applinks:foodrun.nl", "webcredentials:foodrun.nl"]

@@ -34,6 +34,11 @@ public struct AppShell: View {
 
     /// Pull everything the worker sees. Runs on sign-in and each time the app
     /// returns to the foreground, so approvals/roster edits made in HQ show up.
+    private func clockWithScannedTag() async {
+        guard !isPreview, let token = ScannedClockTag.shared.take() else { return }
+        await clock.clockWithTag(token: token)
+    }
+
     private func loadAll() async {
         guard !isPreview else { return }
         await schedule.load()
@@ -91,6 +96,17 @@ public struct AppShell: View {
         }
         .task { await loadAll() }
         .task { await ShiftChangeStore.requestAuthorization() }
+        // A clock tag scanned with the app closed, in the background or before
+        // signing in: clock as soon as a signed-in shell is on screen.
+        .task(id: ScannedClockTag.shared.token) { await clockWithScannedTag() }
+        .alert(
+            Text("clock.tag.alertTitle"),
+            isPresented: Binding(get: { clock.tagError != nil }, set: { if !$0 { clock.tagError = nil } })
+        ) {
+            Button("action.ok", role: .cancel) { clock.tagError = nil }
+        } message: {
+            Text(verbatim: clock.tagError ?? "")
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await loadAll() } }
         }
@@ -130,7 +146,8 @@ public struct AppShell: View {
                 NFCResultSheet(
                     result: clock.nfcResult,
                     clockInTime: formatted(clock.clockInAt),
-                    truckName: schedule.nextShift.map { $0.activity.food_truck ?? $0.activity.name } ?? "",
+                    truckName: clock.lastTagActivityName
+                        ?? schedule.nextShift.map { $0.activity.food_truck ?? $0.activity.name } ?? "",
                     worked: workedLabel, span: spanLabel,
                     checklistsEnabled: isPreview || AppConfig.Features.checklists,
                     onOpenChecklist: {

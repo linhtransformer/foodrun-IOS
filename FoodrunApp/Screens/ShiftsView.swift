@@ -147,35 +147,33 @@ public struct ShiftsView: View {
     // MARK: - Actions
 
     /// User tapped the dashed NFC listening strip. Opens Apple's scan sheet,
-    /// then hands the tag URL to ClockStore.handleTagRead, which calls the
-    /// clock_in / clock_out RPC for this shift's activity.
+    /// then hands the tag link to ClockStore.handleTagRead; the server decides
+    /// which shift it is for and whether it is a clock-in or a clock-out.
     private func armNFCReader(for shift: WorkerShift) {
         clock.activityId = shift.activity.id
         NFCReader.shared.start(hint: hintCopy()) { result in
             switch result {
             case .tag(_, let url):
                 guard let url else {
-                    clock.lastError = "That tag isn't readable — try again."
+                    clock.tagError = FRLanguage.string("clock.nfc.unreadable")
                     FRHaptic.warning.fire()
                     return
                 }
-                Task { await clock.handleTagRead(url: url, employeeId: shift.employee.id) }
+                Task { await clock.handleTagRead(url: url) }
             case .cancelled:
                 break
             case .error(let e):
-                clock.lastError = e.localizedDescription
+                clock.tagError = e.localizedDescription
                 FRHaptic.error.fire()
             case .unavailable:
-                clock.lastError = "This iPhone doesn't support NFC clock-in."
+                clock.tagError = FRLanguage.string("clock.nfc.unsupported")
                 FRHaptic.error.fire()
             }
         }
     }
 
     private func hintCopy() -> String {
-        clock.clockedIn
-            ? "Hold your phone to the tag to clock out"
-            : "Hold your phone to the tag to clock in"
+        FRLanguage.string(clock.clockedIn ? "clock.nfc.hintOut" : "clock.nfc.hintIn")
     }
 
     private func openTasksIfUnlocked(_ shift: WorkerShift) {

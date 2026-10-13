@@ -81,6 +81,7 @@ public struct ShiftDetailView: View {
             if schedule.isToday(date), let emp = shift?.employee.id {
                 clock.activityId = activityId
                 await clock.refreshLatestEvent(employeeId: emp)
+                await clock.loadClockRules(activityIds: [activityId])
             }
             guard AppConfig.Features.crewTasks else { return }
             await store.load()
@@ -93,7 +94,9 @@ public struct ShiftDetailView: View {
             isPresented: $confirmClock,
             titleVisibility: .visible
         ) {
-            Button(clockedInHere ? "clock.out" : "clock.in") { clockManually() }
+            if clock.allowsButton(for: activityId) {
+                Button(clockedInHere ? "clock.out" : "clock.in") { clockManually() }
+            }
             if clockedInHere {
                 Button("clock.scanTag") { armNFCReader() }
             }
@@ -625,7 +628,7 @@ public struct ShiftDetailView: View {
             HStack(spacing: 10) {
                 nfcHint
                 // No tag at hand (or no NFC): clock in with a tap. Today's shift only.
-                if isTodayShift {
+                if isTodayShift && clock.allowsButton(for: activityId) {
                     Button { confirmClock = true } label: {
                         Text("clock.in")
                             .font(.system(size: 14, weight: .semibold))
@@ -669,29 +672,22 @@ public struct ShiftDetailView: View {
     }
 
     private func armNFCReader() {
-        // Clock against this worker's employee row at the activity's operator.
-        guard let employeeId = shift?.employee.id ?? activity.flatMap({ schedule.employee(for: $0)?.id }) else {
-            clock.lastError = "Sign in first to clock in."
-            FRHaptic.warning.fire()
-            return
-        }
-        clock.activityId = activityId
-        NFCReader.shared.start(hint: clock.clockedIn ? "Hold your phone to the tag to clock out" : "Hold your phone to the tag to clock in") { result in
+        NFCReader.shared.start(hint: FRLanguage.string(clockedInHere ? "clock.nfc.hintOut" : "clock.nfc.hintIn")) { result in
             switch result {
             case .tag(_, let url):
                 guard let url else {
-                    clock.lastError = "That tag isn't readable — try again."
+                    clock.tagError = FRLanguage.string("clock.nfc.unreadable")
                     FRHaptic.warning.fire()
                     return
                 }
-                Task { await clock.handleTagRead(url: url, employeeId: employeeId) }
+                Task { await clock.handleTagRead(url: url) }
             case .cancelled:
                 break
             case .error(let e):
-                clock.lastError = e.localizedDescription
+                clock.tagError = e.localizedDescription
                 FRHaptic.error.fire()
             case .unavailable:
-                clock.lastError = "This iPhone doesn't support NFC clock-in."
+                clock.tagError = FRLanguage.string("clock.nfc.unsupported")
                 FRHaptic.error.fire()
             }
         }

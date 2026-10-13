@@ -500,3 +500,19 @@
 "join.code.unknown"         = "We don’t know that code. Check it with your employer.";
 "profile.section.organizations" = "Your organizations";
 "profile.org.pending"       = "Waiting for approval";
+
+// Clock tags
+"clock.tag.alertTitle"      = "Couldn’t clock";
+"clock.tag.invalid"         = "This tag is no longer in use. Ask your manager.";
+"clock.tag.notLinked"       = "You are not (yet) approved at this employer.";
+"clock.tag.noShift"         = "You have no shift at this truck or location today.";
+"clock.tag.signIn"          = "Log in first, then scan the tag again.";
+"clock.tag.notFoodrun"      = "That isn’t a Foodrun clock tag.";
+"clock.tag.required"        = "Your employer wants you to clock with the tag. Hold your phone to it.";
+"clock.tag.failed"          = "Clocking didn’t work. Check your connection and try again.";
+"clock.nfc.unreadable"      = "That tag isn’t readable — try again.";
+"clock.nfc.unsupported"     = "This iPhone can’t read NFC tags.";
+"clock.nfc.hintIn"          = "Hold your phone to the tag to clock in";
+"clock.nfc.hintOut"         = "Hold your phone to the tag to clock out";
+"clock.error.in"            = "Couldn’t clock in.";
+"clock.error.out"           = "Couldn’t clock out.";

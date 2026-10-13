@@ -19,10 +19,18 @@ struct FoodrunApp: App {
                     await auth.bootstrap()
                 }
                 .onOpenURL { url in
+                    // foodrun://clock/<token> — from the web page a scanned tag
+                    // opens on phones where the link landed in a browser.
+                    if ScannedClockTag.shared.receive(url) { return }
                     // Magic link callback: foodrun://auth-callback?...
                     Task {
                         await auth.handleDeepLink(url)
                     }
+                }
+                // A clock tag scanned with the app closed or in the background
+                // arrives as a universal link (applinks:foodrun.nl).
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    if let url = activity.webpageURL { ScannedClockTag.shared.receive(url) }
                 }
         }
         .onChange(of: scenePhase) { _, phase in

@@ -24,7 +24,8 @@ public final class ClockStore {
     public var tagDetectedFlashUntil: Date?
 
     /// Set by ScheduleStore whenever the worker's selected shift changes.
-    /// handleTagRead uses this to route clock_in/clock_out to the right activity.
+    /// The "Klok in" button uses this to route clock_in / clock_out; a tag read
+    /// sets it from the server's answer.
     public var activityId: UUID?
 
     /// Latest known event kind for the active (employee, activity). Cached from
@@ -34,6 +35,21 @@ public final class ClockStore {
     /// Set to a user-facing message when the RPC fails; the UI surfaces this
     /// as a toast and then clears it.
     public var lastError: String?
+
+    /// A failed tag scan, shown as an alert wherever the worker is in the app
+    /// (a tag can be scanned with the app closed or on any tab).
+    public var tagError: String?
+
+    /// Name of the shift the last tag clocked (from the server), for the result sheet.
+    public var lastTagActivityName: String?
+
+    /// Shifts where the employer wants the tag only: no "Klok in" button
+    /// (RPC get_my_clock_rules; absent = allowed).
+    public private(set) var tagOnlyActivities: Set<UUID> = []
+
+    public func allowsButton(for activityId: UUID) -> Bool {
+        !tagOnlyActivities.contains(activityId)
+    }
 
     /// How long the current clock-in has been running.
     public var elapsed: TimeInterval {
@@ -61,28 +77,82 @@ public final class ClockStore {
 
     // MARK: - Tag handling
 
-    /// Called by the NFC listening surfaces after a foreground read.
-    /// Contract:
-    ///   1. Validate the URL is one of ours (NFCTagAction.parse).
-    ///   2. Decide direction from `latestEventKind`.
-    ///   3. Call the RPC. Server stamps event_at + updates the audit log.
-    ///   4. Mutate local state so the hero timer + result sheet update in one tick.
-    ///
-    /// The employee_id lookup is the caller's responsibility (it comes from
-    /// the signed-in `employees` row) so the store stays orthogonal to auth.
-    public func handleTagRead(url: URL, employeeId: UUID) async {
+    /// A tag read by the foreground NFC reader.
+    public func handleTagRead(url: URL) async {
         guard let action = NFCTagAction.parse(url) else {
-            lastError = "That tag isn't a Foodrun clock tag."
+            tagError = FRLanguage.string("clock.tag.notFoodrun")
             FRHaptic.warning.fire()
             return
         }
-        guard let activityId else {
-            lastError = "You don't have a shift assigned right now."
-            FRHaptic.warning.fire()
-            return
+        await clockWithTag(token: action.token)
+    }
+
+    /// Clock with a tag's secret. One call; the server checks the secret, finds
+    /// the worker's shift at that truck or vestiging today and decides in or out
+    /// (RPC clock_with_tag — see SchemaContract.md).
+    public func clockWithTag(token: String) async {
+        tagError = nil
+        lastError = nil
+        do {
+            let result: ClockWithTagResult = try await SupabaseManager.shared.client
+                .rpc("clock_with_tag", params: ClockWithTagParams(p_token: token))
+                .execute()
+                .value
+            activityId = result.activity_id
+            lastTagActivityName = result.activity_name
+            if result.kind == "out" {
+                clockedIn = false
+                clockOutAt = result.event_at
+                latestEventKind = .out
+                nfcResult = .clockedOut
+            } else {
+                clockedIn = true
+                clockInAt = result.event_at
+                latestEventKind = .`in`
+                nfcResult = .clockedIn
+            }
+            FRHaptic.success.fire()
+        } catch {
+            tagError = Self.tagMessage(for: error)
+            FRHaptic.error.fire()
         }
-        _ = action.truckSlug   // kept in scope for future audit-log wiring
-        await toggle(activityId: activityId)
+    }
+
+    /// Ask the server on which of these shifts the "Klok in" button may show.
+    /// Best-effort: on failure the button stays (the server still refuses with
+    /// `tag_required` when it isn't allowed).
+    public func loadClockRules(activityIds: [UUID]) async {
+        guard !activityIds.isEmpty else { return }
+        guard let rules: [ClockRule] = try? await SupabaseManager.shared.client
+            .rpc("get_my_clock_rules", params: ClockRulesParams(p_activity_ids: activityIds))
+            .execute()
+            .value else { return }
+        tagOnlyActivities = Set(rules.filter { !$0.clock_without_tag }.map(\.activity_id))
+    }
+
+    private struct ClockWithTagParams: Encodable { let p_token: String }
+    private struct ClockWithTagResult: Decodable {
+        let kind: String          // "in" | "out"
+        let activity_id: UUID
+        let activity_name: String
+        let event_at: Date        // server time
+    }
+    private struct ClockRulesParams: Encodable { let p_activity_ids: [UUID] }
+    private struct ClockRule: Decodable { let activity_id: UUID; let clock_without_tag: Bool }
+
+    /// The server raises P0001 with one of these words as the message.
+    private static func tagMessage(for error: Error) -> String {
+        let raw = String(describing: error) + " " + error.localizedDescription
+        for (code, key) in [
+            ("invalid_tag", "clock.tag.invalid"),
+            ("not_linked", "clock.tag.notLinked"),
+            ("no_shift_here_today", "clock.tag.noShift"),
+            ("not_authenticated", "clock.tag.signIn"),
+            ("permission denied", "clock.tag.signIn"),   // 42501: no session
+        ] where raw.contains(code) {
+            return FRLanguage.string(key)
+        }
+        return FRLanguage.string("clock.tag.failed")
     }
 
     /// Clock in or out without a tag (the "Klok in" button on today's shift) —
@@ -115,7 +185,13 @@ public final class ClockStore {
             }
             FRHaptic.success.fire()
         } catch {
-            lastError = friendlyError(error, direction: isCurrentlyIn ? .out : .`in`)
+            if (String(describing: error) + error.localizedDescription).contains("tag_required") {
+                // The employer switched the button off while the app was open.
+                tagOnlyActivities.insert(activityId)
+                lastError = FRLanguage.string("clock.tag.required")
+            } else {
+                lastError = friendlyError(error, direction: isCurrentlyIn ? .out : .`in`)
+            }
             FRHaptic.error.fire()
         }
     }
@@ -163,8 +239,8 @@ public final class ClockStore {
     private enum Direction { case `in`, out }
 
     private func friendlyError(_ error: Error, direction: Direction) -> String {
-        let base = direction == .`in` ? "Couldn't clock in" : "Couldn't clock out"
-        return "\(base): \(error.localizedDescription)"
+        let base = FRLanguage.string(direction == .`in` ? "clock.error.in" : "clock.error.out")
+        return "\(base) \(error.localizedDescription)"
     }
 
     // MARK: - Preview

@@ -500,3 +500,19 @@
 "join.code.unknown"         = "Deze code kennen we niet. Check hem bij je werkgever.";
 "profile.section.organizations" = "Je organisaties";
 "profile.org.pending"       = "Wacht op goedkeuring";
+
+// Kloktags
+"clock.tag.alertTitle"      = "Klokken lukte niet";
+"clock.tag.invalid"         = "Deze tag is niet meer in gebruik. Vraag het je manager.";
+"clock.tag.notLinked"       = "Je bent (nog) niet goedgekeurd bij deze werkgever.";
+"clock.tag.noShift"         = "Je hebt vandaag geen dienst bij deze truck of locatie.";
+"clock.tag.signIn"          = "Log eerst in en scan de tag daarna opnieuw.";
+"clock.tag.notFoodrun"      = "Dit is geen Foodrun-kloktag.";
+"clock.tag.required"        = "Je werkgever wil dat je met de tag klokt. Houd je telefoon ertegen.";
+"clock.tag.failed"          = "Klokken lukte niet. Check je verbinding en probeer het opnieuw.";
+"clock.nfc.unreadable"      = "Deze tag is niet leesbaar — probeer het opnieuw.";
+"clock.nfc.unsupported"     = "Deze iPhone kan geen NFC-tags lezen.";
+"clock.nfc.hintIn"          = "Houd je telefoon tegen de tag om in te klokken";
+"clock.nfc.hintOut"         = "Houd je telefoon tegen de tag om uit te klokken";
+"clock.error.in"            = "Inklokken lukte niet.";
+"clock.error.out"           = "Uitklokken lukte niet.";

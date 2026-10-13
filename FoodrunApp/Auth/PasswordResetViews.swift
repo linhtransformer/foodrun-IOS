@@ -16,7 +16,7 @@ struct PasswordResetView: View {
     }
 
     var body: some View {
-        ScrollView {
+        AuthCenteredPage {
             VStack(alignment: .leading, spacing: 16) {
                 Text("auth.reset.title")
                     .font(.system(size: 28, weight: .bold))
@@ -45,12 +45,7 @@ struct PasswordResetView: View {
                     }
                 }
             }
-            .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, 8)
-            .padding(.bottom, 24)
         }
-        .scrollDismissesKeyboard(.interactively)
-        .background(Color.foodrun.background.ignoresSafeArea())
         .disabled(auth.status == .working)
         .navigationDestination(isPresented: $showCode) {
             PasswordResetCodeView(email: email.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -68,7 +63,7 @@ struct PasswordResetCodeView: View {
     @FocusState private var codeFocused: Bool
 
     var body: some View {
-        ScrollView {
+        AuthCenteredPage {
             VStack(alignment: .leading, spacing: 16) {
                 Text("auth.reset.codeTitle")
                     .font(.system(size: 28, weight: .bold))
@@ -107,14 +102,36 @@ struct PasswordResetCodeView: View {
                 .buttonStyle(.plain)
                 .padding(.top, 4)
             }
-            .padding(.horizontal, FRSpacing.screenH.value)
-            .padding(.top, 8)
-            .padding(.bottom, 24)
+        }
+        .disabled(auth.status == .working)
+        .onAppear { codeFocused = true }
+    }
+}
+
+/// A short auth form centred vertically on its page (it scrolls when the
+/// keyboard takes the space), with the standard side padding and background.
+struct AuthCenteredPage<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    content()
+                    Spacer(minLength: 0)
+                    // Sits slightly above the middle: the back button and the
+                    // keyboard both eat into the top/bottom.
+                    Spacer(minLength: 0).frame(height: geo.size.height * 0.12)
+                }
+                .padding(.horizontal, FRSpacing.screenH.value)
+                .padding(.vertical, 16)
+                .frame(minHeight: geo.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
-        .disabled(auth.status == .working)
-        .onAppear { codeFocused = true }
     }
 }
 
