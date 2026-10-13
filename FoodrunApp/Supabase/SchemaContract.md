@@ -16,6 +16,7 @@ All calls: `WorkerAPI.swift`.
 | 1. Roster a shift | Operator | HQ → Stakeholders → Rooster, or iOS Roster "+" (org owners only) | `activities.daily_employees[day]` + `daily_employee_times[day][employee]` |
 | 2. See the shift | Worker | iOS Shifts (hero + Still to work), `/me` | RPC `get_my_worker_activities` — only rostered or "Visible to workers" activities, schedule fields only, "Hide name from workers" honoured |
 | 3. Say when you can work | Worker | iOS Availability → Save week | `employee_availability` (upsert on `employee_id,date`, fanned out to every linked employee row) |
+| 3b. Say how many shifts you want | Worker | iOS Availability → "Shifts I want this week" | `employee_week_preferences` (upsert on `employee_id,week_start`, one row per linked employee row). HQ shows it on the planning board as planned / wanted. |
 | 4. Clock in / out | Worker | iOS NFC tag or tap, `/me/clock` | RPC `clock_in` / `clock_out` → `shift_clock_events` (server `event_at`, `source='mobile'`) |
 | 5. Submit hours | Worker | iOS Hours → Waiting for you, `/me/hours` | `employee_hours` upsert on `employee_id,activity_id,work_date`, `status='pending'` |
 | 6. Approve / reject | Operator | HQ → Stakeholders → **Uren** | `employee_hours.status / approved_by / approved_at / rejected_reason` |
@@ -41,6 +42,7 @@ Account deletion: Profile → Delete account → edge fn `delete-my-account`.
 | `ScheduleStore` | `useMyHours` / `useMyAvailability` (reads) | `employees` (by `auth_user_id`, approved only), RPC `get_my_worker_activities` + edge fn `employee-identity-link` | Rostered days: `daily_employees`, legacy fallback `employees` (= every day). Window: `daily_employee_times` → `daily_times` → `start_time/end_time`. JSON keys are camelCase (`startTime`). Employee ids in JSON are lower-case. |
 | `ScheduleStore` (operator) | `AvailabilityBoard.tsx` (writes) | `organizations.owner_id`, `employees` (by `user_id`), `activities` update | `WorkerAPI.addToRoster` writes `daily_employees`, `employees` (= union of all days), `daily_employee_times`. |
 | `AvailabilityStore` | `useMyAvailability().setStatus` | `employee_availability` | Slots are minute ranges (0–1440). `status` nil → delete the day. |
+| `AvailabilityStore` (wanted shifts) | `useWeekPreferences` (HQ reads) | `employee_week_preferences` | Columns: `employee_id` uuid, `week_start` date, `wanted_shifts` int, `updated_at` timestamptz. Primary key `(employee_id, week_start)`. `week_start` **must be the Monday** of the week (ISO week, Europe/Amsterdam, `yyyy-MM-dd` — same as `CrewTasksStore.weekStart(of:)`); any other day is refused. `wanted_shifts` 0…7; **no row = not answered**, which is not the same as 0. `updated_at` is stamped by the server on every write — whatever the client sends is ignored. The worker may select / insert / update / delete rows of their own employee ids (`employees.auth_user_id` = the login); the employer and its organisation can only read. There is no column for "standard shifts per week" (`standardShifts`) — that one is still local. |
 | `ClockStore` | `useShiftClock` | `shift_clock_events`, RPCs `clock_in(p_activity_id, p_lat, p_lng, p_accuracy_m)` / `clock_out(...)` | RPC validates the worker is linked to the activity's operator. Migration `20260908000000`. `source` CHECK allows `mobile / kiosk / manual / pos` — the RPC writes `mobile`. |
 | `HoursStore` | `useMyHours().submit` | `employee_hours` | Columns: `work_date`, `hours`, `break_minutes`, `comment`, `status`, `submitted_at`, `approved_by`, `approved_at`, `rejected_reason`. No start/end columns — payable hours only. |
 | `InboxStore` | `useWorkerInbox` | `worker_notifications` | Keyed on `user_id` (auth user). Columns: `type`, `title`, `body`, `url`, `is_read`, `operator_name`, `activity_id`. Unknown `type` values decode to `.other`. |
@@ -56,6 +58,32 @@ Migration `20261008120000_crew_app_event_content.sql` (HQ repo), decision
 `wiki/decisions/0031-crew-app-event-content.md`. Error codes the functions raise
 (`not_on_crew`, `activity_closed`, `not_rostered_that_day`, `value_required`,
 `section_not_enabled`, `negative_count`) map to strings in `CrewAPI.message(for:)`.
+
+### Wanted shifts and what a worker may change on `employees` (2026-10-13)
+
+Migrations `20261013100000_employee_week_preferences.sql` and
+`20261013110000_employees_worker_update_guard.sql` (HQ repo), decisions
+`wiki/decisions/0061` and `0062`.
+
+Write, per linked employee id (fan out like `setAvailability`):
+
+```swift
+struct DBWeekPreferenceUpsert: Encodable { let employee_id: UUID; let week_start: String; let wanted_shifts: Int }
+try await client.from("employee_week_preferences")
+    .upsert(rows, onConflict: "employee_id,week_start").execute()
+```
+
+Read: `.select("employee_id, week_start, wanted_shifts, updated_at").in("employee_id", values: ids).eq("week_start", value: monday)`.
+Errors: a non-Monday or a value outside 0…7 → Postgres `23514` (check violation);
+somebody else's employee id → `42501` (row-level security).
+
+**A direct update of `employees` by the worker is now limited** to: `name`,
+`last_name`, `date_of_birth`, `phone`, `city`, `place_of_origin`,
+`drivers_license`, `car_capacity`, `privacy_consent_at`, `onboarded_at`, and
+`approval_status` → `'disconnected'` only. Any other column in the same update
+fails with `42501` and the message `employees_protected_field` (pay, roles,
+approval, e-mail, employer). The iOS app does not update `employees` today, so
+nothing changes for it; keep it in mind for a profile editor.
 
 ## Open items
 
