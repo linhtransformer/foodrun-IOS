@@ -17,7 +17,7 @@ All calls: `WorkerAPI.swift`.
 | 2. See the shift | Worker | iOS Shifts (hero + Still to work), `/me` | RPC `get_my_worker_activities` — only rostered or "Visible to workers" activities, schedule fields only, "Hide name from workers" honoured |
 | 3. Say when you can work | Worker | iOS Availability → Save week | `employee_availability` (upsert on `employee_id,date`, fanned out to every linked employee row) |
 | 3b. Say how many shifts you want | Worker | iOS Availability → "Shifts I want this week" | `employee_week_preferences` (upsert on `employee_id,week_start`, one row per linked employee row). HQ shows it on the planning board as planned / wanted. |
-| 4. Clock in / out | Worker | iOS NFC tag or tap, `/me/clock` | RPC `clock_in` / `clock_out` → `shift_clock_events` (server `event_at`, `source='mobile'`) |
+| 4. Clock in / out | Worker | iOS NFC tag (`clock_with_tag(p_token)`) or the button (`clock_in` / `clock_out`, when `get_my_clock_rules` allows it), `/me/clock` | → `shift_clock_events` (server `event_at`, `source='mobile'`, `tag_id` for a tag) |
 | 5. Submit hours | Worker | iOS Hours → Waiting for you, `/me/hours` | `employee_hours` upsert on `employee_id,activity_id,work_date`, `status='pending'` |
 | 6. Approve / reject | Operator | HQ → Stakeholders → **Uren** | `employee_hours.status / approved_by / approved_at / rejected_reason` |
 | 7. Hear back | Worker | iOS Inbox + Hours status, `/me/inbox` | trigger `notify_worker_on_hours_decision()` → `worker_notifications` |
@@ -115,6 +115,80 @@ let rows: [ConsentRow] = try await client
   can switch it off at any time.
 - The app does nothing else: a published proposal is an ordinary roster entry
   (`get_my_worker_activities` + the "hired" notification).
+
+### NFC clock tags with a secret (2026-10-13 — server live)
+
+Migrations `20261013140000_clock_tags.sql` + `20261013150000_clock_button_per_employee.sql`
+(HQ repo, `4f41fde`), decision `wiki/decisions/0064-nfc-clock-tags-with-a-secret`.
+
+**The tag** holds `https://foodrun.nl/clock/<token>` (one URI record). The token is
+32 URL-safe characters (`[A-Za-z0-9_-]`), made in HQ per truck and per vestiging; the
+old `/clock/<truck name>` links are gone. The app does not interpret the token: take
+the last path component and send it.
+
+**Universal link.** `https://foodrun.nl/.well-known/apple-app-site-association` is
+live as `application/json` (also on Apple's CDN):
+`applinks.details[0] = { appIDs: ["GWU44KGDJZ.nl.foodrun.app"], components: [{ "/": "/clock/*" }] }`.
+App side: Associated Domains `applinks:foodrun.nl`, handle
+`.onContinueUserActivity(NSUserActivityTypeBrowsingWeb)` (background tag read) next to
+the foreground `NFCNDEFReaderSession`. The web page for phones without the app links to
+`foodrun://clock/<token>` — handle that in `.onOpenURL` the same way.
+`NFCTagAction.parse` should accept `/clock/<token>` on `foodrun.nl` and
+`foodrun://clock/<token>`.
+
+**Clock with a tag** — one call, the server decides in or out:
+
+```swift
+struct ClockWithTagParams: Encodable { let p_token: String }
+struct ClockWithTagResult: Decodable {
+    let kind: String          // "in" | "out"
+    let activity_id: UUID
+    let activity_name: String // "Festival" when the employer hides event names
+    let event_at: Date        // server time
+}
+let result: ClockWithTagResult = try await client
+    .rpc("clock_with_tag", params: ClockWithTagParams(p_token: token))
+    .execute().value
+```
+
+The server finds the caller's shift **today (Europe/Amsterdam) at that truck or
+vestiging**: a shift they are still clocked in on (latest event `in` / `break_end`,
+younger than 18 hours — covers a night shift) is clocked **out**; otherwise the shift
+they are rostered on today is clocked **in**. The app no longer chooses the activity or
+the direction for a tag, and `ClockStore.activityId` is not needed for it. The event
+is written with `source = 'mobile'` and the tag.
+
+Errors (PostgREST `code` = `P0001`, read `message`):
+
+| `message` | Meaning | Say |
+|---|---|---|
+| `invalid_tag` | unknown token, or a tag that was replaced | "This tag is no longer in use. Ask your manager." |
+| `not_linked` | no approved employee row at that employer | "You are not (yet) approved at this employer." |
+| `no_shift_here_today` | not rostered today at that truck / location, and not clocked in there | "You have no shift at this truck or location today." |
+| `not_authenticated` (`42501`) | no session | sign in first |
+
+**The button (clock without a tag).** An employer can switch it off for the whole
+organisation, and per person either way. `clock_in` / `clock_out` (unchanged
+signatures) then fail with `P0001` `tag_required`. Ask before showing the button:
+
+```swift
+struct ClockRulesParams: Encodable { let p_activity_ids: [UUID] }
+struct ClockRule: Decodable { let activity_id: UUID; let clock_without_tag: Bool }
+let rules: [ClockRule] = try await client
+    .rpc("get_my_clock_rules", params: ClockRulesParams(p_activity_ids: ids))
+    .execute().value
+```
+
+One row per activity the caller is approved at (others are left out);
+`clock_without_tag == false` → hide the "Clock in" / "Clock out" button on that shift
+and show the NFC strip only. The default is `true`, and it stays `true` for the
+"[iOS test]" company, so App Review can clock with the button. Still handle
+`tag_required`: the setting can change while the app is open.
+
+Also changed: `clock_in` / `clock_out` now require an **approved** employee row
+(`clock_in: caller is not linked to this activity` otherwise), and
+`shift_clock_events` has a new nullable column `tag_id` (ignore it; a worker cannot
+set it).
 
 ## Open items
 
