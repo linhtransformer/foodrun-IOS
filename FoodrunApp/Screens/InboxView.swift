@@ -6,6 +6,7 @@ public struct InboxView: View {
     @Environment(InboxStore.self) private var inbox
     @Environment(ShiftChangeStore.self) private var changes
     @Environment(TabRouter.self) private var router
+    @Environment(ScheduleStore.self) private var schedule
 
     /// Server notifications and locally detected shift edits, newest first.
     private enum Entry: Identifiable {
@@ -44,15 +45,8 @@ public struct InboxView: View {
                     switch entry {
                     case .server(let item):
                         row(item)
-                            .onTapGesture {
-                                inbox.markRead(item.id)
-                                // A new crew task from HQ: go to it.
-                                if item.type == .task_assigned && AppConfig.Features.crewTasks {
-                                    // Land on the task list, not on whatever was left open in that tab.
-                                    router.tasksPath = []
-                                    router.tab = .tasks
-                                }
-                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture { open(item) }
                     case .change(let change):
                         changeRow(change)
                             .onTapGesture { open(change) }
@@ -96,6 +90,46 @@ public struct InboxView: View {
         )
         .frNeu(.raised)
         .contentShape(Rectangle())
+    }
+
+    /// Tapping a message goes to what it is about: the shift on that event
+    /// (its Taken tab for a new task), the Hours tab for an hours decision, or
+    /// availability for an event the worker isn't rostered on yet.
+    private func open(_ item: DBWorkerNotification) {
+        inbox.markRead(item.id)
+
+        if item.type == .hours_approved || item.type == .hours_rejected {
+            router.hoursPath = []
+            router.tab = .hours
+            return
+        }
+
+        let isTask = item.type == .task_assigned && AppConfig.Features.crewTasks
+        if let activityId = item.activity_id {
+            // My shift on that event: today's or the next one, else the last one.
+            let todayKey = SchemaDates.string(schedule.today)
+            let mine = schedule.shifts.filter { $0.activity.id == activityId }
+            if let shift = mine.first(where: { $0.day >= todayKey }) ?? mine.last {
+                router.shiftsPath = [isTask ? .event(activityId: activityId, date: shift.date)
+                                            : .shiftDetail(activityId: activityId, date: shift.date)]
+                router.tab = .shifts
+                return
+            }
+            // Not rostered (yet): an event opened for availability.
+            if !isTask, let activity = schedule.activities.first(where: { $0.id == activityId }),
+               let start = SchemaDates.date(activity.start_date) {
+                schedule.selectedDate = max(start, schedule.today)
+                schedule.mode = .availability
+                router.shiftsPath = []
+                router.tab = .shifts
+                return
+            }
+        }
+        if isTask {
+            // Week goals and tasks without a shift: the task list.
+            router.tasksPath = []
+            router.tab = .tasks
+        }
     }
 
     private func open(_ change: ShiftChange) {

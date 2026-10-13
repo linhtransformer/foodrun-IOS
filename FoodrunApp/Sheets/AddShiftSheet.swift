@@ -14,6 +14,8 @@ public struct AddShiftSheet: View {
     @State private var start: Date = AddShiftSheet.time(19, 0)
     @State private var end: Date = AddShiftSheet.time(23, 0)
     @State private var picks: Set<UUID> = []
+    /// Filters the "Who" list by name.
+    @State private var search = ""
     /// Days of the chosen activity to roster on — starts with the picked date.
     @State private var days: Set<String> = []
     @State private var isSaving = false
@@ -162,6 +164,18 @@ public struct AddShiftSheet: View {
         return f.string(from: SchemaDates.date(day) ?? Date())
     }
 
+    /// Employees matching the search (name or role); people already picked stay
+    /// visible so a selection never disappears from view.
+    private var filteredEmployees: [DBEmployee] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return schedule.operatorEmployees }
+        return schedule.operatorEmployees.filter { emp in
+            picks.contains(emp.id)
+                || emp.fullName.localizedCaseInsensitiveContains(q)
+                || (emp.roles ?? []).contains { $0.localizedCaseInsensitiveContains(q) }
+        }
+    }
+
     private var crewField: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -169,8 +183,32 @@ public struct AddShiftSheet: View {
                 Spacer()
                 Text("addShift.pickCount \(picks.count)").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                TextField("addShift.search", text: $search)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .font(.system(size: 15))
+                if !search.isEmpty {
+                    Button { search = "" } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("addShift.search.clear"))
+                }
+            }
+            .padding(.horizontal, 12).padding(.vertical, 10)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+
+            if filteredEmployees.isEmpty {
+                Text("addShift.search.none")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    .padding(.vertical, 6)
+            }
             VStack(spacing: 6) {
-                ForEach(schedule.operatorEmployees) { emp in
+                ForEach(filteredEmployees) { emp in
                     let onDays = rosteredDays(emp)
                     // Disabled only when they're already on every selected day.
                     let rostered = !days.isEmpty && onDays == days.count

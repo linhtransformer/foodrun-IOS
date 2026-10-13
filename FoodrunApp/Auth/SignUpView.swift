@@ -53,7 +53,7 @@ struct SignUpView: View {
                         TextField("auth.email", text: $email,
                                   prompt: Text(verbatim: FRLanguage.string("auth.email.placeholder")))
                             .keyboardType(.emailAddress)
-                            .textContentType(.emailAddress)
+                            .textContentType(.username)   // saved with the new password
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .font(.system(size: 15))

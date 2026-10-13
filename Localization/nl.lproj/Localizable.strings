@@ -485,3 +485,9 @@
 "clock.confirmIn"           = "Nu inklokken voor deze dienst?";
 "clock.confirmOut"          = "Nu uitklokken?";
 "clock.error.noShift"       = "Je hebt nu geen dienst om voor in te klokken.";
+"auth.reset.codeTitle"      = "Vul de code in";
+
+// Dienst toevoegen: medewerker zoeken
+"addShift.search"           = "Zoek op naam of rol";
+"addShift.search.clear"     = "Zoekopdracht wissen";
+"addShift.search.none"      = "Geen medewerker met die naam.";

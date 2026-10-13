@@ -485,3 +485,9 @@
 "clock.confirmIn"           = "Clock in for this shift now?";
 "clock.confirmOut"          = "Clock out now?";
 "clock.error.noShift"       = "You don’t have a shift to clock in for right now.";
+"auth.reset.codeTitle"      = "Enter the code";
+
+// Add shift: employee search
+"addShift.search"           = "Search by name or role";
+"addShift.search.clear"     = "Clear search";
+"addShift.search.none"      = "No employee with that name.";

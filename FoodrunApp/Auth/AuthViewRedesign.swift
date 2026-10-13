@@ -22,6 +22,9 @@ public struct AuthViewRedesign: View {
                 .navigationDestination(isPresented: $showSignUp) {
                     SignUpView()
                 }
+                .navigationDestination(isPresented: $showReset) {
+                    PasswordResetView(initialEmail: email)
+                }
         }
         .tint(Color.foodrun.foreground)
     }
@@ -58,12 +61,6 @@ public struct AuthViewRedesign: View {
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
         .disabled(auth.status == .working)
-        .sheet(isPresented: $showReset) {
-            PasswordResetSheet(initialEmail: email)
-                .environmentObject(auth)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
     }
 
     private var brand: some View {
@@ -95,7 +92,7 @@ public struct AuthViewRedesign: View {
                 TextField("auth.email", text: $email,
                           prompt: Text(verbatim: FRLanguage.string("auth.email.placeholder")))
                     .keyboardType(.emailAddress)
-                    .textContentType(.emailAddress)
+                    .textContentType(.username)   // pairs with .password for Password AutoFill
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .font(.system(size: 15))
