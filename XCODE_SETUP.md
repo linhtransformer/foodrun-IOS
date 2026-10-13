@@ -8,7 +8,8 @@ Phase 1 NFC clock-in code that just landed.
 
 - Project → target `Foodrun` → **Signing & Capabilities** → `+ Capability`.
 - Add **Near Field Communication Tag Reading**.
-- This does two things: adds `com.apple.developer.nfc.readersession.formats = ["NDEF"]`
+- This does two things: adds `com.apple.developer.nfc.readersession.formats = ["TAG"]` (Xcode adds NDEF + TAG;
+  keep only TAG — App Store uploads reject NDEF, ITMS-90778)
   to the entitlements file, and registers the app ID for NFC in your Apple Developer
   account.
 

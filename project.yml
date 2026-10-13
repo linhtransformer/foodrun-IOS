@@ -72,7 +72,9 @@ targets:
     entitlements:
       path: Supporting/Foodrun.entitlements
       properties:
-        com.apple.developer.nfc.readersession.formats: [NDEF]
+        # TAG, not NDEF: App Store uploads for iOS 13+ reject the NDEF value
+        # (ITMS-90778 "NDEF is disallowed"). NFCNDEFReaderSession works with TAG.
+        com.apple.developer.nfc.readersession.formats: [TAG]
         # Sign in with Apple (AuthViewRedesign). Needs a paid Apple Developer team;
         # a free personal team can't sign it — drop this line to build there.
         com.apple.developer.applesignin: [Default]
