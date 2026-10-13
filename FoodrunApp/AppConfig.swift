@@ -27,5 +27,9 @@ enum AppConfig {
         /// Sign in with Apple — needs GOTRUE_EXTERNAL_APPLE_ENABLED + the
         /// "Sign In with Apple" capability on the Xcode target.
         static let appleSignIn = true
+        /// "Join an organization" with a code from the employer. Needs the HQ RPC
+        /// find_organization_by_join_code and a join code per organization. Off
+        /// until that is live — workers are then added by email only.
+        static let joinByCode = false
     }
 }

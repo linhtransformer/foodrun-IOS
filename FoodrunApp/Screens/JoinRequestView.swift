@@ -1,12 +1,13 @@
 import Supabase
 import SwiftUI
 
-// "Ask an organization to hire you", opened from the waiting screen
-// (NotLinkedView). Same request as the web's /me/signup: name, date of birth and
-// one or more organizations from the public directory → edge fn
-// worker-self-signup creates a pending employee row per organization. The
-// operator approves in HQ; the worker gets an inbox notification and the
-// waiting screen clears on the next load.
+// "Join an organization", opened from the waiting screen (NotLinkedView) and
+// from Me. The worker types the organization code their employer gave them —
+// the app never lists organizations, so nobody can browse who uses Foodrun.
+// The code is looked up on the server (RPC find_organization_by_join_code),
+// which returns only that one organization's name for confirmation. Then, as
+// on the web's /me/signup: name + date of birth → edge fn worker-self-signup
+// creates a pending employee row; the operator approves in HQ.
 
 struct JoinRequestView: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,10 +16,10 @@ struct JoinRequestView: View {
 
     @State private var name = ""
     @State private var dateOfBirth = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
-    @State private var organizations: [PublicOrganization] = []
-    @State private var selected: Set<UUID> = []
-    @State private var search = ""
-    @State private var loadingOrganizations = true
+    @State private var code = ""
+    /// The organization the code resolved to; nil until "Check code" succeeds.
+    @State private var organization: PublicOrganization?
+    @State private var checking = false
     @State private var sending = false
     @State private var errorText: String?
     @State private var sentTo: [String]?
@@ -28,14 +29,10 @@ struct JoinRequestView: View {
         Calendar.current.date(byAdding: .year, value: -15, to: Date()) ?? Date()
     }
 
-    private var filtered: [PublicOrganization] {
-        let q = search.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return organizations }
-        return organizations.filter { $0.name.localizedCaseInsensitiveContains(q) }
-    }
+    private var trimmedCode: String { code.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     private var canSend: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && !selected.isEmpty && !sending
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && organization != nil && !sending
     }
 
     var body: some View {
@@ -104,71 +101,45 @@ struct JoinRequestView: View {
 
     private var organizationPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("join.organizations")
-                    .font(.system(size: 11, weight: .semibold))
-                    .tracking(1.2)
-                    .textCase(.uppercase)
+            AuthField(label: "join.code") {
+                HStack(spacing: 10) {
+                    TextField("join.code.placeholder", text: $code)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .font(.system(size: 16, weight: .semibold).monospaced())
+                        .onChange(of: code) { _, _ in organization = nil }
+                        .onSubmit { Task { await checkCode() } }
+                    if checking { ProgressView() }
+                }
+            }
+            if let organization {
+                HStack(spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.foodrun.subject.positive)
+                    Text(verbatim: organization.name).frText(FRType.rowTitle)
+                    Spacer(minLength: 0)
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
+                .frNeu(.raised)
+            } else {
+                Text("join.code.hint")
+                    .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                Spacer()
-                if !selected.isEmpty {
-                    Text(verbatim: FRLanguage.string("join.selected %lld", selected.count))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Button {
+                    Task { await checkCode() }
+                } label: {
+                    Text("join.code.check")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.foodrun.foreground)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
                 }
+                .buttonStyle(.plain)
+                .disabled(trimmedCode.isEmpty || checking)
+                .opacity(trimmedCode.isEmpty ? 0.4 : 1)
             }
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                TextField("join.search", text: $search)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .font(.system(size: 15))
-            }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
-
-            VStack(spacing: 0) {
-                if loadingOrganizations {
-                    ProgressView().padding(20)
-                } else if filtered.isEmpty {
-                    Text("join.noResults")
-                        .frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                        .padding(20)
-                } else {
-                    ForEach(filtered) { org in
-                        organizationRow(org)
-                        if org.id != filtered.last?.id {
-                            Divider().padding(.leading, 48)
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
-            .frNeu(.raised)
         }
-    }
-
-    private func organizationRow(_ org: PublicOrganization) -> some View {
-        let isOn = selected.contains(org.id)
-        return Button {
-            if isOn { selected.remove(org.id) } else { selected.insert(org.id) }
-            FRHaptic.light.fire()
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 20))
-                    .foregroundStyle(isOn ? Color.foodrun.foreground : Color.foodrun.mutedForegroundSoft)
-                Text(verbatim: org.name).frText(FRType.rowTitle)
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 
     // MARK: - Sent
@@ -199,12 +170,25 @@ struct JoinRequestView: View {
         if name.isEmpty, let meta = try? await SupabaseManager.shared.client.auth.session.user.userMetadata {
             name = meta["full_name"]?.stringValue ?? meta["name"]?.stringValue ?? ""
         }
+    }
+
+    private func checkCode() async {
+        guard !trimmedCode.isEmpty else { return }
+        checking = true
+        errorText = nil
+        defer { checking = false }
         do {
-            organizations = try await WorkerAPI.fetchPublicOrganizations()
+            if let found = try await WorkerAPI.findOrganization(joinCode: trimmedCode) {
+                organization = found
+                FRHaptic.success.fire()
+            } else {
+                errorText = FRLanguage.string("join.code.unknown")
+                FRHaptic.warning.fire()
+            }
         } catch {
-            errorText = error.localizedDescription
+            errorText = FRLanguage.string("join.error.generic")
+            FRHaptic.error.fire()
         }
-        loadingOrganizations = false
     }
 
     private func send() async {
@@ -218,7 +202,7 @@ struct JoinRequestView: View {
             let result = try await WorkerAPI.requestToJoin(
                 name: name.trimmingCharacters(in: .whitespaces),
                 dateOfBirth: f.string(from: dateOfBirth),
-                organizationIds: Array(selected)
+                organizationIds: organization.map { [$0.id] } ?? []
             )
             guard result.ok else {
                 errorText = message(for: result)
@@ -227,7 +211,7 @@ struct JoinRequestView: View {
             }
             FRHaptic.success.fire()
             let names = (result.pending_organization_names ?? []) + (result.approved_organization_names ?? [])
-            sentTo = names.isEmpty ? organizations.filter { selected.contains($0.id) }.map(\.name) : names
+            sentTo = names.isEmpty ? [organization?.name ?? ""] : names
             await onSent()
         } catch {
             errorText = FRLanguage.string("join.error.generic")

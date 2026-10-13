@@ -36,12 +36,15 @@ struct NotLinkedView: View {
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
 
-                // Main action: request to join an organization (web /me/signup).
-                AuthPrimaryButton(
-                    title: schedule.hasPendingRequest ? "notLinked.askAnother" : "notLinked.ask",
-                    working: false
-                ) {
-                    showJoin = true
+                // Join with the organization code from your employer (off until
+                // HQ hands out codes — AppConfig.Features.joinByCode).
+                if AppConfig.Features.joinByCode {
+                    AuthPrimaryButton(
+                        title: schedule.hasPendingRequest ? "notLinked.askAnother" : "notLinked.ask",
+                        working: false
+                    ) {
+                        showJoin = true
+                    }
                 }
 
                 Button {
@@ -62,10 +65,12 @@ struct NotLinkedView: View {
                 .buttonStyle(.plain)
                 .disabled(schedule.isLoading)
 
-                Text("notLinked.orByEmail")
-                    .frText(FRType.rowSubtitle)
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    .padding(.top, 8)
+                if AppConfig.Features.joinByCode {
+                    Text("notLinked.orByEmail")
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        .padding(.top, 8)
+                }
 
                 emailCard
 

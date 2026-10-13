@@ -14,7 +14,7 @@ import Supabase
 //   fetchInbox/markRead↔ useWorkerInbox                  (worker_notifications)
 //   clock in/out       → ClockStore (RPCs clock_in / clock_out)
 //   fetchClockEvents   ↔ useShiftClock                   (shift_clock_events, read-only)
-//   fetchPublicOrganizations / requestToJoin
+//   findOrganization(joinCode:) / requestToJoin
 //                      ↔ /me/signup (RPC list_public_organizations, edge fn worker-self-signup)
 
 enum WorkerAPI {
@@ -34,11 +34,22 @@ enum WorkerAPI {
         try await client.functions.invoke("employee-identity-link", options: FunctionInvokeOptions(method: .post))
     }
 
-    /// Every organization a worker can ask to join (id + name only). Workers
-    /// can't read `organizations` (RLS); this SECURITY DEFINER RPC is the same
-    /// directory the web's /me/signup picker uses.
-    static func fetchPublicOrganizations() async throws -> [PublicOrganization] {
-        try await client.rpc("list_public_organizations").execute().value
+    /// The one organization behind a join code, or nil when the code is unknown.
+    /// The app never lists organizations (that would reveal who uses Foodrun);
+    /// the employer hands out the code from HQ. RPC find_organization_by_join_code
+    /// returns at most one row: id + name.
+    static func findOrganization(joinCode: String) async throws -> PublicOrganization? {
+        let rows: [PublicOrganization] = try await client
+            .rpc("find_organization_by_join_code", params: ["p_code": joinCode])
+            .execute()
+            .value
+        return rows.first
+    }
+
+    /// Organizations this account works for or has asked to join (RPC
+    /// get_my_organizations). Empty when the server doesn't offer it yet.
+    static func fetchMyOrganizations() async -> [MyOrganization] {
+        (try? await client.rpc("get_my_organizations").execute().value) ?? []
     }
 
     /// Ask one or more organizations to employ this account — the web's

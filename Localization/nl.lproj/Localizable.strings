@@ -271,11 +271,11 @@
 "action.cancel"             = "Annuleren";
 "action.close"              = "Sluiten";
 "action.done"               = "Klaar";
-"notLinked.ask"             = "Vraag een organisatie om je aan te nemen";
-"notLinked.askAnother"      = "Vraag nog een organisatie";
+"notLinked.ask"             = "Aansluiten met een organisatiecode";
+"notLinked.askAnother"      = "Bij nog een organisatie aansluiten";
 "notLinked.orByEmail"       = "Of laat je werkgever je toevoegen via e-mail:";
 "join.title"                = "Aansluiten bij een organisatie";
-"join.intro"                = "Kies het foodtruckbedrijf waar je voor werkt (of wilt werken). Zij krijgen je aanvraag in Foodrun HQ en kunnen hem goedkeuren.";
+"join.intro"                 = "Vul de organisatiecode in die je van je werkgever hebt gekregen. Zij krijgen je aanvraag in Foodrun HQ en kunnen hem goedkeuren.";
 "join.name"                 = "Volledige naam";
 "join.dateOfBirth"          = "Geboortedatum";
 "join.organizations"        = "Organisaties";
@@ -491,3 +491,12 @@
 "addShift.search"           = "Zoek op naam of rol";
 "addShift.search.clear"     = "Zoekopdracht wissen";
 "addShift.search.none"      = "Geen medewerker met die naam.";
+
+// Aansluiten met een organisatiecode
+"join.code"                 = "Organisatiecode";
+"join.code.placeholder"     = "Bijvoorbeeld FR-7K2M9Q";
+"join.code.hint"            = "Vraag je werkgever om de code. Die staat in Foodrun HQ.";
+"join.code.check"           = "Code controleren";
+"join.code.unknown"         = "Deze code kennen we niet. Check hem bij je werkgever.";
+"profile.section.organizations" = "Je organisaties";
+"profile.org.pending"       = "Wacht op goedkeuring";

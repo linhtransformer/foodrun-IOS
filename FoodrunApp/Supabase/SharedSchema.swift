@@ -248,6 +248,14 @@ public struct PublicOrganization: Decodable, Identifiable, Hashable {
     public let name: String
 }
 
+/// One organization the signed-in worker belongs to (RPC get_my_organizations).
+public struct MyOrganization: Decodable, Identifiable, Hashable {
+    public let organization_id: UUID
+    public let name: String
+    public let approval_status: String?     // approved | pending | declined
+    public var id: UUID { organization_id }
+}
+
 /// Reply of `worker-self-signup`. On failure `error` is one of: missing_fields,
 /// bad_dob, too_young (min. 15), company_not_found, recently_declined (with
 /// organization_name + hours_until_retry), unauthorized, invalid_session.

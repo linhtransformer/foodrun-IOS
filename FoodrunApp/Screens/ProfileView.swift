@@ -12,11 +12,14 @@ public struct ProfileView: View {
 
     public init() {}
 
+    @State private var organizations: [MyOrganization] = []
+
     public var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 avatar
                 if !schedule.employees.isEmpty { stats }
+                if !organizations.isEmpty { organizationsSection }
                 ProfileAccountSection()
             }
             .padding(.horizontal, FRSpacing.screenH.value)
@@ -24,6 +27,33 @@ public struct ProfileView: View {
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
+        .task { organizations = await WorkerAPI.fetchMyOrganizations() }
+    }
+
+    /// Who this account works for (or is waiting on) — so it's never a guess
+    /// which employer a login is tied to.
+    private var organizationsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("profile.section.organizations").frText(FRType.sectionHeader)
+            VStack(spacing: 6) {
+                ForEach(organizations) { org in
+                    HStack(spacing: 12) {
+                        Image(systemName: "building.2").font(.system(size: 15, weight: .medium))
+                        Text(verbatim: org.name).frText(FRType.rowTitle)
+                        Spacer(minLength: 8)
+                        if org.approval_status == "pending" {
+                            Text("profile.org.pending")
+                                .frText(FRType.rowSubtitle)
+                                .foregroundStyle(Color.foodrun.subject.warning)
+                        }
+                    }
+                    .padding(14)
+                    .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
+                    .frNeu(.raised)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var email: String {
@@ -103,7 +133,7 @@ struct ProfileAccountSection: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("profile.section.account").frText(FRType.sectionHeader)
             VStack(spacing: 6) {
-                if showsJoinRow {
+                if showsJoinRow && AppConfig.Features.joinByCode {
                     // Workers can work for several organizations (one employee row each).
                     Button { showJoin = true } label: {
                         row("building.2", "profile.joinAnother", trailing: "chevron.right")
