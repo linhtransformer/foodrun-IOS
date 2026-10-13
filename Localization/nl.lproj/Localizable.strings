@@ -168,7 +168,7 @@
 "nfc.tile.truck"           = "Truck";
 "nfc.tile.workedTotal"     = "Gewerkt";
 "nfc.tile.span"            = "Traject";
-"nfc.agent.clockedIn"      = "Inklokken opgeslagen. Tik dezelfde tag opnieuw aan als je dienst klaar is.";
+"nfc.agent.clockedIn"      = "Inklokken opgeslagen. Klok weer uit als je dienst klaar is.";
 "nfc.agent.clockedOut"     = "Uitklokken opgeslagen. Controleer en verstuur je uren bij Uren.";
 "nfc.cta.openChecklist"    = "Dienstchecklist openen";
 "nfc.cta.reviewHours"      = "Mijn uren bekijken";
@@ -477,3 +477,11 @@
 "crew.tasksTab.week" = "Deze week";
 "hours.note.placeholder"    = "Notitie voor je manager (optioneel)";
 "hours.note.label"          = "Notitie";
+
+// In- en uitklokken zonder tag
+"clock.in"                  = "Klok in";
+"clock.out"                 = "Klok uit";
+"clock.scanTag"             = "Scan de tag";
+"clock.confirmIn"           = "Nu inklokken voor deze dienst?";
+"clock.confirmOut"          = "Nu uitklokken?";
+"clock.error.noShift"       = "Je hebt nu geen dienst om voor in te klokken.";

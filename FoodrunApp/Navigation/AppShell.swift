@@ -131,7 +131,7 @@ public struct AppShell: View {
                     result: clock.nfcResult,
                     clockInTime: formatted(clock.clockInAt),
                     truckName: schedule.nextShift.map { $0.activity.food_truck ?? $0.activity.name } ?? "",
-                    worked: nil, span: nil,
+                    worked: workedLabel, span: spanLabel,
                     checklistsEnabled: isPreview || AppConfig.Features.checklists,
                     onOpenChecklist: {
                         // Primary button: clock-in → checklist (or just close when
@@ -205,6 +205,23 @@ public struct AppShell: View {
         if inbox.unreadCount + changes.unreadCount > 0 { s.insert(.inbox) }
         if showsCrewTasks && crewTasks.openCount(on: SchemaDates.string(Date())) > 0 { s.insert(.tasks) }
         return s
+    }
+
+    /// "4 u 12 min" between the last clock-in and clock-out.
+    private var workedLabel: String? {
+        guard let start = clock.clockInAt, let end = clock.clockOutAt, end > start else { return nil }
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute]
+        f.unitsStyle = .abbreviated
+        var cal = Calendar.current; cal.locale = FRLanguage.locale
+        f.calendar = cal
+        return f.string(from: max(60, end.timeIntervalSince(start)))
+    }
+
+    /// "19:02 – 23:14".
+    private var spanLabel: String? {
+        guard let start = clock.clockInAt, let end = clock.clockOutAt, end > start else { return nil }
+        return "\(formatted(start)) – \(formatted(end))"
     }
 
     private func formatted(_ date: Date?) -> String {

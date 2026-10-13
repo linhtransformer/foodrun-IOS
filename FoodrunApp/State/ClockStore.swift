@@ -18,6 +18,8 @@ public final class ClockStore {
 
     public var clockedIn: Bool = false
     public var clockInAt: Date?
+    /// When the last clock-out happened on this device (for the "shift done" sheet).
+    public var clockOutAt: Date?
     public var nfcResult: NFCResult = .none
     public var tagDetectedFlashUntil: Date?
 
@@ -48,6 +50,7 @@ public final class ClockStore {
 
     public func recordClockOut() {
         clockedIn = false
+        clockOutAt = Date()
         nfcResult = .clockedOut
         latestEventKind = .out
     }
@@ -79,7 +82,23 @@ public final class ClockStore {
             return
         }
         _ = action.truckSlug   // kept in scope for future audit-log wiring
+        await toggle(activityId: activityId)
+    }
 
+    /// Clock in or out without a tag (the "Klok in" button on today's shift) —
+    /// for when there is no tag, it's broken, or the phone has no NFC. Same RPCs
+    /// and same toggle rule as a tag read.
+    public func toggleManually() async {
+        guard let activityId else {
+            lastError = FRLanguage.string("clock.error.noShift")
+            FRHaptic.warning.fire()
+            return
+        }
+        await toggle(activityId: activityId)
+    }
+
+    private func toggle(activityId: UUID) async {
+        lastError = nil
         // Direction: `.in` and `.break_end` mean currently on the clock.
         let isCurrentlyIn = latestEventKind == .`in` || latestEventKind == .break_end
         let targetRPC = isCurrentlyIn ? "clock_out" : "clock_in"

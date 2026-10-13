@@ -168,7 +168,7 @@
 "nfc.tile.truck"           = "Truck";
 "nfc.tile.workedTotal"     = "Worked";
 "nfc.tile.span"            = "Span";
-"nfc.agent.clockedIn"      = "Clock-in saved. Tap the same tag again when your shift ends.";
+"nfc.agent.clockedIn"      = "Clock-in saved. Clock out again when your shift ends.";
 "nfc.agent.clockedOut"     = "Clock-out saved. Check and send your hours in the Hours tab.";
 "nfc.cta.openChecklist"    = "Open shift checklist";
 "nfc.cta.reviewHours"      = "Review my hours";
@@ -477,3 +477,11 @@
 "crew.tasksTab.week" = "This week";
 "hours.note.placeholder"    = "Note for your manager (optional)";
 "hours.note.label"          = "Note";
+
+// Clock in / out without a tag
+"clock.in"                  = "Clock in";
+"clock.out"                 = "Clock out";
+"clock.scanTag"             = "Scan the tag";
+"clock.confirmIn"           = "Clock in for this shift now?";
+"clock.confirmOut"          = "Clock out now?";
+"clock.error.noShift"       = "You don’t have a shift to clock in for right now.";

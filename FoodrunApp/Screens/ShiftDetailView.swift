@@ -50,6 +50,8 @@ public struct ShiftDetailView: View {
 
     /// Summary card starts folded (like the Shifts hero) so the tabs sit high.
     @State private var summaryExpanded = false
+    /// Confirmation before clocking in / out without a tag.
+    @State private var confirmClock = false
 
     public var body: some View {
         ScrollView {
@@ -86,6 +88,16 @@ public struct ShiftDetailView: View {
         }
         // Seeing the shift counts as seeing the change.
         .onAppear { changes.markRead(activityId: activityId, day: SchemaDates.string(date)) }
+        .confirmationDialog(
+            Text(clockedInHere ? "clock.confirmOut" : "clock.confirmIn"),
+            isPresented: $confirmClock,
+            titleVisibility: .visible
+        ) {
+            Button(clockedInHere ? "clock.out" : "clock.in") { clockManually() }
+            if clockedInHere {
+                Button("clock.scanTag") { armNFCReader() }
+            }
+        }
         .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
         .sheet(item: $answering) { task in answerSheet(for: task) }
         .sheet(isPresented: $showPrep) { CrewPrepListSheet(store: store) }
@@ -373,9 +385,10 @@ public struct ShiftDetailView: View {
     }
 
     /// "● INGEKLOKT 10:02" — replaces BEVESTIGD while on the clock. Tapping it
-    /// arms the NFC reader to clock out (the hint strip is hidden by then).
+    /// asks how to clock out: right away, or by scanning the tag (the hint
+    /// strip is hidden by then).
     private var clockedInChip: some View {
-        Button { armNFCReader() } label: {
+        Button { confirmClock = true } label: {
             HStack(spacing: 4) {
                 Circle().fill(Color.foodrun.subject.onTheClockGreen).frame(width: 6, height: 6)
                 Text("nfc.tile.clockedInAt")
@@ -608,7 +621,25 @@ public struct ShiftDetailView: View {
     /// clocking out.
     @ViewBuilder
     private var nfcStrip: some View {
-        if !clockedInHere { nfcHint }
+        if !clockedInHere {
+            HStack(spacing: 10) {
+                nfcHint
+                // No tag at hand (or no NFC): clock in with a tap. Today's shift only.
+                if isTodayShift {
+                    Button { confirmClock = true } label: {
+                        Text("clock.in")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 48)
+                            .background(Capsule().fill(Color.foodrun.foreground))
+                            .fixedSize()
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        if let error = clock.lastError { errorLine(error) }
     }
 
     private var nfcHint: some View {
@@ -617,6 +648,7 @@ public struct ShiftDetailView: View {
                 Image(systemName: "wave.3.right")
                 Text("detail.nfc.listening")
                     .frText(FRType.rowSubtitle)
+                    .multilineTextAlignment(.leading)
             }
             .foregroundStyle(Color.foodrun.foreground)
             .padding(14)
@@ -628,6 +660,12 @@ public struct ShiftDetailView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// Clock in/out without a tag, after the confirmation dialog.
+    private func clockManually() {
+        clock.activityId = activityId
+        Task { await clock.toggleManually() }
     }
 
     private func armNFCReader() {
