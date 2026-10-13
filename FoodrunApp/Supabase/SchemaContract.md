@@ -85,6 +85,37 @@ fails with `42501` and the message `employees_protected_field` (pay, roles,
 approval, e-mail, employer). The iOS app does not update `employees` today, so
 nothing changes for it; keep it in mind for a profile editor.
 
+### Consent for AI roster suggestions (2026-10-13 — server ready, not in the app yet)
+
+Migration `20261013120000_ai_roster_suggestions.sql`, edge function `suggest-roster`
+(HQ repo), decision `wiki/decisions/0063`. HQ can propose who takes a week's open
+shifts; a worker is only considered when they agreed in the app. **Not part of the
+first App Store submission** — until the app has this switch nobody can be suggested.
+
+- State: `employees.ai_roster_consent_at` (timestamptz, null = not included), one per
+  employer link. Read it with the employee rows the app already loads (add the column
+  to the select).
+- Set it only through the RPC — a direct update of the column is refused:
+
+```swift
+struct ConsentParams: Encodable { let p_consent: Bool; let p_employee_id: UUID? }
+struct ConsentRow: Decodable { let employee_id: UUID; let ai_roster_consent_at: Date? }
+let rows: [ConsentRow] = try await client
+    .rpc("set_my_ai_roster_consent", params: ConsentParams(p_consent: true, p_employee_id: nil))
+    .execute().value
+```
+
+  `p_employee_id` nil = every employer this login is linked to; an id = that one
+  only. Yes keeps an earlier timestamp, no clears it. Returns the rows it touched
+  (empty when the login has no employee row).
+- What to tell the worker before they agree (also in `foodrun.nl/legal/privacy` →
+  "Automated roster suggestions (AI)"): availability, wanted shifts, roles, planned
+  shifts and approved hours of the last 8 weeks are used; Claude by Anthropic sees
+  codes, never names or contact details; a manager always decides and publishes; they
+  can switch it off at any time.
+- The app does nothing else: a published proposal is an ordinary roster entry
+  (`get_my_worker_activities` + the "hired" notification).
+
 ## Open items
 
 - **Uren result tiles** — HQ's Uren screen still reads the kanban `tasks`; it
