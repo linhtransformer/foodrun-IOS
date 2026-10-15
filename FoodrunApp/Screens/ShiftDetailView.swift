@@ -124,7 +124,10 @@ public struct ShiftDetailView: View {
                 Text(verbatim: store.event?.activity.name ?? activity?.name ?? "")
                     .font(.system(size: 20, weight: .bold)).tracking(-0.4)
                     .lineLimit(2)
-                let sub = [store.event?.activity.food_truck ?? activity?.food_truck,
+                let employer = schedule.worksForSeveral
+                    ? shift.flatMap { schedule.organizationName(for: $0.employee.id) } : nil
+                let sub = [employer,
+                           store.event?.activity.food_truck ?? activity?.food_truck,
                            store.event?.activity.location ?? activity?.location].compactMap { $0 }.joined(separator: " · ")
                 if !sub.isEmpty {
                     HStack(spacing: 6) {

@@ -101,15 +101,18 @@ public struct FRShiftRow: View {
                     Text(venue)
                         .font(.system(size: 12))
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        .lineLimit(1)
                 }
-                Spacer(minLength: 0)
+                Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(status)
                         .font(.system(size: 10.5, weight: .semibold))
                         .foregroundStyle(statusColor)
+                        .lineLimit(1)
                     Text(role)
                         .font(.system(size: 11))
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        .lineLimit(1)
                 }
             }
             .padding(.horizontal, 12).padding(.vertical, 9)

@@ -55,7 +55,7 @@ struct ShiftsMode: View {
                         truckName: shift.activity.food_truck ?? shift.activity.name,
                         truckColor: Color.foodrunData(hex: shift.activity.color),
                         venue: shift.activity.location ?? shift.activity.name,
-                        role: shift.employee.roles?.first ?? "",
+                        role: roleLine(shift),
                         status: status.label,
                         statusColor: status.color,
                         date: shift.date,
@@ -88,5 +88,14 @@ struct ShiftsMode: View {
 
     private func statusLabel(_ key: String) -> String {
         FRLanguage.string(key).uppercased(with: FRLanguage.locale)
+    }
+
+    /// "Kitchen", or "Kitchen · Vietnamama" when the worker has several employers.
+    private func roleLine(_ shift: WorkerShift) -> String {
+        let role = shift.employee.roles?.first
+        guard schedule.worksForSeveral, let org = schedule.organizationName(for: shift.employee.id) else {
+            return role ?? ""
+        }
+        return [role, org].compactMap { $0 }.joined(separator: " · ")
     }
 }

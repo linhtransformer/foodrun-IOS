@@ -12,8 +12,6 @@ public struct ProfileView: View {
 
     public init() {}
 
-    @State private var organizations: [MyOrganization] = []
-
     public var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -27,11 +25,12 @@ public struct ProfileView: View {
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
-        .task { organizations = await WorkerAPI.fetchMyOrganizations() }
     }
 
     /// Who this account works for (or is waiting on) — so it's never a guess
     /// which employer a login is tied to.
+    private var organizations: [MyOrganization] { schedule.organizations }
+
     private var organizationsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("profile.section.organizations").frText(FRType.sectionHeader)

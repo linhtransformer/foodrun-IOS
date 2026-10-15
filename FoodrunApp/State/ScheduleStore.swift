@@ -66,6 +66,20 @@ public final class ScheduleStore {
     /// Operator (org owner) context — powers the admin "Add shift" sheet on the
     /// Roster tab. Empty / false for ordinary workers.
     public var isOperator = false
+    /// Organizations this account belongs to (RPC get_my_organizations; empty
+    /// until the server offers it). Several when the worker works for more
+    /// than one employer.
+    public var organizations: [MyOrganization] = []
+
+    /// Show which employer a shift is for only when there is more than one.
+    public var worksForSeveral: Bool {
+        organizations.filter { $0.approval_status != "declined" }.count > 1
+    }
+
+    /// The organization behind one of the worker's employee rows.
+    public func organizationName(for employeeId: UUID) -> String? {
+        organizations.first { $0.employee_id == employeeId }?.name
+    }
     public var operatorEmployees: [DBEmployee] = []
     public var operatorActivities: [DBActivity] = []
     /// "Today" for all date logic. Real clock in the app; pinned in previews so
@@ -98,6 +112,7 @@ public final class ScheduleStore {
             activities = acts
             lastError = nil
             rosterLoaded = true
+            organizations = await WorkerAPI.fetchMyOrganizations()
         } catch {
             lastError = error.localizedDescription
             rosterLoaded = false

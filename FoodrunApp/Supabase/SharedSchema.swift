@@ -249,10 +249,13 @@ public struct PublicOrganization: Decodable, Identifiable, Hashable {
 }
 
 /// One organization the signed-in worker belongs to (RPC get_my_organizations).
+/// A worker can be at several: one employees row per organization.
 public struct MyOrganization: Decodable, Identifiable, Hashable {
     public let organization_id: UUID
     public let name: String
     public let approval_status: String?     // approved | pending | declined
+    /// The worker's employees row at this organization — ties shifts to it.
+    public let employee_id: UUID?
     public var id: UUID { organization_id }
 }
 
