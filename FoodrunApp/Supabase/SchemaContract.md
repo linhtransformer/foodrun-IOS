@@ -33,6 +33,12 @@ account: <name>", and the `employees` INSERT links it via the auto-link trigger.
 "Check again" re-runs `employee-identity-link` + load. Rows still
 `approval_status = 'pending'` (web self-signup) show the "waiting for approval" copy.
 
+The other way round — the worker asks, the employer approves — goes through the
+employer's **join code**: RPC `find_organization_by_join_code(p_code)` → edge fn
+`worker-self-signup` → the request waits in HQ under Aanmeldingen. RPC
+`get_my_organizations()` lists where the account works or waits. There is no list of
+organisations any more. See "Join with the employer's code" below.
+
 Account deletion: Profile → Delete account → edge fn `delete-my-account`.
 
 ## Table binding
@@ -189,6 +195,97 @@ Also changed: `clock_in` / `clock_out` now require an **approved** employee row
 (`clock_in: caller is not linked to this activity` otherwise), and
 `shift_clock_events` has a new nullable column `tag_id` (ignore it; a worker cannot
 set it).
+
+### Join with the employer's code, my organisations, Password AutoFill, a colour per employee (2026-10-15 — server live)
+
+Migrations `20261013180000_organization_join_codes.sql`,
+`20261013190000_employee_colors.sql`, `20261013200000_list_public_organizations_closed.sql`,
+`20261015100000_my_organizations_per_employee_row.sql` (HQ repo, `c39759c + 8bbbd92`), decisions
+`wiki/decisions/0073-join-an-employer-with-a-code` and `0074-a-colour-per-employee`.
+
+**1. Join code.** Every organisation has one code, shaped `FR-7K2M9Q` ("FR-" + 6
+characters from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` — no 0 O 1 I L). The employer finds
+it in HQ → Stakeholders → Medewerkers → **Koppelcode** (copy, "Nieuwe code"). A new
+code makes the old one unknown at once; people who already joined keep their place.
+
+```swift
+let rows: [PublicOrganization] = try await client
+    .rpc("find_organization_by_join_code", params: ["p_code": code])
+    .execute().value          // [] = unknown code; at most one row: id, name
+```
+
+- Signed-in callers only (`42501` without a session).
+- Send what the user typed: the server ignores case, spaces and the dash, and accepts
+  the six characters without "FR".
+- Unknown code → **no rows, no error**. Say "We don't know this code. Check it or ask
+  your employer for the join code in Foodrun."
+- Rate limit per account: 10 tries at once, then one more every five minutes. Over it:
+  PostgREST `code` = `P0001`, `message` = `too_many_attempts` → "Too many tries. Try
+  again in a few minutes." Text that cannot be a code is answered with no rows and does
+  not count.
+- Call it with POST (the default of `.rpc`): it writes the rate-limit counter, so a GET
+  (`get: true`) fails with HTTP 405, `25006`.
+- Then join as before: `worker-self-signup` with `organization_ids: [row.id]` (same
+  body, replies and error codes). A new employer gets a new `pending` row; rows the
+  account has at other employers are not touched, and a row it already has at this
+  employer that is `approved` or `pending` stays exactly as it is (the reply lists it
+  under `approved_organization_names` / `pending_organization_names`).
+- The employer sees the request in HQ (Stakeholders → Medewerkers → Aanmeldingen) with
+  only what the worker sent that employer; other employers are neither shown nor
+  readable.
+
+`list_public_organizations` is **closed**: anon and signed-in callers get `42501`
+"permission denied for function". Builds 1 and 2 used it for the employer picker; that
+step fails there now, everything else in them works.
+
+**2. My organisations.**
+
+```swift
+let mine: [MyOrganization] = try await client.rpc("get_my_organizations").execute().value
+// organization_id: UUID, name: String, approval_status: String, employee_id: UUID
+```
+
+**One row per `employees` row** of the signed-in account (`auth_user_id`): pending,
+declined and disconnected included, sorted by name, never anybody else's.
+`employee_id` is that row's id (as `DBEmployee.id` and `get_my_event(...).employee_id`),
+so a shift can be labelled with its employer. `approval_status` is `approved` |
+`pending` | `declined` | `disconnected` (never null). An `employees` row belongs to an
+operator, not to an organisation; the organisation shown is that operator's primary
+one (the oldest they own). Use it to show "your employers" and to skip a code whose
+organisation is already `approved` or `pending`. Signed-in callers only.
+`MyOrganization` needs `employee_id: UUID`; use `employee_id` as its `id`.
+
+**3. Password AutoFill.** `https://foodrun.nl/.well-known/apple-app-site-association`
+now also has `"webcredentials": { "apps": ["GWU44KGDJZ.nl.foodrun.app"] }`, next to
+`applinks`. The app's `webcredentials:foodrun.nl` entitlement needs nothing else;
+iOS re-reads the file on install or update of the app.
+
+**4. A colour per employee.** `employees.color` — `String?`, `"#rrggbb"`. The
+database gives every new row one (dashboard, `worker-self-signup`,
+`employee-identity-link`, imports): the palette colour the fewest colleagues at that
+employer have. All existing rows have one. The employer can pick another in HQ; a worker
+cannot change their own (`employees_protected_field`, as for pay and roles).
+
+Palette (the team pastels of the design system; treat any `#rrggbb` as valid, the
+palette may grow): `#f0a8c8` pink, `#fbe27a` yellow, `#86efac` green, `#7aa6f5` blue,
+`#5fcccc` teal, `#c084fc` purple, `#f17878` red, `#f97316` orange. Ink text on top.
+
+Where the app reads it:
+
+- `WorkerAPI.fetchMyEmployees` and `fetchOperatorContext`: add `color` to the select
+  list and `public let color: String?` to `DBEmployee`.
+- The briefing (`get_my_event(...).briefing.team`): each day now has `members` next to
+  `names`, same people in the same order:
+
+```swift
+public struct CrewTeamMember: Decodable, Hashable {
+    public let name: String
+    public let color: String?     // nil for an old roster entry that is a name, not an employee
+}
+// CrewTeamDay: date, names: [String], members: [CrewTeamMember]?  (optional: older servers)
+```
+
+`team` is still empty when the employer hides the team in the briefing.
 
 ## Open items
 
