@@ -287,6 +287,71 @@ public struct CrewTeamMember: Decodable, Hashable {
 
 `team` is still empty when the employer hides the team in the briefing.
 
+### Invites by email: the link signs in and puts the worker on the team (2026-10-15 — server live, app to do)
+
+Migration `20261015110000_worker_invites.sql`, edge fn `worker-invite` (HQ repo, `3beca53`).
+This replaces the plan in `FoodrunApp/Invitations/README.md` (`worker_invites` +
+`redeem-invite`); the 6-digit code there is covered by the organisation's join code.
+
+**What the employer does.** HQ → Stakeholders → Medewerkers → **Uitnodigen**: type an
+address. With a Foodrun account they can **add** the person straight away (approved,
+an inbox message `type = hired`, nothing for the app to do). Otherwise, or by choice,
+they **send an invite**: an email with `https://foodrun.nl/invite/<token>` (32
+URL-safe characters, 7 days, single use, a newer invite to the same address replaces
+it). The token is only in that email; HQ never sees it.
+
+**What the app does with the link** (`https://foodrun.nl/invite/<token>` as universal
+link, and `foodrun://invite/<token>`; take the last path component):
+
+1. Signed in? Go to 3. Not signed in: the link itself signs in —
+
+```swift
+struct InviteAction: Encodable { let action: String; let token: String }
+struct InviteSignIn: Decodable { let ok: Bool; let error: String?; let token_hash: String?; let type: String?; let email: String? }
+let r: InviteSignIn = try await client.functions.invoke("worker-invite",
+    options: FunctionInvokeOptions(body: InviteAction(action: "sign_in", token: token)))
+// r.type is "magiclink" (existing account) or "signup" (the account was just made)
+try await client.auth.verifyOTP(tokenHash: r.token_hash!, type: r.type == "signup" ? .signup : .magiclink)
+```
+
+2. (Optional, before 1) show who invites: `action: "peek"` → `{ ok, state: "open" |
+   "used" | "expired" | "invalid", organization_name, email_hint }` (`email_hint` is
+   masked, e.g. `sa••••@gmail.com`). No session needed.
+3. Accept:
+
+```swift
+struct RedeemParams: Encodable { let p_token: String }
+struct Redeemed: Decodable { let organization_id: UUID; let organization_name: String; let employee_id: UUID }
+let joined: Redeemed = try await client.rpc("redeem_worker_invite", params: RedeemParams(p_token: token)).execute().value
+```
+
+   Then reload `ScheduleStore` (the row is approved: shifts and "my organisations"
+   show the employer at once) and say "Welcome to <organization_name>". Calling it
+   again as the same account returns the same answer.
+
+Errors — `worker-invite` answers HTTP 200 with `{ ok: false, error }`;
+`redeem_worker_invite` raises with PostgREST `code` `P0001` and `message`:
+
+| error / message | Meaning | Say |
+|---|---|---|
+| `invalid_invite` | unknown link, or replaced by a newer invite, or withdrawn | "This invite no longer works. Ask your employer for a new one." |
+| `invite_used` | already accepted (by another account) | "This invite has already been used." |
+| `invite_expired` | older than 7 days | "This invite has expired. Ask your employer for a new one." |
+| `invite_for_other_account` | the invited address has its own account and you are signed in with another | offer "Sign out and continue": sign out, then step 1 |
+| `too_many_sign_ins` | the link signed in 5 times in a short while | "Try again in a few minutes." |
+| `not_authenticated` (`42501`) | redeem without a session | do step 1 first |
+
+Signed in with a different account than the invited address (e.g. Sign in with Apple
+with a hidden address): if that address has no account yet, accepting links the
+invite to the signed-in account. That is on purpose.
+
+**Turning it on.** Until the app handles these links, HQ keeps `/invite/*` out of
+`apple-app-site-association` and the web page shows only "Accept in the browser"
+(`APP_HANDLES_INVITES = false` in `src/pages/InviteLanding.tsx`). When the build that
+handles `/invite/<token>` and `foodrun://invite/<token>` is ready, ask HQ to add
+`{ "/": "/invite/*" }` to the AASA components and set that flag — before that build
+reaches testers, because iOS reads the file on install or update.
+
 ## Open items
 
 - **Uren result tiles** — HQ's Uren screen still reads the kanban `tasks`; it
