@@ -521,3 +521,22 @@
 "join.code.tooMany"         = "Too many tries. Try again in a few minutes.";
 "join.code.alreadyIn %@"    = "You already work for %@.";
 "join.code.alreadyAsked %@" = "You already asked %@. They still have to approve it.";
+
+// Email invites
+"invite.title %@"           = "%@ invites you";
+"invite.forEmail %@"        = "This invite was sent to %@.";
+"invite.bodySignedOut"      = "Accept to log in and join the team. Your shifts show up in the app right away.";
+"invite.bodySignedIn"       = "Accept to join the team with the account you’re logged in with.";
+"invite.accept"             = "Accept invite";
+"invite.notNow"             = "Not now";
+"invite.welcome %@"         = "Welcome to %@";
+"invite.welcomeBody"        = "You’re on the team. Your shifts show up under Shifts as soon as you’re rostered.";
+"invite.otherAccountTitle"  = "Another account";
+"invite.otherAccount"       = "This invite is for a different Foodrun account than the one you’re logged in with. Log out to continue with the invited account.";
+"invite.signOutContinue"    = "Log out and continue";
+"invite.failedTitle"        = "This invite doesn’t work";
+"invite.error.invalid"      = "This invite no longer works. Ask your employer for a new one.";
+"invite.error.used"         = "This invite has already been used.";
+"invite.error.expired"      = "This invite has expired. Ask your employer for a new one.";
+"invite.error.tooMany"      = "Try again in a few minutes.";
+"invite.error.generic"      = "Something went wrong. Check your connection and try again.";

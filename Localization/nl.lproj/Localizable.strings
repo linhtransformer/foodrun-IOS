@@ -521,3 +521,22 @@
 "join.code.tooMany"         = "Te vaak geprobeerd. Probeer het over een paar minuten opnieuw.";
 "join.code.alreadyIn %@"    = "Je werkt al voor %@.";
 "join.code.alreadyAsked %@" = "Je hebt het %@ al gevraagd. Ze moeten het nog goedkeuren.";
+
+// Uitnodigingen per e-mail
+"invite.title %@"           = "%@ nodigt je uit";
+"invite.forEmail %@"        = "Deze uitnodiging is gestuurd naar %@.";
+"invite.bodySignedOut"      = "Accepteer om in te loggen en bij het team te komen. Je diensten verschijnen meteen in de app.";
+"invite.bodySignedIn"       = "Accepteer om met je huidige account bij het team te komen.";
+"invite.accept"             = "Uitnodiging accepteren";
+"invite.notNow"             = "Niet nu";
+"invite.welcome %@"         = "Welkom bij %@";
+"invite.welcomeBody"        = "Je zit in het team. Je diensten verschijnen onder Diensten zodra je bent ingeroosterd.";
+"invite.otherAccountTitle"  = "Ander account";
+"invite.otherAccount"       = "Deze uitnodiging is voor een ander Foodrun-account dan waarmee je bent ingelogd. Log uit om verder te gaan met het uitgenodigde account.";
+"invite.signOutContinue"    = "Uitloggen en verdergaan";
+"invite.failedTitle"        = "Deze uitnodiging werkt niet";
+"invite.error.invalid"      = "Deze uitnodiging werkt niet meer. Vraag je werkgever om een nieuwe.";
+"invite.error.used"         = "Deze uitnodiging is al gebruikt.";
+"invite.error.expired"      = "Deze uitnodiging is verlopen. Vraag je werkgever om een nieuwe.";
+"invite.error.tooMany"      = "Probeer het over een paar minuten opnieuw.";
+"invite.error.generic"      = "Er ging iets mis. Check je verbinding en probeer het opnieuw.";

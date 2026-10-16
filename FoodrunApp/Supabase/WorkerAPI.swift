@@ -46,6 +46,57 @@ enum WorkerAPI {
         return rows.first
     }
 
+    // MARK: Email invites (edge fn worker-invite + RPC redeem_worker_invite)
+
+    struct InvitePeek: Decodable {
+        let ok: Bool
+        let state: String?             // open | used | expired | invalid
+        let organization_name: String?
+        let email_hint: String?        // masked, e.g. "sa••••@gmail.com"
+        let error: String?
+    }
+
+    struct InviteSignIn: Decodable {
+        let ok: Bool
+        let error: String?
+        let token_hash: String?
+        let type: String?              // "magiclink" (existing account) | "signup" (just made)
+        let email: String?
+    }
+
+    struct InviteRedeemed: Decodable {
+        let organization_id: UUID
+        let organization_name: String
+        let employee_id: UUID
+    }
+
+    private struct InviteAction: Encodable { let action: String; let token: String }
+    private struct RedeemParams: Encodable { let p_token: String }
+
+    /// Who invites, and whether the link still works. No session needed.
+    static func peekInvite(token: String) async throws -> InvitePeek {
+        try await client.functions.invoke(
+            "worker-invite",
+            options: FunctionInvokeOptions(method: .post, body: InviteAction(action: "peek", token: token)))
+    }
+
+    /// The invite link signs in: the server hands out a one-time token hash
+    /// that verifyOTP exchanges for a session. Returns the error code, or nil.
+    static func signInWithInvite(token: String) async throws -> String? {
+        let r: InviteSignIn = try await client.functions.invoke(
+            "worker-invite",
+            options: FunctionInvokeOptions(method: .post, body: InviteAction(action: "sign_in", token: token)))
+        guard r.ok, let hash = r.token_hash else { return r.error ?? "invalid_invite" }
+        _ = try await client.auth.verifyOTP(tokenHash: hash, type: r.type == "signup" ? .signup : .magiclink)
+        return nil
+    }
+
+    /// Put the signed-in account on the team (approved). Idempotent for the
+    /// same account.
+    static func redeemInvite(token: String) async throws -> InviteRedeemed {
+        try await client.rpc("redeem_worker_invite", params: RedeemParams(p_token: token)).execute().value
+    }
+
     /// Organizations this account works for or has asked to join (RPC
     /// get_my_organizations). Empty when the server doesn't offer it yet.
     static func fetchMyOrganizations() async -> [MyOrganization] {

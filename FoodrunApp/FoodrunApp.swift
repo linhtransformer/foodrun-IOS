@@ -22,6 +22,8 @@ struct FoodrunApp: App {
                     // foodrun://clock/<token> — from the web page a scanned tag
                     // opens on phones where the link landed in a browser.
                     if ScannedClockTag.shared.receive(url) { return }
+                    // foodrun://invite/<token> — an email invite opened from the web page.
+                    if PendingInvite.shared.receive(url) { return }
                     // Magic link callback: foodrun://auth-callback?...
                     Task {
                         await auth.handleDeepLink(url)
@@ -30,7 +32,9 @@ struct FoodrunApp: App {
                 // A clock tag scanned with the app closed or in the background
                 // arrives as a universal link (applinks:foodrun.nl).
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                    if let url = activity.webpageURL { ScannedClockTag.shared.receive(url) }
+                    // …and so does an email invite (https://foodrun.nl/invite/<token>).
+                    guard let url = activity.webpageURL else { return }
+                    if !ScannedClockTag.shared.receive(url) { PendingInvite.shared.receive(url) }
                 }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -80,6 +84,11 @@ struct RootView: View {
             }
         }
         .animation(FRAnimation.enter, value: auth.state)
+        // An email invite link: shown over whatever is on screen, signed in or not.
+        .sheet(item: Binding(get: { PendingInvite.shared.item }, set: { PendingInvite.shared.item = $0 })) { item in
+            InviteView(token: item.token)
+                .environmentObject(auth)
+        }
         .environment(\.locale, FRLanguage.locale)
     }
 }

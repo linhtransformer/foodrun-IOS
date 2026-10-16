@@ -99,6 +99,8 @@ public struct AppShell: View {
         // A clock tag scanned with the app closed, in the background or before
         // signing in: clock as soon as a signed-in shell is on screen.
         .task(id: ScannedClockTag.shared.token) { await clockWithScannedTag() }
+        // Accepted an email invite: the new employer's shifts show at once.
+        .onChange(of: PendingInvite.shared.joinedAt) { _, _ in Task { await loadAll() } }
         .alert(
             Text("clock.tag.alertTitle"),
             isPresented: Binding(get: { clock.tagError != nil }, set: { if !$0 { clock.tagError = nil } })
