@@ -84,7 +84,7 @@ struct RosterMode: View {
                     let row = FRRosterRow(
                         name: e.employee.fullName,
                         initials: initials(e.employee.fullName),
-                        avatarColor: Color.foodrunData(hex: e.activity.color),
+                        avatarColor: Color.foodrunData(hex: e.employee.color ?? e.activity.color),
                         role: e.employee.roles?.first ?? "",
                         truckName: e.activity.food_truck ?? e.activity.name,
                         truckColor: Color.foodrunData(hex: e.activity.color),

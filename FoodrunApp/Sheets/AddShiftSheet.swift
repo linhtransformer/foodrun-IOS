@@ -222,7 +222,7 @@ public struct AddShiftSheet: View {
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(Color.foodrun.foreground)
                                 .frame(width: 32, height: 32)
-                                .background(Circle().fill(Color.foodrun.neuTrack))
+                                .background(Circle().fill(emp.color.map { Color.foodrunData(hex: $0) } ?? Color.foodrun.neuTrack))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: emp.fullName).frText(FRType.rowTitle)
                                 if rostered {

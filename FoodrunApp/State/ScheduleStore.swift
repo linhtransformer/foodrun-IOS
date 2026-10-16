@@ -73,7 +73,7 @@ public final class ScheduleStore {
 
     /// Show which employer a shift is for only when there is more than one.
     public var worksForSeveral: Bool {
-        organizations.filter { $0.approval_status != "declined" }.count > 1
+        organizations.filter { $0.approval_status == "approved" }.count > 1
     }
 
     /// The organization behind one of the worker's employee rows.

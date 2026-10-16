@@ -32,7 +32,8 @@ enum Fixtures {
         roles: ["Kitchen"],
         contract_type: "ovo",
         approval_status: "approved",
-        onboarded_at: today
+        onboarded_at: today,
+        color: "#fbe27a"
     )
 
     private static var workerKey: String { worker.id.uuidString.lowercased() }

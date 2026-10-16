@@ -11,6 +11,7 @@ import SwiftUI
 
 struct JoinRequestView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(ScheduleStore.self) private var schedule
     /// Called after a successful request so the waiting screen reloads.
     var onSent: () async -> Void
 
@@ -179,6 +180,14 @@ struct JoinRequestView: View {
         defer { checking = false }
         do {
             if let found = try await WorkerAPI.findOrganization(joinCode: trimmedCode) {
+                // Already working there, or already asked: nothing to send.
+                if let mine = schedule.organizations.first(where: { $0.organization_id == found.id && $0.isCurrent }) {
+                    errorText = String(format: FRLanguage.string(
+                        mine.approval_status == "approved" ? "join.code.alreadyIn %@" : "join.code.alreadyAsked %@"),
+                        found.name)
+                    FRHaptic.warning.fire()
+                    return
+                }
                 organization = found
                 FRHaptic.success.fire()
             } else {
@@ -186,7 +195,9 @@ struct JoinRequestView: View {
                 FRHaptic.warning.fire()
             }
         } catch {
-            errorText = FRLanguage.string("join.error.generic")
+            errorText = (String(describing: error) + error.localizedDescription).contains("too_many_attempts")
+                ? FRLanguage.string("join.code.tooMany")
+                : FRLanguage.string("join.error.generic")
             FRHaptic.error.fire()
         }
     }

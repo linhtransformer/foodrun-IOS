@@ -497,7 +497,7 @@
 "join.code.placeholder"     = "For example FR-7K2M9Q";
 "join.code.hint"            = "Ask your employer for the code. They find it in Foodrun HQ.";
 "join.code.check"           = "Check code";
-"join.code.unknown"         = "We don’t know that code. Check it with your employer.";
+"join.code.unknown"         = "We don’t know this code. Check it, or ask your employer for the join code in Foodrun.";
 "profile.section.organizations" = "Your organizations";
 "profile.org.pending"       = "Waiting for approval";
 
@@ -516,3 +516,8 @@
 "clock.nfc.hintOut"         = "Hold your phone to the tag to clock out";
 "clock.error.in"            = "Couldn’t clock in.";
 "clock.error.out"           = "Couldn’t clock out.";
+
+// Join code: rate limit, already a member
+"join.code.tooMany"         = "Too many tries. Try again in a few minutes.";
+"join.code.alreadyIn %@"    = "You already work for %@.";
+"join.code.alreadyAsked %@" = "You already asked %@. They still have to approve it.";

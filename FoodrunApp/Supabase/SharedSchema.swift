@@ -31,6 +31,9 @@ public struct DBEmployee: Codable, Identifiable, Hashable {
     public let contract_type: String?   // "eigenaar" | "ovo" | "ao" | …
     public let approval_status: String? // "pending" | "approved" | "declined" | "disconnected"
     public let onboarded_at: Date?
+    /// "#rrggbb" — the database gives every employee a colour, distinct within
+    /// their employer where the palette allows (HQ 20261013190000).
+    public let color: String?
 
     public var fullName: String { [name, last_name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ") }
     public var isApproved: Bool { (approval_status ?? "approved") == "approved" }
@@ -248,15 +251,18 @@ public struct PublicOrganization: Decodable, Identifiable, Hashable {
     public let name: String
 }
 
-/// One organization the signed-in worker belongs to (RPC get_my_organizations).
-/// A worker can be at several: one employees row per organization.
+/// One of the signed-in worker's employee rows and the organization it belongs
+/// to (RPC get_my_organizations). A worker can be at several employers.
 public struct MyOrganization: Decodable, Identifiable, Hashable {
     public let organization_id: UUID
     public let name: String
-    public let approval_status: String?     // approved | pending | declined
-    /// The worker's employees row at this organization — ties shifts to it.
-    public let employee_id: UUID?
-    public var id: UUID { organization_id }
+    public let approval_status: String      // approved | pending | declined | disconnected
+    /// The worker's employees row there — ties shifts to this employer.
+    public let employee_id: UUID
+    public var id: UUID { employee_id }
+
+    /// Working there, or asked to and waiting.
+    public var isCurrent: Bool { approval_status == "approved" || approval_status == "pending" }
 }
 
 /// Reply of `worker-self-signup`. On failure `error` is one of: missing_fields,

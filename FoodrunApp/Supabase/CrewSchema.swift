@@ -163,6 +163,13 @@ public struct CrewTicket: Decodable, Hashable, Identifiable {
 public struct CrewTeamDay: Decodable, Hashable {
     public let date: String
     public let names: [String]
+    /// Same people as `names`, with each employee's colour (absent on older servers).
+    public let members: [CrewTeamMember]?
+}
+
+public struct CrewTeamMember: Decodable, Hashable {
+    public let name: String
+    public let color: String?     // nil for an old roster entry that is a name, not an employee
 }
 
 /// Build-up or teardown (activities.setup_* / teardown_*).

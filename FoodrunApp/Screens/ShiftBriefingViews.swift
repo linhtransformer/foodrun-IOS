@@ -351,7 +351,8 @@ struct ShiftBriefingContent: View {
     private func teamCard(_ briefing: CrewBriefing) -> some View {
         if let team = briefing.team?.first(where: { $0.date == day }), !team.names.isEmpty {
             CrewBriefingCard(icon: "person.3", title: "briefing.team") {
-                CrewFlowChips(items: team.names)
+                CrewFlowChips(items: team.members?.map(\.name) ?? team.names,
+                              colors: team.members?.map(\.color))
             }
         }
     }
@@ -743,15 +744,19 @@ struct CrewAllergenChips: View {
 /// Chips that wrap onto the next line.
 struct CrewFlowChips: View {
     let items: [String]
+    /// Optional colour per item (team members); nil keeps the neutral chip.
+    var colors: [String?]? = nil
     var small = false
 
     var body: some View {
         CrewWrapLayout(spacing: 6) {
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                let hex = colors.flatMap { index < $0.count ? $0[index] : nil }
                 Text(verbatim: item)
                     .font(.system(size: small ? 11 : 13, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.foreground)   // ink on the pastel
                     .padding(.horizontal, small ? 8 : 10).padding(.vertical, small ? 3 : 6)
-                    .background(Capsule().fill(Color.foodrun.neuTrack))
+                    .background(Capsule().fill(hex.map { Color.foodrunData(hex: $0) } ?? Color.foodrun.neuTrack))
             }
         }
     }

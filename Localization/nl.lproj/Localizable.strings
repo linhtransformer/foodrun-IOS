@@ -497,7 +497,7 @@
 "join.code.placeholder"     = "Bijvoorbeeld FR-7K2M9Q";
 "join.code.hint"            = "Vraag je werkgever om de code. Die staat in Foodrun HQ.";
 "join.code.check"           = "Code controleren";
-"join.code.unknown"         = "Deze code kennen we niet. Check hem bij je werkgever.";
+"join.code.unknown"         = "Deze code kennen we niet. Check hem, of vraag je werkgever om de koppelcode in Foodrun.";
 "profile.section.organizations" = "Je organisaties";
 "profile.org.pending"       = "Wacht op goedkeuring";
 
@@ -516,3 +516,8 @@
 "clock.nfc.hintOut"         = "Houd je telefoon tegen de tag om uit te klokken";
 "clock.error.in"            = "Inklokken lukte niet.";
 "clock.error.out"           = "Uitklokken lukte niet.";
+
+// Koppelcode: te vaak geprobeerd, al lid
+"join.code.tooMany"         = "Te vaak geprobeerd. Probeer het over een paar minuten opnieuw.";
+"join.code.alreadyIn %@"    = "Je werkt al voor %@.";
+"join.code.alreadyAsked %@" = "Je hebt het %@ al gevraagd. Ze moeten het nog goedkeuren.";

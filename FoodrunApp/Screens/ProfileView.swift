@@ -29,7 +29,8 @@ public struct ProfileView: View {
 
     /// Who this account works for (or is waiting on) — so it's never a guess
     /// which employer a login is tied to.
-    private var organizations: [MyOrganization] { schedule.organizations }
+    /// Employers this account works for or is waiting on (not declined / left).
+    private var organizations: [MyOrganization] { schedule.organizations.filter(\.isCurrent) }
 
     private var organizationsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -71,7 +72,7 @@ public struct ProfileView: View {
                 .font(.system(size: 30, weight: .semibold))
                 .foregroundStyle(Color.foodrun.foreground)
                 .frame(width: 76, height: 76)
-                .background(Circle().fill(Color.foodrun.truck.mees))
+                .background(Circle().fill(Color.foodrunData(hex: schedule.employees.first?.color)))
                 .frNeu(.raisedLg)
             Text(verbatim: displayName)
                 .font(.system(size: 22, weight: .bold))

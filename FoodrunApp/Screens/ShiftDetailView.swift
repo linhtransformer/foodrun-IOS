@@ -524,7 +524,7 @@ public struct ShiftDetailView: View {
             Text("detail.crew").frText(FRType.sectionHeader)
             if let shift {
                 FRRosterRow(name: shift.employee.fullName, initials: initials(shift.employee.fullName),
-                            avatarColor: Color.foodrunData(hex: shift.activity.color),
+                            avatarColor: Color.foodrunData(hex: shift.employee.color ?? shift.activity.color),
                             role: shift.employee.roles?.first ?? "",
                             truckName: shift.activity.food_truck ?? shift.activity.name,
                             truckColor: Color.foodrunData(hex: shift.activity.color),

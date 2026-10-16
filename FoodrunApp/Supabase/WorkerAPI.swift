@@ -82,7 +82,7 @@ enum WorkerAPI {
         let uid = try await currentUserId()
         let rows: [DBEmployee] = try await client
             .from("employees")
-            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at")
+            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at, color")
             .eq("auth_user_id", value: uid.uuidString)
             .order("created_at", ascending: true)
             .execute()
@@ -229,7 +229,7 @@ enum WorkerAPI {
         let uid = try await currentUserId()
         let employees: [DBEmployee] = try await client
             .from("employees")
-            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at")
+            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at, color")
             .eq("user_id", value: uid.uuidString)
             .eq("is_active", value: true)
             .order("name", ascending: true)
