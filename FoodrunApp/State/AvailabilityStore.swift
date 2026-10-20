@@ -19,8 +19,17 @@ public final class AvailabilityStore {
     public var state: [String: State] = [:]              // "YYYY-MM-DD" → state
     public var window: [String: ClosedRange<Int>] = [:]  // hour range 0…24
     public var reason: [String: String] = [:]
-    public var wantShifts: Int = 3                        // 0…7 (local preference)
-    public var standardShifts: Int = 4
+    /// Wanted shifts per week (Monday "YYYY-MM-DD" → 0…7), employee_week_preferences.
+    private var wantedByWeek: [String: Int] = [:]
+    /// Weeks whose number changed and still has to be saved.
+    private var wantedDirty: Set<String> = []
+    /// The week on screen (set by loadWanted / setWanted).
+    public private(set) var currentWeek = ""
+    /// Wanted shifts for the week on screen; 3 until the worker says otherwise.
+    public var wantShifts: Int { wantedByWeek[currentWeek] ?? 3 }
+    public var standardShifts: Int = 4                    // local preference
+    /// The employers' rules (closed days, deadline, reason) — get_my_availability_rules.
+    public var rules: [MyAvailabilityRules] = []
     /// Days edited since the last save.
     public private(set) var dirty: Set<String> = []
     public var isSaving = false
@@ -59,13 +68,55 @@ public final class AvailabilityStore {
         dirty.insert(key)
     }
 
+    // MARK: - Rules and wanted shifts
+
+    /// "YYYY-MM-DD" of the Monday of `date`'s week (Amsterdam).
+    public static func monday(of date: Date) -> String {
+        var cal = Calendar(identifier: .iso8601)
+        cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        let start = cal.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+        return SchemaDates.string(start)
+    }
+
+    /// The employer that closed this day for availability, if one did.
+    public func closedBy(_ date: Date) -> String? {
+        let key = ScheduleStore.iso(date)
+        return rules.first { ($0.closed_days ?? []).contains(key) }?.organization_name
+    }
+
+    /// The earliest moment an employer stops taking availability for `date`'s week.
+    public func closesAt(weekOf date: Date) -> Date? {
+        guard let monday = SchemaDates.date(Self.monday(of: date)) else { return nil }
+        return rules.compactMap { $0.closesAt(weekStarting: monday) }.min()
+    }
+
+    public var reasonRequired: Bool { rules.contains { $0.reason_required } }
+
+    public func setWanted(_ count: Int, weekOf date: Date) {
+        currentWeek = Self.monday(of: date)
+        wantedByWeek[currentWeek] = max(0, min(7, count))
+        wantedDirty.insert(currentWeek)
+    }
+
+    public func loadWanted(employeeIds: [UUID], weekOf date: Date) async {
+        let week = Self.monday(of: date)
+        currentWeek = week
+        // An unsaved change for this week wins over what the server has.
+        guard !wantedDirty.contains(week) else { return }
+        if let n = try? await PeopleAPI.wantedShifts(employeeIds: employeeIds, weekStart: week) {
+            wantedByWeek[week] = n
+        }
+    }
+
     // MARK: - Live data
 
     public func load(employeeIds: [UUID]) async {
+        if let r = try? await PeopleAPI.availabilityRules() { rules = r }
         do {
             let rows = try await WorkerAPI.fetchAvailability(employeeIds: employeeIds)
             // Multi-operator rows carry the same statement — first one per date wins.
             for row in rows where state[row.date] == nil || !dirty.contains(row.date) {
+                // "maybe" (partly unavailable, set on the web) counts as available here, with its window.
                 state[row.date] = row.status == "unavailable" ? .unavailable : .available
                 reason[row.date] = row.note ?? ""
                 if let slot = row.slots?.first {
@@ -81,10 +132,16 @@ public final class AvailabilityStore {
     /// Write every edited day. A day marked "unset" clears the row.
     @discardableResult
     public func saveDirty(employeeIds: [UUID]) async -> Bool {
-        guard !dirty.isEmpty else { return true }
+        guard !dirty.isEmpty || !wantedDirty.isEmpty else { return true }
         isSaving = true
         defer { isSaving = false }
         do {
+            if !employeeIds.isEmpty {
+                for week in wantedDirty.sorted() {
+                    try await PeopleAPI.setWantedShifts(employeeIds: employeeIds, weekStart: week, count: wantedByWeek[week] ?? 3)
+                    wantedDirty.remove(week)
+                }
+            }
             for day in dirty.sorted() {
                 let s = state[day] ?? .unset
                 let w = window[day] ?? Self.defaultWindow

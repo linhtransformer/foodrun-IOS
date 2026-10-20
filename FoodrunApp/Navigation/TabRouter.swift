@@ -13,7 +13,6 @@ public final class TabRouter {
     public var inboxPath: [Route] = []
     public var mePath: [Route] = []
 
-    public var swapSheetOpen: Bool = false
     public var addShiftOpen: Bool = false
 
     public enum Route: Hashable {
@@ -22,6 +21,10 @@ public final class TabRouter {
         case event(activityId: UUID, date: Date)
         case tasks
         case approvedHours
+        /// Ruilen: offers, open shifts, my shifts to offer.
+        case swaps
+        /// Verlof: ask for days off, see decisions.
+        case leave
     }
 
     public func pushOnShifts(_ route: Route) { shiftsPath.append(route) }

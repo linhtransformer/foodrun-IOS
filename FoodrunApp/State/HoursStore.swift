@@ -55,7 +55,8 @@ public final class HoursStore {
 
     /// Submit or correct one day's hours. Resets status to pending for review.
     @discardableResult
-    public func submit(shift: WorkerShift, hours: Double, breakMinutes: Int, comment: String?) async -> Bool {
+    public func submit(shift: WorkerShift, hours: Double, breakMinutes: Int, comment: String?,
+                       start: String? = nil, end: String? = nil) async -> Bool {
         isSubmitting = true
         defer { isSubmitting = false }
         do {
@@ -65,7 +66,9 @@ public final class HoursStore {
                 workDate: shift.day,
                 hours: hours,
                 breakMinutes: breakMinutes,
-                comment: comment
+                comment: comment,
+                start: start,
+                end: end
             )
             await load(employeeIds: Array(Set(rows.map(\.employee_id) + [shift.employee.id])))
             return true

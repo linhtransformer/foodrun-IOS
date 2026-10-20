@@ -34,9 +34,13 @@ public struct DBEmployee: Codable, Identifiable, Hashable {
     /// "#rrggbb" — the database gives every employee a colour, distinct within
     /// their employer where the palette allows (HQ 20261013190000).
     public let color: String?
+    /// false = the employer took this person off the team (HQ Stakeholders).
+    /// Only read where it's selected; missing = active.
+    public var is_active: Bool? = nil
 
     public var fullName: String { [name, last_name].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ") }
     public var isApproved: Bool { (approval_status ?? "approved") == "approved" }
+    public var isActive: Bool { is_active ?? true }
 }
 
 // MARK: - activities (events / festivals the worker is rostered on)
@@ -46,6 +50,89 @@ public struct DBDayTimes: Codable, Hashable {
     public let startTime: String?       // "HH:mm"
     public let endTime: String?
     public let active: Bool?
+    /// Rooster extras HQ stores on a shift (20261016140000, 20261017100000): pauze in
+    /// minutes, the planner's opmerking, the checklists that come with the shift and its
+    /// type ("Opbouw"). Shown on the shift; WorkerAPI.updateRoster keeps them when it
+    /// rewrites a window.
+    public let breakMinutes: Int?
+    public let note: String?
+    public let checklistIds: [String]?
+    public let shiftType: String?
+
+    public init(startTime: String?, endTime: String?, active: Bool?, breakMinutes: Int? = nil,
+                note: String? = nil, checklistIds: [String]? = nil, shiftType: String? = nil) {
+        self.startTime = startTime
+        self.endTime = endTime
+        self.active = active
+        self.breakMinutes = breakMinutes
+        self.note = note
+        self.checklistIds = checklistIds
+        self.shiftType = shiftType
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case startTime, endTime, active, breakMinutes, note, checklistIds, shiftType
+    }
+
+    /// Lenient on purpose: one odd value in one shift must never fail the whole feed.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        startTime = try? c.decodeIfPresent(String.self, forKey: .startTime)
+        endTime = try? c.decodeIfPresent(String.self, forKey: .endTime)
+        active = try? c.decodeIfPresent(Bool.self, forKey: .active)
+        if let minutes = try? c.decodeIfPresent(Int.self, forKey: .breakMinutes) {
+            breakMinutes = minutes
+        } else if let minutes = try? c.decodeIfPresent(Double.self, forKey: .breakMinutes) {
+            breakMinutes = Int(minutes.rounded())
+        } else {
+            breakMinutes = nil
+        }
+        note = try? c.decodeIfPresent(String.self, forKey: .note)
+        checklistIds = try? c.decodeIfPresent([String].self, forKey: .checklistIds)
+        shiftType = try? c.decodeIfPresent(String.self, forKey: .shiftType)
+    }
+}
+
+/// Any JSON value, kept as it came. For JSONB the app rewrites but whose keys it
+/// doesn't all know (daily_employee_times entries carry HQ's extras).
+public enum RawJSON: Codable, Hashable {
+    case null
+    case bool(Bool)
+    case number(Double)
+    case string(String)
+    case array([RawJSON])
+    case object([String: RawJSON])
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if c.decodeNil() {
+            self = .null
+        } else if let b = try? c.decode(Bool.self) {
+            self = .bool(b)
+        } else if let n = try? c.decode(Double.self) {
+            self = .number(n)
+        } else if let s = try? c.decode(String.self) {
+            self = .string(s)
+        } else if let a = try? c.decode([RawJSON].self) {
+            self = .array(a)
+        } else {
+            self = .object(try c.decode([String: RawJSON].self))
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .null: try c.encodeNil()
+        case .bool(let b): try c.encode(b)
+        case .number(let n):
+            // Whole numbers go back as integers (30, not 30.0) like the web writes them.
+            if n.rounded() == n, abs(n) < 1e15 { try c.encode(Int(n)) } else { try c.encode(n) }
+        case .string(let s): try c.encode(s)
+        case .array(let a): try c.encode(a)
+        case .object(let o): try c.encode(o)
+        }
+    }
 }
 
 public struct DBActivity: Codable, Identifiable, Hashable {
@@ -95,6 +182,12 @@ public struct DBActivity: Codable, Identifiable, Hashable {
         if let daily = daily_employees, !daily.isEmpty { return (daily[day] ?? []).map { $0.lowercased() } }
         guard day >= start_date, day <= end_date else { return [] }
         return (employees ?? []).map { $0.lowercased() }
+    }
+
+    /// The employee's own entry on a day (with HQ's extras), if the planner set one.
+    public func personalTimes(on day: String, for employeeId: UUID) -> DBDayTimes? {
+        daily_employee_times?[day]?[employeeId.uuidString.lowercased()]
+            ?? daily_employee_times?[day]?[employeeId.uuidString]
     }
 
     /// Planned window for one employee on one day: personal override → day window → activity default.
@@ -179,6 +272,10 @@ public struct DBEmployeeHoursUpsert: Encodable {
     public let approved_by: UUID? = nil
     public let approved_at: Date? = nil
     public let rejected_reason: String? = nil
+    /// The window the worker says they worked ("HH:mm"); HQ compares it with the
+    /// planned and clocked window (20261016160000). Left out when nil.
+    public var start_time: String? = nil
+    public var end_time: String? = nil
 }
 
 // MARK: - employee_availability (worker says when they can work)
@@ -223,6 +320,13 @@ public enum WorkerNotificationKind: String, Codable {
     case hours_approved, hours_rejected
     case approved, declined
     case task_assigned      // crew task from HQ (trigger crew_notify_task_assigned)
+    case profile_edited
+    case roster_updated     // HQ published concepts (notify_roster_published)
+    case leave_approved, leave_rejected
+    case availability_reminder
+    case swap_offered, swap_accepted, swap_approved, swap_declined
+    case open_shift         // "Uitvraag": the planner asks who wants an open place
+    case pickup_approved, pickup_declined
     case other
 
     public init(from decoder: Decoder) throws {

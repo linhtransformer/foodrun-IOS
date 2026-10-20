@@ -23,6 +23,7 @@ public struct ShiftDetailView: View {
     @Environment(ScheduleStore.self) private var schedule
     @Environment(HoursStore.self) private var hours
     @Environment(ShiftChangeStore.self) private var changes
+    @Environment(SwapStore.self) private var swaps
     @Environment(\.openURL) private var openURL
 
     public let activityId: UUID
@@ -52,6 +53,8 @@ public struct ShiftDetailView: View {
     @State private var summaryExpanded = false
     /// Confirmation before clocking in / out without a tag.
     @State private var confirmClock = false
+    /// "Ruil deze dienst" — the shift as the swap board knows it.
+    @State private var offering: SwapShift?
 
     public var body: some View {
         ScrollView {
@@ -105,6 +108,11 @@ public struct ShiftDetailView: View {
         .sheet(item: $answering) { task in answerSheet(for: task) }
         .sheet(isPresented: $showPrep) { CrewPrepListSheet(store: store) }
         .sheet(isPresented: $showStock) { CrewStockListSheet(store: store, day: day) }
+        .sheet(item: $offering) { shift in
+            SwapOfferSheet(shift: shift)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     /// Back arrow with the festival name next to it (truck · location below).
@@ -453,9 +461,20 @@ public struct ShiftDetailView: View {
             }
             Rectangle().fill(divider).frame(height: 1)
             HStack(spacing: 12) {
-                col("detail.role", shift?.employee.roles?.first ?? "—", sub: sub, ink: ink)
-                col("detail.break", "\(submitted?.break_minutes ?? 0) min", sub: sub, ink: ink)
+                col("detail.role", shift?.shiftType ?? shift?.employee.roles?.first ?? "—", sub: sub, ink: ink)
+                col("detail.break", "\(submitted?.break_minutes ?? shift?.breakMinutes ?? 0) min", sub: sub, ink: ink)
                 col("detail.hours", hoursLabel, sub: sub, ink: ink)
+            }
+            // What the planner wrote on this shift, and the lists that come with it.
+            if let note = shift?.note {
+                Label { Text(verbatim: note) } icon: { Image(systemName: "text.bubble") }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(ink)
+            }
+            if let lists = shift?.checklistCount, lists > 0 {
+                Label { Text("detail.checklists \(lists)") } icon: { Image(systemName: "checklist") }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(sub)
             }
         }
     }
@@ -696,19 +715,48 @@ public struct ShiftDetailView: View {
         }
     }
 
+    /// My coming shift as the swap board has it (past shifts can't be swapped).
+    private var swapShift: SwapShift? { swaps.myShift(activityId: activityId, day: SchemaDates.string(date)) }
+
+    @ViewBuilder
     private var requestSwap: some View {
-        Button {
-            router.swapSheetOpen = true
-        } label: {
-            HStack {
-                Image(systemName: "arrow.left.arrow.right")
-                Text("detail.requestSwap")
+        if let s = swapShift {
+            if let r = s.request {
+                // A request runs: say so, and where to follow it.
+                Button {
+                    router.shiftsPath.append(.swaps)
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.left.arrow.right")
+                        Group {
+                            if r.status == "accepted" {
+                                Text("detail.swapAccepted \(r.taker_name ?? "")")
+                            } else {
+                                Text("detail.swapOpen")
+                            }
+                        }
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.subject.warning)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .overlay(Capsule().stroke(Color.foodrun.subject.warning, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    offering = s
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.left.arrow.right")
+                        Text("detail.requestSwap")
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.foreground)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
             }
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(Color.foodrun.foreground)
-            .frame(maxWidth: .infinity, minHeight: 48)
-            .overlay(Capsule().stroke(Color.foodrun.foreground, lineWidth: 1))
         }
-        .buttonStyle(.plain)
     }
 }

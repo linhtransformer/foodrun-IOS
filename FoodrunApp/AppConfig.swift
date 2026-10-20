@@ -20,8 +20,9 @@ enum AppConfig {
         /// screen (briefing / dishes / prep / stock) — HQ migration
         /// 20261008120000_crew_app_event_content. Replaces the sample checklist.
         static let crewTasks = true
-        /// "Request a swap" — needs a swap-request table + operator review in HQ.
-        static let shiftSwaps = false
+        /// Ruilen: offer a shift, take one over, ask for an open shift (HQ migrations
+        /// 20261017120000 + 121000; the planner approves in Rooster → Ruilverzoeken).
+        static let shiftSwaps = true
         /// "Continue with Google" — needs GOTRUE_EXTERNAL_GOOGLE_ENABLED on the VPS.
         static let googleSignIn = true
         /// Sign in with Apple — needs GOTRUE_EXTERNAL_APPLE_ENABLED + the

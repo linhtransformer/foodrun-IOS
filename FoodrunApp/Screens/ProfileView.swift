@@ -9,6 +9,8 @@ public struct ProfileView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @Environment(ScheduleStore.self) private var schedule
     @Environment(HoursStore.self) private var hours
+    @Environment(SwapStore.self) private var swaps
+    @Environment(TabRouter.self) private var router
 
     public init() {}
 
@@ -17,6 +19,8 @@ public struct ProfileView: View {
             VStack(spacing: 16) {
                 avatar
                 if !schedule.employees.isEmpty { stats }
+                if !schedule.employees.isEmpty { workSection }
+                if schedule.hasOwnStaff { employerSection }
                 if !organizations.isEmpty { organizationsSection }
                 ProfileAccountSection()
             }
@@ -25,6 +29,64 @@ public struct ProfileView: View {
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
+    }
+
+    /// Ruilen and Verlof — the worker's own requests.
+    private var workSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("profile.section.work").frText(FRType.sectionHeader)
+            VStack(spacing: 6) {
+                if AppConfig.Features.shiftSwaps {
+                    Button { router.mePath.append(.swaps) } label: {
+                        navRow("arrow.left.arrow.right", "profile.swaps", badge: swaps.attentionCount)
+                    }
+                }
+                Button { router.mePath.append(.leave) } label: {
+                    navRow("calendar.badge.minus", "profile.leave", badge: 0)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// An employer using the app themselves can hide the planner tools and see it as their staff do.
+    private var employerSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("profile.section.employer").frText(FRType.sectionHeader)
+            Toggle(isOn: Binding(get: { schedule.showsOperatorTools }, set: { schedule.setShowsOperatorTools($0) })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("profile.operatorTools").frText(FRType.rowTitle)
+                    Text("profile.operatorTools.body").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+            }
+            .tint(Color.foodrun.foreground)
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
+            .frNeu(.raised)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func navRow(_ symbol: String, _ label: LocalizedStringKey, badge: Int) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.system(size: 15, weight: .medium))
+            Text(label).frText(FRType.rowTitle)
+            Spacer()
+            if badge > 0 {
+                Text(verbatim: "\(badge)")
+                    .font(.system(size: 12, weight: .bold).monospacedDigit())
+                    .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                    .padding(.horizontal, 7).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.foodrun.subject.warning))
+            }
+            Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+        }
+        .foregroundStyle(Color.foodrun.foreground)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
+        .frNeu(.raised)
+        .contentShape(Rectangle())
     }
 
     /// Who this account works for (or is waiting on) — so it's never a guess

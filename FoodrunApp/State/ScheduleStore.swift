@@ -19,6 +19,11 @@ public struct WorkerShift: Identifiable, Hashable {
     public let day: String              // "YYYY-MM-DD"
     public let start: String?           // "HH:mm"
     public let end: String?
+    /// What HQ put on this shift: pauze (minutes), opmerking, type, number of checklists.
+    public var breakMinutes: Int? = nil
+    public var note: String? = nil
+    public var shiftType: String? = nil
+    public var checklistCount: Int = 0
 
     public var date: Date { SchemaDates.date(day) ?? Date() }
     public var timeLabel: String {
@@ -43,6 +48,8 @@ public struct WorkerShift: Identifiable, Hashable {
         func m(_ t: String) -> Int { (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.dropFirst(3).prefix(2)) ?? 0) }
         var mins = m(end) - m(start)
         if mins < 0 { mins += 1440 }
+        // The planned pauze isn't worked time.
+        mins = max(0, mins - (breakMinutes ?? 0))
         return Double(mins) / 60
     }
 }
@@ -64,8 +71,18 @@ public final class ScheduleStore {
     /// real data, never the empty state a failed request leaves behind.
     public private(set) var rosterLoaded = false
     /// Operator (org owner) context — powers the admin "Add shift" sheet on the
-    /// Roster tab. Empty / false for ordinary workers.
-    public var isOperator = false
+    /// Roster tab. False for ordinary workers, and for an employer who switched
+    /// "Werkgever-functies" off in Profile to use the app like their staff do.
+    public var isOperator: Bool { hasOwnStaff && showsOperatorTools }
+    /// The account has staff of its own (employees.user_id = me).
+    public var hasOwnStaff = false
+    /// Profile → "Werkgever-functies" (stored on the phone; on by default).
+    public private(set) var showsOperatorTools: Bool = UserDefaults.standard.object(forKey: "showOperatorTools") as? Bool ?? true
+
+    public func setShowsOperatorTools(_ on: Bool) {
+        showsOperatorTools = on
+        UserDefaults.standard.set(on, forKey: "showOperatorTools")
+    }
     /// Organizations this account belongs to (RPC get_my_organizations; empty
     /// until the server offers it). Several when the worker works for more
     /// than one employer.
@@ -107,8 +124,9 @@ public final class ScheduleStore {
         do {
             let emps = try await WorkerAPI.fetchMyEmployees()
             let acts = try await WorkerAPI.fetchWorkerActivities()
-            employees = emps.filter(\.isApproved)
-            hasPendingRequest = emps.contains { !$0.isApproved }
+            // Taken off the team in HQ (is_active = false) = no shifts from that employer.
+            employees = emps.filter { $0.isApproved && $0.isActive }
+            hasPendingRequest = emps.contains { $0.approval_status == "pending" }
             activities = acts
             lastError = nil
             rosterLoaded = true
@@ -119,11 +137,11 @@ public final class ScheduleStore {
         }
         do {
             if let ctx = try await WorkerAPI.fetchOperatorContext() {
-                isOperator = true
+                hasOwnStaff = true
                 operatorEmployees = ctx.employees
                 operatorActivities = ctx.activities
             } else {
-                isOperator = false
+                hasOwnStaff = false
                 operatorEmployees = []
                 operatorActivities = []
             }
@@ -146,7 +164,14 @@ public final class ScheduleStore {
             guard let emp = employee(for: activity) else { return [] }
             return activity.scheduledDays(for: emp.id).map { day in
                 let w = activity.window(on: day, for: emp.id)
-                return WorkerShift(activity: activity, employee: emp, day: day, start: w?.start, end: w?.end)
+                let extras = activity.personalTimes(on: day, for: emp.id)
+                let note = extras?.note?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let type = extras?.shiftType?.trimmingCharacters(in: .whitespacesAndNewlines)
+                return WorkerShift(activity: activity, employee: emp, day: day, start: w?.start, end: w?.end,
+                                   breakMinutes: (extras?.breakMinutes ?? 0) > 0 ? extras?.breakMinutes : nil,
+                                   note: (note?.isEmpty ?? true) ? nil : note,
+                                   shiftType: (type?.isEmpty ?? true) ? nil : type,
+                                   checklistCount: extras?.checklistIds?.count ?? 0)
             }
         }
         .sorted { ($0.day, $0.start ?? "") < ($1.day, $1.start ?? "") }
@@ -184,7 +209,7 @@ public final class ScheduleStore {
         s.activities = [Fixtures.activityMees, Fixtures.activityMama]
         s.today = Fixtures.today
         s.selectedDate = Fixtures.today
-        s.isOperator = true
+        s.hasOwnStaff = true
         s.operatorEmployees = [Fixtures.worker]
         s.operatorActivities = [Fixtures.activityMees, Fixtures.activityMama]
         return s

@@ -90,12 +90,12 @@ struct ShiftsMode: View {
         FRLanguage.string(key).uppercased(with: FRLanguage.locale)
     }
 
-    /// "Kitchen", or "Kitchen · Vietnamama" when the worker has several employers.
+    /// "Kitchen · pauze 30 min", or "Opbouw · Kitchen · Vietnamama" with a shift type and
+    /// several employers.
     private func roleLine(_ shift: WorkerShift) -> String {
         let role = shift.employee.roles?.first
-        guard schedule.worksForSeveral, let org = schedule.organizationName(for: shift.employee.id) else {
-            return role ?? ""
-        }
-        return [role, org].compactMap { $0 }.joined(separator: " · ")
+        let org = schedule.worksForSeveral ? schedule.organizationName(for: shift.employee.id) : nil
+        let pause = shift.breakMinutes.map { String(format: FRLanguage.string("shift.break %lld"), $0) }
+        return [shift.shiftType, role, pause, org].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     }
 }

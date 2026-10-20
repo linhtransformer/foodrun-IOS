@@ -133,7 +133,7 @@ enum WorkerAPI {
         let uid = try await currentUserId()
         let rows: [DBEmployee] = try await client
             .from("employees")
-            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at, color")
+            .select("id, user_id, auth_user_id, name, last_name, email, phone, hourly_rate, roles, contract_type, approval_status, onboarded_at, color, is_active")
             .eq("auth_user_id", value: uid.uuidString)
             .order("created_at", ascending: true)
             .execute()
@@ -207,7 +207,8 @@ enum WorkerAPI {
     /// Submit (or resubmit) hours for one day. Upsert on the same unique key the
     /// web uses, so a correction replaces the earlier row and resets it to
     /// 'pending' for the operator to review in HQ.
-    static func submitHours(employeeId: UUID, activityId: UUID, workDate: String, hours: Double, breakMinutes: Int, comment: String?) async throws {
+    static func submitHours(employeeId: UUID, activityId: UUID, workDate: String, hours: Double, breakMinutes: Int, comment: String?,
+                            start: String? = nil, end: String? = nil) async throws {
         let payload = DBEmployeeHoursUpsert(
             employee_id: employeeId,
             activity_id: activityId,
@@ -215,7 +216,9 @@ enum WorkerAPI {
             hours: (hours * 100).rounded() / 100,
             break_minutes: breakMinutes,
             comment: comment,
-            submitted_at: Date()
+            submitted_at: Date(),
+            start_time: start,
+            end_time: end
         )
         try await client
             .from("employee_hours")
@@ -296,7 +299,8 @@ enum WorkerAPI {
     /// Same writes as HQ's scheduling board (AvailabilityBoard.tsx): append to
     /// daily_employees[day], keep `employees` as the union of all days, and set
     /// daily_employee_times[day][employee] = { startTime, endTime }. People already
-    /// on a day keep their place; their times are updated.
+    /// on a day keep their place; their times are updated (pauze, opmerking,
+    /// checklists and type that HQ set stay — see `window(_:start:end:)`).
     static func addToRoster(activityId: UUID, days: [String], employeeIds: [UUID], start: String, end: String) async throws {
         let ids = employeeIds.map { $0.uuidString.lowercased() }
         try await updateRoster(activityId: activityId) { daily, times in
@@ -305,7 +309,12 @@ enum WorkerAPI {
                 for id in ids where !dayIds.contains(where: { $0.lowercased() == id }) { dayIds.append(id) }
                 daily[day] = dayIds
                 var dayTimes = times[day] ?? [:]
-                for id in ids { dayTimes[id] = DBDayTimes(startTime: start, endTime: end, active: nil) }
+                for id in ids {
+                    let existingKey = dayTimes.keys.first { $0.lowercased() == id }
+                    let existing = existingKey.flatMap { dayTimes[$0] }
+                    if let existingKey, existingKey != id { dayTimes[existingKey] = nil }
+                    dayTimes[id] = window(existing, start: start, end: end)
+                }
                 times[day] = dayTimes
             }
         }
@@ -316,10 +325,22 @@ enum WorkerAPI {
         let id = employeeId.uuidString.lowercased()
         try await updateRoster(activityId: activityId) { _, times in
             var dayTimes = times[day] ?? [:]
+            let existingKey = dayTimes.keys.first { $0.lowercased() == id }
+            let existing = existingKey.flatMap { dayTimes[$0] }
             for key in dayTimes.keys where key.lowercased() == id && key != id { dayTimes[key] = nil }
-            dayTimes[id] = DBDayTimes(startTime: start, endTime: end, active: nil)
+            dayTimes[id] = window(existing, start: start, end: end)
             times[day] = dayTimes
         }
+    }
+
+    /// A person's entry with a new window. Everything else HQ put on it (breakMinutes,
+    /// note, checklistIds, shiftType, …) is kept as it was.
+    private static func window(_ existing: RawJSON?, start: String, end: String) -> RawJSON {
+        var object: [String: RawJSON] = [:]
+        if case .object(let current)? = existing { object = current }
+        object["startTime"] = .string(start)
+        object["endTime"] = .string(end)
+        return .object(object)
     }
 
     /// Take one person off one day (HQ: handleUnassign + clearing their window).
@@ -336,20 +357,21 @@ enum WorkerAPI {
 
     /// Read-modify-write of an activity's three roster columns. `employees` is
     /// always rewritten as the union of every day, like HQ's syncFlatEmployees.
+    /// The windows are handled as raw JSON so keys this app doesn't know survive.
     private static func updateRoster(
         activityId: UUID,
-        _ change: (inout [String: [String]], inout [String: [String: DBDayTimes]]) -> Void
+        _ change: (inout [String: [String]], inout [String: [String: RawJSON]]) -> Void
     ) async throws {
         struct RosterRow: Decodable {
             let start_date: String
             let end_date: String
             let daily_employees: [String: [String]]?
-            let daily_employee_times: [String: [String: DBDayTimes]]?
+            let daily_employee_times: [String: [String: RawJSON]]?
             let employees: [String]?
         }
         struct RosterUpdate: Encodable {
             let daily_employees: [String: [String]]
-            let daily_employee_times: [String: [String: DBDayTimes]]
+            let daily_employee_times: [String: [String: RawJSON]]
             let employees: [String]
         }
         let row: RosterRow = try await client

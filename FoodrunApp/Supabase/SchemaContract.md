@@ -352,6 +352,54 @@ handles `/invite/<token>` and `foodrun://invite/<token>` is ready, ask HQ to add
 `{ "/": "/invite/*" }` to the AASA components and set that flag — before that build
 reaches testers, because iOS reads the file on install or update.
 
+### Shift extras, Ruilen, Verlof, availability rules (2026-10-17 — server live, app built here)
+
+HQ migrations `20261017100000` … `160000` (HQ decisions 0087–0090).
+
+**Shift extras.** A `daily_employee_times[day][employee]` entry may carry, next to
+`startTime` / `endTime`: `breakMinutes` (int), `note` (string), `checklistIds` (uuid strings)
+and `shiftType` (string). `DBDayTimes` decodes them leniently; `WorkerShift` exposes
+`breakMinutes`, `note`, `shiftType`, `checklistCount`. **Writers must keep them**:
+`WorkerAPI.updateRoster` now reads and writes the entries as `RawJSON` and only replaces
+`startTime` / `endTime`. Checklists on a shift (and on a person's role) arrive as ordinary
+`crew_tasks` through `get_my_crew_tasks` — no app change needed for those.
+
+**Ruilen** (`PeopleAPI`, `SwapStore`, `SwapsView`, `SwapOfferSheet`; `AppConfig.Features.shiftSwaps = true`):
+
+| Call | Does |
+|---|---|
+| `get_my_swap_board()` | `{ mine, offered, open_shifts, colleagues, my_shifts }` — see `SwapBoard` |
+| `request_shift_swap(p_activity_id, p_day, p_to_employee_id?, p_note?)` | offer my shift to one colleague or everyone (explicit nulls) |
+| `respond_shift_swap(p_request_id, p_accept)` | take over (`approved` at once, or `accepted` = planner decides) or turn down a targeted offer (`declined`) |
+| `request_open_shift(p_activity_id, p_day, p_note?)` | ask for an open place: `approved` or `accepted` |
+| `withdraw_shift_swap(p_request_id)` | take my request back while undecided |
+
+Error codes in the message: `already_requested`, `already_on_shift`, `no_open_place`,
+`not_open`, `in_the_past`, `not_on_shift`, `unknown_colleague`, `shift_changed`
+(`PeopleAPI.message(for:)` maps them to `swap.error.*`).
+
+**Verlof**: `leave_requests` — read own rows; insert `{employee_id, start_date, end_date,
+reason, status: 'pending'}`; withdraw = update `status = 'cancelled'` (only while pending).
+
+**Availability rules**: `get_my_availability_rules()` → per employer `{ owner_id, employee_id,
+organization_name, reason_required, deadline: { weekday (0 = Mon), time, weeks_before } | null,
+closed_days: [date] }`. The guard trigger still decides; the app shows closed days, the
+deadline and the reason hint ahead of time, and shows the server's Dutch error text.
+
+**Wanted shifts per week**: the "this week" stepper now reads and upserts
+`employee_week_preferences (employee_id, week_start = Monday, wanted_shifts 0–7)` for every
+linked employee row.
+
+**Hours**: the submit also sends `start_time` / `end_time` ("HH:mm").
+
+**Inbox types** added: `profile_edited`, `roster_updated`, `leave_approved`, `leave_rejected`,
+`availability_reminder`, `swap_offered`, `swap_accepted`, `swap_approved`, `swap_declined`,
+`open_shift`, `pickup_approved`, `pickup_declined`. Swap kinds open Ruilen, leave kinds open
+Verlof, the reminder opens Availability, `roster_updated` the Shifts tab.
+
+**Employer accounts**: `ScheduleStore.isOperator` = owns staff **and** Profile →
+"Werkgever-functies" is on (stored on the phone). Off = the app behaves as for a worker.
+
 ## Open items
 
 - **Uren result tiles** — HQ's Uren screen still reads the kanban `tasks`; it

@@ -104,6 +104,29 @@ public struct InboxView: View {
             return
         }
 
+        switch item.type {
+        case .swap_offered, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined:
+            // Ruilen shows the offer, the open shift or what was decided.
+            router.inboxPath.append(.swaps)
+            return
+        case .leave_approved, .leave_rejected:
+            router.inboxPath.append(.leave)
+            return
+        case .availability_reminder:
+            schedule.selectedDate = schedule.today
+            schedule.mode = .availability
+            router.shiftsPath = []
+            router.tab = .shifts
+            return
+        case .roster_updated:
+            schedule.mode = .shifts
+            router.shiftsPath = []
+            router.tab = .shifts
+            return
+        default:
+            break
+        }
+
         let isTask = item.type == .task_assigned && AppConfig.Features.crewTasks
         if let activityId = item.activity_id {
             // My shift on that event: today's or the next one, else the last one.
@@ -147,6 +170,10 @@ public struct InboxView: View {
                     Text("inbox.taskAssigned").frText(FRType.fieldLabel)
                         .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
                 }
+                if [.swap_offered, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined].contains(item.type) {
+                    Text("inbox.swap").frText(FRType.fieldLabel)
+                        .foregroundStyle(Color.foodrun.subject.swapOpenInk)
+                }
                 HStack {
                     Text(item.title).frText(FRType.rowTitle)
                     Spacer()
@@ -173,7 +200,7 @@ public struct InboxView: View {
     private func agentAvatar(_ item: DBWorkerNotification) -> some View {
         // System notices (roster changes) get the Foodrun mark; decisions by a person
         // (hours approved/rejected, join approved) get the operator's initials.
-        let isAgent = item.type == .activity_added || item.type == .activity_updated || item.type == .other
+        let isAgent = [.activity_added, .activity_updated, .other, .roster_updated, .availability_reminder, .open_shift].contains(item.type)
         return Group {
             if isAgent {
                 RoundedRectangle(cornerRadius: 11, style: .continuous)

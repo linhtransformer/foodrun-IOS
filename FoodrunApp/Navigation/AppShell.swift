@@ -14,6 +14,9 @@ public struct AppShell: View {
     @State private var changes = ShiftChangeStore()
     /// Operator-assigned tasks (Tasks tab) — get_my_crew_tasks.
     @State private var crewTasks = CrewTasksStore()
+    /// Ruilen (get_my_swap_board) and Verlof (leave_requests).
+    @State private var swaps = SwapStore()
+    @State private var leave = LeaveStore()
     private let isPreview: Bool
 
     /// Signed-in app: empty stores filled from Supabase (the same tables HQ uses).
@@ -50,7 +53,8 @@ public struct AppShell: View {
         async let a: Void = availability.load(employeeIds: ids)
         async let i: Void = inbox.load()
         async let t: Void = crewTasks.load()
-        _ = await (h, a, i, t)
+        async let s: Void = swaps.load()
+        _ = await (h, a, i, t, s)
     }
 
     /// Tabs shown in the bar — Tasks when operator tasks (or the old sample
@@ -126,15 +130,8 @@ public struct AppShell: View {
         .environment(inbox)
         .environment(changes)
         .environment(crewTasks)
-        .sheet(isPresented: Binding(
-            get: { router.swapSheetOpen },
-            set: { router.swapSheetOpen = $0 }
-        )) {
-            SwapSheet()
-                .environment(router)
-                .presentationDetents([.fraction(0.6), .large])
-                .presentationDragIndicator(.visible)
-        }
+        .environment(swaps)
+        .environment(leave)
         .sheet(isPresented: Binding(
             get: { router.addShiftOpen },
             set: { router.addShiftOpen = $0 }
@@ -215,6 +212,10 @@ public struct AppShell: View {
             if showsCrewTasks { CrewTasksView() } else { TasksView() }
         case .approvedHours:
             ApprovedHoursView()
+        case .swaps:
+            SwapsView()
+        case .leave:
+            LeaveView()
         }
     }
 

@@ -75,7 +75,8 @@ struct SubmitHoursCard: View {
                 }
                 Button {
                     Task {
-                        if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: trimmedNote) {
+                        if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: trimmedNote,
+                                              start: editStart, end: editEnd) {
                             FRHaptic.success.fire()
                         } else {
                             FRHaptic.error.fire()
@@ -218,7 +219,8 @@ struct SubmitHoursCard: View {
         editStart = String((shift.start ?? "09:00").prefix(5))
         editEnd = String((shift.end ?? "17:00").prefix(5))
         let existing = hours.row(activityId: shift.activity.id, day: shift.day)
-        editBreak = existing?.break_minutes ?? 0
+        // The planner's pauze for this shift until the worker submitted their own.
+        editBreak = existing?.break_minutes ?? shift.breakMinutes ?? 0
         note = existing?.comment ?? ""
     }
 
