@@ -51,6 +51,9 @@ targets:
       path: Supporting/Info.plist
       properties:
         CFBundleDisplayName: Foodrun
+        # Version and build come from MARKETING_VERSION / CURRENT_PROJECT_VERSION above.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, nl]
         UILaunchScreen: {}
