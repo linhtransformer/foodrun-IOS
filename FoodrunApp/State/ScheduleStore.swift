@@ -201,6 +201,17 @@ public final class ScheduleStore {
         return employees.first { $0.user_id == activity.user_id }
     }
 
+    /// A current employer's activities running on `day` ("YYYY-MM-DD"), rostered or
+    /// not: the feed also sends the ones the employer opened for availability. Names
+    /// arrive already replaced when the employer chose "Hide name from workers".
+    public func activitiesRunning(on day: String) -> [DBActivity] {
+        activities.filter { a in
+            guard a.left_on == nil, employee(for: a) != nil,
+                  day >= a.start_date, day <= a.end_date else { return false }
+            return a.daily_times?[day]?.active != false
+        }
+    }
+
     /// Every rostered shift, oldest first.
     public var shifts: [WorkerShift] {
         activities.flatMap { activity -> [WorkerShift] in

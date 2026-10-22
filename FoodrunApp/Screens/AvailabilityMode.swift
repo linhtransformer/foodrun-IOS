@@ -24,6 +24,11 @@ struct AvailabilityMode: View {
             ))
             FRStepperRow("availability.standardPerWeek", value: $av.standardShifts)
 
+            if let work = workThatDay {
+                notice(Text(verbatim: String(format: FRLanguage.string("availability.workThatDay %@"), work)),
+                       color: Color.foodrun.mutedForegroundSoft)
+            }
+
             if let org = availability.closedBy(schedule.selectedDate) {
                 notice(Text("availability.closedBy \(org)"), color: Color.foodrun.subject.warning)
             }
@@ -68,6 +73,14 @@ struct AvailabilityMode: View {
             .padding(.horizontal, 4)
     }
 
+    /// "Festival, Kermis Utrecht" — what runs on the selected day, so a grey day reads as work.
+    private var workThatDay: String? {
+        let names = schedule.activitiesRunning(on: ScheduleStore.iso(schedule.selectedDate)).map(\.name)
+        var seen = Set<String>()
+        let unique = names.filter { seen.insert($0).inserted }
+        return unique.isEmpty ? nil : unique.joined(separator: ", ")
+    }
+
     /// "Sluit do 18:00" — when the employer stops taking availability for this week.
     private var closesLabel: String? {
         guard let at = availability.closesAt(weekOf: schedule.selectedDate) else { return nil }
@@ -79,18 +92,13 @@ struct AvailabilityMode: View {
     }
 
     private var legendAndCloses: some View {
-        HStack {
-            HStack(spacing: 6) {
-                Circle().fill(Color.foodrun.subject.positive).frame(width: 8, height: 8)
-                Text("availability.legend.available")
-                    .frText(FRType.rowSubtitle)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 14) {
+                legendItem(Color.foodrun.subject.positive, "availability.legend.available")
+                legendItem(Color.foodrun.subject.destructive, "availability.legend.notAvailable")
+                legendItem(Color.foodrun.mutedForegroundSoft, "availability.legend.work")
+                Spacer(minLength: 0)
             }
-            HStack(spacing: 6) {
-                Circle().fill(Color.foodrun.subject.destructive).frame(width: 8, height: 8)
-                Text("availability.legend.notAvailable")
-                    .frText(FRType.rowSubtitle)
-            }
-            Spacer()
             if let closesLabel {
                 Text(verbatim: closesLabel)
                     .frText(FRType.fieldLabel)
@@ -98,6 +106,13 @@ struct AvailabilityMode: View {
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(Capsule().fill(Color.foodrun.subject.warningPill))
             }
+        }
+    }
+
+    private func legendItem(_ color: Color, _ key: LocalizedStringKey) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(key).frText(FRType.rowSubtitle).lineLimit(1)
         }
     }
 

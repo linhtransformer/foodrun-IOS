@@ -64,6 +64,7 @@
 "availability.notAvailable"        = "Not available";
 "availability.legend.available"    = "Available";
 "availability.legend.notAvailable" = "Not available";
+"availability.legend.work"         = "Work that day";
 "availability.reason.placeholder"  = "Reason (optional)";
 "availability.closesThu"           = "Closes Thu 23:59";
 "availability.agent %lld %lld"     = "You want %1$lld shifts this week (standard %2$lld). The agent will schedule inside your open windows.";
@@ -555,6 +556,7 @@
 /* Ruilen, verlof, beschikbaarheidsregels, dienst-extras (HQ 2026-10-17) */
 "availability.closedBy %@"      = "%@ has closed this day for availability.";
 "availability.reasonRequired"   = "Your employer asks for a reason when you can't work.";
+"availability.workThatDay %@"   = "Work on this day: %@";
 "availability.closesAt"         = "Closes %@";
 "detail.checklists %lld"        = "Checklists with this shift: %lld";
 "detail.swapAccepted %@"        = "%@ takes it over · waiting for approval";

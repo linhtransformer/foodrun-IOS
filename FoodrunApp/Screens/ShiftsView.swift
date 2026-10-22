@@ -124,7 +124,10 @@ public struct ShiftsView: View {
                     switch availability.stateFor(d) {
                     case .available:   return Color.foodrun.subject.positive
                     case .unavailable: return Color.foodrun.subject.destructive
-                    case .unset:       return byDay[key] == nil ? nil : Color.foodrun.mutedForegroundSoft
+                    // Grey: there is work that day (rostered or opened for availability), not filled in yet.
+                    case .unset:
+                        return byDay[key] == nil && schedule.activitiesRunning(on: key).isEmpty
+                            ? nil : Color.foodrun.mutedForegroundSoft
                     }
                 }
                 return byDay[key]?.first.map { Color.foodrunData(hex: $0.activity.color) }
