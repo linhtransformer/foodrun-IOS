@@ -32,6 +32,9 @@ public struct SwapsView: View {
                 if let error = swaps.lastError {
                     Text(verbatim: error).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.subject.destructive)
                 }
+                if !swaps.board.asked.isEmpty {
+                    section("swaps.section.asked") { ForEach(swaps.board.asked) { askRow($0) } }
+                }
                 if !swaps.board.offered.isEmpty {
                     section("swaps.section.offered") { ForEach(swaps.board.offered) { offerRow($0) } }
                 }
@@ -44,7 +47,7 @@ public struct SwapsView: View {
                     }
                     ForEach(swaps.board.my_shifts) { myShiftRow($0) }
                 }
-                let history = swaps.board.mine.filter { $0.kind == "pickup" || ($0.status != "open" && $0.status != "accepted") }
+                let history = swaps.board.mine.filter { $0.kind == "pickup" || ($0.kind == "ask" && $0.role == "taker") || ($0.status != "open" && $0.status != "accepted") }
                 if !history.isEmpty {
                     section("swaps.section.history") { ForEach(history) { historyRow($0) } }
                 }
@@ -154,6 +157,22 @@ public struct SwapsView: View {
         }
     }
 
+    private func askRow(_ ask: SwapAsk) -> some View {
+        card {
+            VStack(alignment: .leading, spacing: 10) {
+                shiftLine(ask.activity, ask.day, ask.window, employer: ask.employer)
+                Text("swaps.asked \(ask.taker_name)").frText(FRType.rowSubtitle)
+                if let note = ask.note, !note.isEmpty {
+                    Text(verbatim: "“\(note)”").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                HStack(spacing: 8) {
+                    pill("swaps.give") { Task { if await swaps.answer(ask, give: true) { FRHaptic.success.fire(); await schedule.load() } else { FRHaptic.error.fire() } } }
+                    pill("swaps.keep", filled: false) { Task { _ = await swaps.answer(ask, give: false) } }
+                }
+            }
+        }
+    }
+
     private func openRow(_ open: OpenShift) -> some View {
         card {
             HStack(alignment: .center, spacing: 10) {
@@ -215,7 +234,7 @@ public struct SwapsView: View {
                 if let note = r.manager_note, !note.isEmpty {
                     Text(verbatim: "“\(note)”").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
-                if r.kind == "pickup" && (r.status == "open" || r.status == "accepted") {
+                if (r.kind == "pickup" || (r.kind == "ask" && r.role == "taker")) && (r.status == "open" || r.status == "accepted") {
                     pill("swaps.withdraw", filled: false) { Task { _ = await swaps.withdraw(requestId: r.id) } }
                 }
             }
@@ -223,7 +242,7 @@ public struct SwapsView: View {
     }
 
     private func historyLine(_ r: MySwapRequest) -> String {
-        guard r.kind == "swap" else { return FRLanguage.string("swaps.openShift") }
+        guard r.kind != "pickup" else { return FRLanguage.string("swaps.openShift") }
         let who = r.taker_name ?? r.to_name ?? FRLanguage.string("swaps.everyone")
         return "\(r.from_name ?? "") → \(who)"
     }

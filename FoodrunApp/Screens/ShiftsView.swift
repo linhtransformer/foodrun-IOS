@@ -10,7 +10,6 @@ public struct ShiftsView: View {
     @Environment(ClockStore.self) private var clock
     @Environment(AvailabilityStore.self) private var availability
     @Environment(TasksStore.self) private var tasks
-    @Environment(SwapStore.self) private var swaps
 
     public init() {}
 
@@ -18,7 +17,6 @@ public struct ShiftsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 hero
-                if AppConfig.Features.shiftSwaps && swaps.attentionCount > 0 { swapsBanner }
                 modePills
                 if schedule.mode != .shifts {
                     weekCarousel
@@ -38,32 +36,6 @@ public struct ShiftsView: View {
             clock.activityId = shift.activity.id
             await clock.refreshLatestEvent(employeeId: shift.employee.id)
         }
-    }
-
-    /// "Ruilen · 1 aanbod voor jou · 2 open diensten" — straight to the swap board.
-    private var swapsBanner: some View {
-        Button { router.shiftsPath.append(.swaps) } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "arrow.left.arrow.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 30, height: 30)
-                    .background(Circle().fill(Color.foodrun.subject.warning.opacity(0.15)))
-                    .foregroundStyle(Color.foodrun.subject.warning)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("swaps.title").frText(FRType.rowTitle)
-                    Text("swaps.banner \(swaps.board.offered.count) \(swaps.board.open_shifts.filter { !$0.requested }.count)")
-                        .frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            .foregroundStyle(Color.foodrun.foreground)
-            .padding(12)
-            .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
-            .frNeu(.raised)
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Hero

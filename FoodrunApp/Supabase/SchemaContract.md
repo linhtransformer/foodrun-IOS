@@ -373,6 +373,14 @@ and `shiftType` (string). `DBDayTimes` decodes them leniently; `WorkerShift` exp
 | `respond_shift_swap(p_request_id, p_accept)` | take over (`approved` at once, or `accepted` = planner decides) or turn down a targeted offer (`declined`) |
 | `request_open_shift(p_activity_id, p_day, p_note?)` | ask for an open place: `approved` or `accepted` |
 | `withdraw_shift_swap(p_request_id)` | take my request back while undecided |
+| `request_shift_takeover(p_activity_id, p_day, p_from_employee_id, p_note?)` | ask a colleague for their shift (kind `ask`, take over only); they get `swap_asked` |
+| `respond_shift_swap(p_request_id, p_accept)` on an ask | the colleague with the shift gives it (`accepted` / `approved`) or keeps it (`declined`) |
+| `get_my_team_roster(p_from, p_to)` | published shifts of my employers, max 31 days: `[{ day, employee_id, name, color, is_me, employer, activity, window, ask }]` — see `TeamShift` |
+
+`get_my_swap_board` also returns `asked`: colleagues asking for one of my shifts (`SwapAsk`); my own
+asks are in `mine` with `kind = ask`, `role = taker` (HQ migration `20261022120000`). The app shows
+colleagues on the Rooster tab (worker view; tap → `TakeoverSheet`) and the cards that wait for an
+answer in the Inbox (`SwapInboxCards`); the Shifts home has no swap banner any more.
 
 Error codes in the message: `already_requested`, `already_on_shift`, `no_open_place`,
 `not_open`, `in_the_past`, `not_on_shift`, `unknown_colleague`, `shift_changed`

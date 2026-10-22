@@ -620,3 +620,17 @@
 "profile.section.employer"      = "Employer";
 "profile.operatorTools"         = "Employer tools";
 "profile.operatorTools.body"    = "On: your company's whole roster and Add shift. Off: see the app the way your staff do.";
+
+/* Ruilen, part 2: ask a colleague for their shift (Rooster tab) and answer in the Inbox */
+"takeover.title %@"             = "Take over %@'s shift?";
+"takeover.body %@"              = "%@ gets your request in their Inbox. If they say yes, the planner approves it, unless your employer lets swaps go through at once.";
+"takeover.send"                 = "Ask to take over";
+"takeover.status.open %@"       = "Asked · waiting for %@";
+"takeover.status.accepted %@"   = "%@ said yes · waiting for approval";
+"roster.tapToAsk"               = "Tap a colleague's shift to ask if you can take it over.";
+"roster.openMine.hint"          = "Open your shift";
+"roster.ask.hint"               = "Ask to take over this shift";
+"swaps.section.asked"           = "Asked for your shift";
+"swaps.asked %@"                = "%@ wants to take over this shift";
+"swaps.give"                    = "Give it";
+"swaps.keep"                    = "Keep it";

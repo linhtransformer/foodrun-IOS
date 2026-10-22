@@ -1,12 +1,13 @@
 import SwiftUI
 
-// Bundle §7. Inbox.
+// Bundle §7. Inbox. Swap requests that wait for an answer sit on top (SwapInboxCards).
 
 public struct InboxView: View {
     @Environment(InboxStore.self) private var inbox
     @Environment(ShiftChangeStore.self) private var changes
     @Environment(TabRouter.self) private var router
     @Environment(ScheduleStore.self) private var schedule
+    @Environment(SwapStore.self) private var swaps
 
     /// Server notifications and locally detected shift edits, newest first.
     private enum Entry: Identifiable {
@@ -36,7 +37,10 @@ public struct InboxView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                if entries.isEmpty {
+                if AppConfig.Features.shiftSwaps {
+                    SwapInboxCards()
+                }
+                if entries.isEmpty && (!AppConfig.Features.shiftSwaps || !SwapInboxCards.hasCards(swaps)) {
                     Text("inbox.empty")
                         .frText(FRType.rowSubtitle)
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
@@ -58,7 +62,11 @@ public struct InboxView: View {
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
         .background(Color.foodrun.background.ignoresSafeArea())
-        .refreshable { await inbox.load() }
+        .refreshable {
+            await inbox.load()
+            if AppConfig.Features.shiftSwaps { await swaps.load() }
+        }
+        .task { if AppConfig.Features.shiftSwaps { await swaps.load() } }
     }
 
     /// A shift edit spotted on this device (see ShiftChangeStore). Tapping opens the shift.
@@ -105,7 +113,7 @@ public struct InboxView: View {
         }
 
         switch item.type {
-        case .swap_offered, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined:
+        case .swap_offered, .swap_asked, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined:
             // Ruilen shows the offer, the open shift or what was decided.
             router.inboxPath.append(.swaps)
             return
@@ -170,7 +178,7 @@ public struct InboxView: View {
                     Text("inbox.taskAssigned").frText(FRType.fieldLabel)
                         .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
                 }
-                if [.swap_offered, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined].contains(item.type) {
+                if [.swap_offered, .swap_asked, .swap_accepted, .swap_approved, .swap_declined, .open_shift, .pickup_approved, .pickup_declined].contains(item.type) {
                     Text("inbox.swap").frText(FRType.fieldLabel)
                         .foregroundStyle(Color.foodrun.subject.swapOpenInk)
                 }

@@ -2,16 +2,21 @@ import SwiftUI
 
 // Bundle §2b. Who works on the day picked in the carousel.
 //
-// Workers can only read their own employee row (RLS), so they see themselves
-// plus a headcount from activities.daily_employees. Operators (org owners) see
-// every rostered person by name and get the "+" to roster someone — the same
-// daily_employees / daily_employee_times fields HQ's scheduling board edits.
+// Workers see the published roster of their employer(s) by name (get_my_team_roster) and the
+// day's open shifts. Tapping a colleague's shift asks to take it over (TakeoverSheet); the
+// answer comes through the Inbox. Operators (org owners with Werkgever-functies on) see their
+// own company's roster editable and get the "+" — the same daily_employees /
+// daily_employee_times fields HQ's scheduling board edits. If the team roster can't load,
+// workers fall back to their own shifts plus a headcount.
 
 struct RosterMode: View {
     @Environment(ScheduleStore.self) private var schedule
     @Environment(TabRouter.self) private var router
+    @Environment(SwapStore.self) private var swaps
     /// Admin: the rostered person being edited (times / remove).
     @State private var editing: Entry?
+    /// Worker: the colleague's shift being asked for.
+    @State private var asking: TeamShift?
 
     private var dayKey: String { SchemaDates.string(schedule.selectedDate) }
 
@@ -69,7 +74,26 @@ struct RosterMode: View {
         "\(activityId.uuidString.lowercased())|\(employeeId.lowercased())"
     }
 
-    private var headcount: Int { entries.count + hiddenColleagues }
+    private var headcount: Int { showsTeam ? teamToday.count : entries.count + hiddenColleagues }
+
+    /// Worker view with the team roster loaded (swaps switched on).
+    private var showsTeam: Bool { AppConfig.Features.shiftSwaps && !schedule.isOperator && swaps.teamLoaded }
+
+    private var teamToday: [TeamShift] {
+        swaps.team(on: dayKey).sorted { ($0.window.startTime ?? "", $0.name) < ($1.window.startTime ?? "", $1.name) }
+    }
+
+    private var openToday: [OpenShift] {
+        guard AppConfig.Features.shiftSwaps && !schedule.isOperator else { return [] }
+        return swaps.openShifts(on: dayKey)
+    }
+
+    /// Monday of the selected week: the team roster loads a week at a time.
+    private var weekKey: String {
+        var cal = Calendar(identifier: .iso8601)
+        cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        return SchemaDates.string(cal.dateInterval(of: .weekOfYear, for: schedule.selectedDate)?.start ?? schedule.selectedDate)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -113,46 +137,158 @@ struct RosterMode: View {
                 }
                 .buttonStyle(.plain)
             }
-            if entries.isEmpty {
-                Text("roster.empty")
+            if showsTeam && teamToday.contains(where: { !$0.is_me }) {
+                Text("roster.tapToAsk")
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    .frame(maxWidth: .infinity)
-                    .padding(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
-                            .strokeBorder(Color.foodrun.border, style: StrokeStyle(lineWidth: 1, dash: [4]))
-                    )
             }
-            VStack(spacing: 8) {
-                ForEach(entries) { e in
-                    let row = FRRosterRow(
-                        name: e.employee.fullName,
-                        initials: initials(e.employee.fullName),
-                        avatarColor: Color.foodrunData(hex: e.employee.color ?? e.activity.color),
-                        role: e.employee.roles?.first ?? "",
-                        truckName: e.activity.food_truck ?? e.activity.name,
-                        truckColor: Color.foodrunData(hex: e.activity.color),
-                        time: e.time,
-                        isYou: e.isYou
-                    )
-                    if schedule.isOperator && e.editable {
-                        Button { editing = e } label: { row.contentShape(Rectangle()) }
-                            .buttonStyle(.plain)
-                            .accessibilityHint(Text("roster.edit.hint"))
-                    } else {
-                        row
-                    }
-                }
-                if hiddenColleagues > 0 {
-                    Text("detail.crew.others \(hiddenColleagues)")
-                        .frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            if showsTeam {
+                teamList
+            } else {
+                operatorList
+            }
+            if !openToday.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("swaps.section.open").frText(FRType.sectionHeader).padding(.top, 6)
+                    ForEach(openToday) { openRow($0) }
                 }
             }
         }
         .sheet(item: $editing) { e in
             RosterEntrySheet(employee: e.employee, activity: e.activity, day: dayKey)
+        }
+        .sheet(item: $asking) { shift in
+            TakeoverSheet(shift: shift)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+        .task(id: "\(weekKey)|\(schedule.isOperator)") {
+            guard AppConfig.Features.shiftSwaps && !schedule.isOperator else { return }
+            await swaps.loadTeam(around: schedule.selectedDate)
+        }
+    }
+
+    // MARK: - Worker: the whole published roster
+
+    @ViewBuilder
+    private var teamList: some View {
+        if teamToday.isEmpty && openToday.isEmpty {
+            emptyBox
+        }
+        VStack(spacing: 8) {
+            ForEach(teamToday) { t in
+                Button {
+                    if t.is_me {
+                        if let date = SchemaDates.date(t.day) {
+                            router.pushOnShifts(.shiftDetail(activityId: t.activity.id, date: date))
+                        }
+                    } else {
+                        asking = t
+                        FRHaptic.light.fire()
+                    }
+                } label: {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        FRRosterRow(
+                            name: t.name,
+                            initials: initials(t.name),
+                            avatarColor: Color.foodrunData(hex: t.color ?? t.activity.color),
+                            role: schedule.worksForSeveral ? (t.employer ?? "") : "",
+                            truckName: t.activity.title,
+                            truckColor: Color.foodrunData(hex: t.activity.color),
+                            time: PeopleFormat.window(t.window),
+                            isYou: t.is_me
+                        )
+                        if t.ask != nil {
+                            Text("swaps.requested")
+                                .frText(FRType.fieldLabel)
+                                .foregroundStyle(Color.foodrun.subject.warning)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(t.is_me ? Text("roster.openMine.hint") : Text("roster.ask.hint"))
+            }
+        }
+    }
+
+    private func openRow(_ open: OpenShift) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Circle().fill(Color.foodrunData(hex: open.activity.color)).frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: open.activity.title).frText(FRType.rowTitle).lineLimit(1)
+                Text(verbatim: PeopleFormat.window(open.window))
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Text("swaps.openPlaces \(open.open)").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.subject.positive)
+            }
+            Spacer(minLength: 8)
+            if open.requested {
+                Text("swaps.requested").frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.subject.warning)
+            } else {
+                Button {
+                    Task { if await swaps.pickUp(open) { FRHaptic.success.fire(); await schedule.load() } else { FRHaptic.error.fire() } }
+                } label: {
+                    Text("swaps.iWantThis")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.foodrun.backgroundInverseInk)
+                        .padding(.horizontal, 14).frame(minHeight: 36)
+                        .background(Capsule().fill(Color.foodrun.foreground))
+                }
+                .buttonStyle(.plain)
+                .disabled(swaps.busy)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
+        .frNeu(.raised)
+    }
+
+    private var emptyBox: some View {
+        Text("roster.empty")
+            .frText(FRType.rowSubtitle)
+            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            .frame(maxWidth: .infinity)
+            .padding(18)
+            .overlay(
+                RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                    .strokeBorder(Color.foodrun.border, style: StrokeStyle(lineWidth: 1, dash: [4]))
+            )
+    }
+
+    // MARK: - Operator (and the fallback without the team roster)
+
+    @ViewBuilder
+    private var operatorList: some View {
+        if entries.isEmpty && openToday.isEmpty {
+            emptyBox
+        }
+        VStack(spacing: 8) {
+            ForEach(entries) { e in
+                let row = FRRosterRow(
+                    name: e.employee.fullName,
+                    initials: initials(e.employee.fullName),
+                    avatarColor: Color.foodrunData(hex: e.employee.color ?? e.activity.color),
+                    role: e.employee.roles?.first ?? "",
+                    truckName: e.activity.food_truck ?? e.activity.name,
+                    truckColor: Color.foodrunData(hex: e.activity.color),
+                    time: e.time,
+                    isYou: e.isYou
+                )
+                if schedule.isOperator && e.editable {
+                    Button { editing = e } label: { row.contentShape(Rectangle()) }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(Text("roster.edit.hint"))
+                } else {
+                    row
+                }
+            }
+            if hiddenColleagues > 0 {
+                Text("detail.crew.others \(hiddenColleagues)")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
         }
     }
 

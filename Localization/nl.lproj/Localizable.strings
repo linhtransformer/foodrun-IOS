@@ -620,3 +620,17 @@
 "profile.section.employer"      = "Werkgever";
 "profile.operatorTools"         = "Werkgever-functies";
 "profile.operatorTools.body"    = "Aan: het hele rooster van je bedrijf en Dienst toevoegen. Uit: je ziet de app zoals je medewerkers hem zien.";
+
+/* Ruilen, deel 2: een collega om een dienst vragen (Rooster-tab) en antwoorden in de Inbox */
+"takeover.title %@"             = "Dienst van %@ overnemen?";
+"takeover.body %@"              = "%@ krijgt je verzoek in de Inbox. Zegt die ja, dan keurt de planner het goed, tenzij je werkgever ruilen meteen laat doorgaan.";
+"takeover.send"                 = "Vraag om over te nemen";
+"takeover.status.open %@"       = "Gevraagd · wacht op %@";
+"takeover.status.accepted %@"   = "%@ zei ja · wacht op goedkeuring";
+"roster.tapToAsk"               = "Tik op de dienst van een collega om te vragen of je die mag overnemen.";
+"roster.openMine.hint"          = "Open je dienst";
+"roster.ask.hint"               = "Vraag om deze dienst over te nemen";
+"swaps.section.asked"           = "Gevraagd om je dienst";
+"swaps.asked %@"                = "%@ wil deze dienst overnemen";
+"swaps.give"                    = "Geef dienst";
+"swaps.keep"                    = "Houd zelf";

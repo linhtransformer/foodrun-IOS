@@ -8,12 +8,18 @@ import SwiftUI
 @Observable
 public final class SwapStore {
     public var board = SwapBoard()
+    /// The published roster of my employers for the days the Rooster tab asked for.
+    public var team: [TeamShift] = []
+    /// False when the team roster couldn't load — the Rooster tab then falls back to my own shifts.
+    public var teamLoaded = false
+    /// The day the team roster was last loaded around; writes reload that week.
+    private var teamAnchor: Date?
     public var isLoading = false
     public var busy = false
     public var lastError: String?
 
-    /// Offers waiting for me + open shifts I haven't asked for (Profile / Shifts badge).
-    public var attentionCount: Int { board.offered.count + board.open_shifts.filter { !$0.requested }.count }
+    /// What waits for my answer: offers to me and colleagues asking for my shift (Inbox badge).
+    public var attentionCount: Int { board.offered.count + board.asked.count }
 
     public func load() async {
         isLoading = true
@@ -31,6 +37,29 @@ public final class SwapStore {
         board.my_shifts.first { $0.activity.id == activityId && $0.day == day }
     }
 
+    public func team(on day: String) -> [TeamShift] {
+        team.filter { $0.day == day }
+    }
+
+    public func openShifts(on day: String) -> [OpenShift] {
+        board.open_shifts.filter { $0.day == day }
+    }
+
+    /// The week around `day` (Mon–Sun), so swiping through the carousel doesn't reload per day.
+    public func loadTeam(around day: Date) async {
+        teamAnchor = day
+        var cal = Calendar(identifier: .iso8601)
+        cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        let monday = cal.dateInterval(of: .weekOfYear, for: day)?.start ?? day
+        let sunday = cal.date(byAdding: .day, value: 6, to: monday) ?? day
+        do {
+            team = try await PeopleAPI.teamRoster(from: SchemaDates.string(monday), to: SchemaDates.string(sunday))
+            teamLoaded = true
+        } catch {
+            teamLoaded = false
+        }
+    }
+
     public func colleagues(ownerId: UUID) -> [SwapColleague] {
         board.colleagues.filter { $0.owner_id == ownerId }
     }
@@ -43,6 +72,21 @@ public final class SwapStore {
     @discardableResult
     public func respond(_ offer: SwapOffer, accept: Bool) async -> Bool {
         await run { _ = try await PeopleAPI.respond(requestId: offer.id, accept: accept) }
+    }
+
+    /// Give my shift to the colleague who asked (accept) or keep it.
+    @discardableResult
+    public func answer(_ ask: SwapAsk, give: Bool) async -> Bool {
+        await run { _ = try await PeopleAPI.respond(requestId: ask.id, accept: give) }
+    }
+
+    /// Ask a colleague for their shift.
+    @discardableResult
+    public func askTakeover(_ shift: TeamShift, note: String) async -> Bool {
+        await run {
+            try await PeopleAPI.askTakeover(activityId: shift.activity.id, day: shift.day, from: shift.employee_id,
+                                            note: note.isEmpty ? nil : note)
+        }
     }
 
     @discardableResult
@@ -62,6 +106,7 @@ public final class SwapStore {
             try await work()
             lastError = nil
             await load()
+            if let teamAnchor { await loadTeam(around: teamAnchor) }
             return true
         } catch {
             lastError = PeopleAPI.message(for: error)

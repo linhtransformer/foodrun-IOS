@@ -4,7 +4,8 @@ import Supabase
 // Ruilen (shift swaps and open shifts), verlof, the employer's availability rules and the
 // shifts a worker wants per week. Same functions and tables as foodrun.nl/me — HQ migrations
 // 20261017120000 + 121000 (swaps), 20261016170000 (leave), 20261017160000 (rules),
-// 20261013100000 (wanted shifts). Every swap goes through a SECURITY DEFINER function that
+// 20261013100000 (wanted shifts), 20261022120000 (ask a colleague for a shift + the team
+// roster). Every swap goes through a SECURITY DEFINER function that
 // checks the caller is an approved employee of that employer; workers never read the table.
 
 // MARK: - Swaps
@@ -52,6 +53,17 @@ public struct SwapOffer: Decodable, Identifiable, Hashable {
     public let from_name: String
 }
 
+/// A colleague asks to take over one of my shifts (kind 'ask'); I give it or keep it.
+public struct SwapAsk: Decodable, Identifiable, Hashable {
+    public let id: UUID
+    public let day: String
+    public let employer: String?
+    public let note: String?
+    public let activity: SwapActivity
+    public let window: DBDayTimes
+    public let taker_name: String
+}
+
 /// A shift with more places than people (daily_required_headcount).
 public struct OpenShift: Decodable, Identifiable, Hashable {
     public let day: String
@@ -67,7 +79,7 @@ public struct OpenShift: Decodable, Identifiable, Hashable {
 public struct MySwapRequest: Decodable, Identifiable, Hashable {
     public let id: UUID
     public let employer: String?
-    public let kind: String              // swap | pickup
+    public let kind: String              // swap | pickup | ask
     public let status: String            // open | accepted | approved | declined | withdrawn
     public let day: String
     public let role: String              // giver | taker
@@ -90,22 +102,46 @@ public struct SwapColleague: Decodable, Identifiable, Hashable {
 public struct SwapBoard: Decodable {
     public var mine: [MySwapRequest] = []
     public var offered: [SwapOffer] = []
+    public var asked: [SwapAsk] = []
     public var open_shifts: [OpenShift] = []
     public var colleagues: [SwapColleague] = []
     public var my_shifts: [SwapShift] = []
 
     public init() {}
 
-    private enum CodingKeys: String, CodingKey { case mine, offered, open_shifts, colleagues, my_shifts }
+    private enum CodingKeys: String, CodingKey { case mine, offered, asked, open_shifts, colleagues, my_shifts }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         mine = try c.decodeIfPresent([MySwapRequest].self, forKey: .mine) ?? []
         offered = try c.decodeIfPresent([SwapOffer].self, forKey: .offered) ?? []
+        asked = try c.decodeIfPresent([SwapAsk].self, forKey: .asked) ?? []
         open_shifts = try c.decodeIfPresent([OpenShift].self, forKey: .open_shifts) ?? []
         colleagues = try c.decodeIfPresent([SwapColleague].self, forKey: .colleagues) ?? []
         my_shifts = try c.decodeIfPresent([SwapShift].self, forKey: .my_shifts) ?? []
     }
+}
+
+// MARK: - Team roster (get_my_team_roster: published shifts of my employers, colleagues by name)
+
+public struct TeamShift: Decodable, Identifiable, Hashable {
+    public struct Ask: Decodable, Hashable {
+        public let id: UUID
+        public let status: String        // open | accepted
+    }
+
+    public let day: String
+    public let employee_id: UUID
+    /// "Kim J" — first name and initial, like the swap board.
+    public let name: String
+    public let color: String?
+    public let is_me: Bool
+    public let employer: String?
+    public let activity: SwapActivity
+    public let window: DBDayTimes
+    /// My running ask on this shift, if any.
+    public let ask: Ask?
+    public var id: String { "\(activity.id.uuidString)|\(day)|\(employee_id.uuidString)" }
 }
 
 // MARK: - Leave (leave_requests; the worker reads and asks, the employer decides)
@@ -179,6 +215,18 @@ enum PeopleAPI {
             .rpc("request_open_shift", params: OpenShiftParams(p_activity_id: activityId, p_day: day, p_note: nil))
             .execute()
             .value
+    }
+
+    /// Ask a colleague to let me take over their shift (take over only — nothing in return).
+    static func askTakeover(activityId: UUID, day: String, from colleague: UUID, note: String?) async throws {
+        _ = try await client
+            .rpc("request_shift_takeover", params: TakeoverParams(p_activity_id: activityId, p_day: day, p_from_employee_id: colleague, p_note: note))
+            .execute()
+    }
+
+    /// Everyone on the published roster of my employers between two days (max 31).
+    static func teamRoster(from: String, to: String) async throws -> [TeamShift] {
+        try await client.rpc("get_my_team_roster", params: ["p_from": from, "p_to": to]).execute().value
     }
 
     static func withdrawSwap(requestId: UUID) async throws {
@@ -278,6 +326,23 @@ private struct OfferParams: Encodable {
         try c.encode(p_activity_id, forKey: .p_activity_id)
         try c.encode(p_day, forKey: .p_day)
         try c.encode(p_to_employee_id, forKey: .p_to_employee_id)
+        try c.encode(p_note, forKey: .p_note)
+    }
+}
+
+private struct TakeoverParams: Encodable {
+    let p_activity_id: UUID
+    let p_day: String
+    let p_from_employee_id: UUID
+    let p_note: String?
+
+    private enum CodingKeys: String, CodingKey { case p_activity_id, p_day, p_from_employee_id, p_note }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(p_activity_id, forKey: .p_activity_id)
+        try c.encode(p_day, forKey: .p_day)
+        try c.encode(p_from_employee_id, forKey: .p_from_employee_id)
         try c.encode(p_note, forKey: .p_note)
     }
 }

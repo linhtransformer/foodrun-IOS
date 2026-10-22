@@ -223,7 +223,7 @@ public struct AppShell: View {
     private var badges: Set<FRTab> {
         var s: Set<FRTab> = []
         if hours.pendingRow != nil { s.insert(.hours) }
-        if inbox.unreadCount + changes.unreadCount > 0 { s.insert(.inbox) }
+        if inbox.unreadCount + changes.unreadCount > 0 || (AppConfig.Features.shiftSwaps && swaps.attentionCount > 0) { s.insert(.inbox) }
         if showsCrewTasks && crewTasks.openCount(on: SchemaDates.string(Date())) > 0 { s.insert(.tasks) }
         return s
     }

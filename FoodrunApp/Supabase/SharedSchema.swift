@@ -330,6 +330,7 @@ public enum WorkerNotificationKind: String, Codable {
     case leave_approved, leave_rejected
     case availability_reminder
     case swap_offered, swap_accepted, swap_approved, swap_declined
+    case swap_asked         // a colleague asks to take over my shift (request_shift_takeover)
     case open_shift         // "Uitvraag": the planner asks who wants an open place
     case pickup_approved, pickup_declined
     case crew_message       // the planner's own text to an event's crew (notify_crew_message)
