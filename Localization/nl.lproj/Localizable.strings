@@ -626,7 +626,6 @@
 "takeover.send"                 = "Vraag om over te nemen";
 "takeover.status.open %@"       = "Gevraagd · wacht op %@";
 "takeover.status.accepted %@"   = "%@ zei ja · wacht op goedkeuring";
-"roster.tapToAsk"               = "Tik op de dienst van een collega om te vragen of je die mag overnemen.";
 "roster.openMine.hint"          = "Open je dienst";
 "roster.ask.hint"               = "Vraag om deze dienst over te nemen";
 "swaps.section.asked"           = "Gevraagd om je dienst";

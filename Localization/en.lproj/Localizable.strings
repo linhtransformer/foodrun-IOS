@@ -626,7 +626,6 @@
 "takeover.send"                 = "Ask to take over";
 "takeover.status.open %@"       = "Asked · waiting for %@";
 "takeover.status.accepted %@"   = "%@ said yes · waiting for approval";
-"roster.tapToAsk"               = "Tap a colleague's shift to ask if you can take it over.";
 "roster.openMine.hint"          = "Open your shift";
 "roster.ask.hint"               = "Ask to take over this shift";
 "swaps.section.asked"           = "Asked for your shift";

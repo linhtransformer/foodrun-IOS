@@ -141,11 +141,6 @@ struct RosterMode: View {
                     .accessibilityLabel(Text("roster.addShift"))
                 }
             }
-            if (showsTeam ? teamToday : operatorTeam).contains(where: { !$0.is_me }) {
-                Text("roster.tapToAsk")
-                    .frText(FRType.rowSubtitle)
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
             if showsTeam {
                 teamList
             } else {
