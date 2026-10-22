@@ -209,6 +209,8 @@ public struct AppShell: View {
             ShiftDetailView(activityId: activityId, date: date)
         case .event(let activityId, let date):
             ShiftDetailView(activityId: activityId, date: date, startOn: .tasks)
+        case .colleagueShift(let shift):
+            ColleagueShiftView(shift: shift)
         case .tasks:
             if showsCrewTasks { CrewTasksView() } else { TasksView() }
         case .approvedHours:

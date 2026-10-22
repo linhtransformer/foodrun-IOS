@@ -3,8 +3,8 @@ import SwiftUI
 // Bundle §2b. Who works on the day picked in the carousel.
 //
 // Workers see the published roster of their employer(s) by name (get_my_team_roster) and the
-// day's open shifts. Tapping a colleague's shift asks to take it over (TakeoverSheet); the
-// answer comes through the Inbox. Operators (org owners) see their
+// day's open shifts. Tapping a colleague's shift opens it view-only (ColleagueShiftView), where
+// they can ask to take it over; the answer comes through the Inbox. Operators (org owners) see their
 // own company's roster editable and get the "+" — the same daily_employees /
 // daily_employee_times fields HQ's scheduling board edits. If the team roster can't load,
 // workers fall back to their own shifts plus a headcount.
@@ -15,8 +15,6 @@ struct RosterMode: View {
     @Environment(SwapStore.self) private var swaps
     /// Admin: the rostered person being edited (times / remove).
     @State private var editing: Entry?
-    /// Worker: the colleague's shift being asked for.
-    @State private var asking: TeamShift?
 
     private var dayKey: String { SchemaDates.string(schedule.selectedDate) }
 
@@ -156,11 +154,6 @@ struct RosterMode: View {
         .sheet(item: $editing) { e in
             RosterEntrySheet(employee: e.employee, activity: e.activity, day: dayKey)
         }
-        .sheet(item: $asking) { shift in
-            TakeoverSheet(shift: shift)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-        }
         .task(id: "\(weekKey)|\(schedule.isOperator)") {
             // Operators too: their shifts at other employers list colleagues from it.
             guard AppConfig.Features.shiftSwaps else { return }
@@ -187,7 +180,7 @@ struct RosterMode: View {
                     router.pushOnShifts(.shiftDetail(activityId: t.activity.id, date: date))
                 }
             } else {
-                asking = t
+                router.pushOnShifts(.colleagueShift(t))
                 FRHaptic.light.fire()
             }
         } label: {
@@ -211,7 +204,7 @@ struct RosterMode: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityHint(t.is_me ? Text("roster.openMine.hint") : Text("roster.ask.hint"))
+        .accessibilityHint(t.is_me ? Text("roster.openMine.hint") : Text("roster.view.hint"))
     }
 
     private func openRow(_ open: OpenShift) -> some View {

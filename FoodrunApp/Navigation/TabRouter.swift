@@ -19,6 +19,8 @@ public final class TabRouter {
         case shiftDetail(activityId: UUID, date: Date)
         /// The shift screen opened on its Taken tab (from the Tasks tab).
         case event(activityId: UUID, date: Date)
+        /// A colleague's shift from the Rooster view: view only.
+        case colleagueShift(TeamShift)
         case tasks
         case approvedHours
         /// Ruilen: offers, open shifts, my shifts to offer.

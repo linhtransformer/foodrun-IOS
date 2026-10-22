@@ -628,6 +628,11 @@
 "takeover.status.accepted %@"   = "%@ said yes · waiting for approval";
 "roster.openMine.hint"          = "Open your shift";
 "roster.ask.hint"               = "Ask to take over this shift";
+"roster.view.hint"              = "Show this shift";
+"colleague.title %@"            = "%@'s shift";
+"colleague.briefingUnavailable" = "The run sheet of this event hasn't been shared with you.";
+"colleague.askTakeover"         = "Ask to take over this shift";
+"colleague.asked"               = "You asked to take over this shift";
 "swaps.section.asked"           = "Asked for your shift";
 "swaps.asked %@"                = "%@ wants to take over this shift";
 "swaps.give"                    = "Give it";

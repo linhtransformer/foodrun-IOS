@@ -628,6 +628,11 @@
 "takeover.status.accepted %@"   = "%@ zei ja · wacht op goedkeuring";
 "roster.openMine.hint"          = "Open je dienst";
 "roster.ask.hint"               = "Vraag om deze dienst over te nemen";
+"roster.view.hint"              = "Toon deze dienst";
+"colleague.title %@"            = "Dienst van %@";
+"colleague.briefingUnavailable" = "Het draaiboek van dit event is niet met je gedeeld.";
+"colleague.askTakeover"         = "Vraag om deze dienst over te nemen";
+"colleague.asked"               = "Je hebt gevraagd deze dienst over te nemen";
 "swaps.section.asked"           = "Gevraagd om je dienst";
 "swaps.asked %@"                = "%@ wil deze dienst overnemen";
 "swaps.give"                    = "Geef dienst";

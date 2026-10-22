@@ -15,6 +15,8 @@ struct ShiftBriefingContent: View {
     let event: CrewEvent
     let day: String
     let onOpenDish: (CrewDish) -> Void
+    /// A colleague's shift (ColleagueShiftView): no "your day" card, no pinning or removing pins.
+    var readOnly = false
 
     @State private var opening: CrewOpenedURL?
     @State private var openError: String?
@@ -32,7 +34,7 @@ struct ShiftBriefingContent: View {
             if let error = openError { CrewBriefingError(text: error) }
             if let briefing {
                 dayCallout(briefing)
-                myDayCard(briefing)
+                if !readOnly { myDayCard(briefing) }
             }
             if !dishes.isEmpty { menuCard }
             if let briefing {
@@ -77,7 +79,7 @@ struct ShiftBriefingContent: View {
     /// mark a spot themselves (like the script portal's Pin a Location).
     @ViewBuilder
     private func locationsSection(_ briefing: CrewBriefing) -> some View {
-        let closed = event.activity.is_closed
+        let closed = event.activity.is_closed || readOnly
         ForEach(Array((briefing.locations ?? []).enumerated()), id: \.offset) { _, location in
             CrewLocationCard(location: location,
                              onDelete: (location.mine ?? false) && !closed ? { deleting = location } : nil)
