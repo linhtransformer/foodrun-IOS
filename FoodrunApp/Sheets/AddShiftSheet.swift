@@ -66,13 +66,12 @@ public struct AddShiftSheet: View {
                     }
                 }
                 crewField
-                if let error {
-                    Text(error).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
-                }
-                actions
             }
             .padding(20)
         }
+        .scrollDismissesKeyboard(.interactively)
+        // Save / Cancel float over the list, so a long staff list needs no scrolling to reach them.
+        .safeAreaInset(edge: .bottom, spacing: 0) { actions }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .background(Color.foodrun.background.ignoresSafeArea())
@@ -256,29 +255,59 @@ public struct AddShiftSheet: View {
     }
 
     private var actions: some View {
-        VStack(spacing: 10) {
-            Button {
-                Task { await save() }
-            } label: {
-                Text("addShift.save")
+        VStack(spacing: 8) {
+            if let error {
+                Text(error).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            HStack(spacing: 10) {
+                Button {
+                    router.addShiftOpen = false
+                } label: {
+                    Text("addShift.cancel")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.foodrun.foreground)
+                        .padding(.horizontal, 22)
+                        .frame(minHeight: 54)
+                        .background(Capsule().fill(Color.foodrun.card))
+                        .overlay(Capsule().strokeBorder(Color.foodrun.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    Task { await save() }
+                } label: {
+                    Group {
+                        if isSaving {
+                            ProgressView().tint(Color.foodrun.backgroundInverseInk)
+                        } else if picks.isEmpty {
+                            Text("addShift.save")
+                        } else {
+                            Text("addShift.saveCount \(picks.count)")
+                        }
+                    }
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk)
                     .frame(maxWidth: .infinity, minHeight: 54)
                     .background(Capsule().fill(canSave ? Color.foodrun.foreground : Color.foodrun.disabledInk))
                     .frCTAShadow()
+                }
+                .buttonStyle(.plain)
+                .disabled(!canSave)
             }
-            .buttonStyle(.plain)
-            .disabled(!canSave)
-
-            Button {
-                router.addShiftOpen = false
-            } label: {
-                Text("addShift.cancel").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity)
         }
-        .padding(.top, 6)
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(Color.foodrun.background.ignoresSafeArea(edges: .bottom))
+        // A short fade above the bar, so the list runs out under it instead of being cut off.
+        .overlay(alignment: .top) {
+            LinearGradient(colors: [Color.foodrun.background.opacity(0), Color.foodrun.background],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 28)
+                .offset(y: -28)
+                .allowsHitTesting(false)
+        }
     }
 
     // MARK: - Save

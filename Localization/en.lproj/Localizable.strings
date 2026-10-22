@@ -163,6 +163,7 @@
 "addShift.field.who"        = "Who";
 "addShift.pickCount %lld"   = "%lld selected";
 "addShift.save"             = "Roster this shift";
+"addShift.saveCount %lld"   = "Roster · %lld";
 "addShift.cancel"           = "Cancel";
 
 // MARK: NFC

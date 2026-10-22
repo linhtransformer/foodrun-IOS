@@ -163,6 +163,7 @@
 "addShift.field.who"        = "Wie";
 "addShift.pickCount %lld"   = "%lld geselecteerd";
 "addShift.save"             = "Dienst inroosteren";
+"addShift.saveCount %lld"   = "Inroosteren · %lld";
 "addShift.cancel"           = "Annuleren";
 
 // MARK: NFC
