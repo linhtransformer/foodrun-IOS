@@ -157,6 +157,11 @@ public struct DBActivity: Codable, Identifiable, Hashable {
     /// date → how many people are rostered. Only filled by the worker feed
     /// (get_my_worker_activities), which hides who the colleagues are.
     public let crew_counts: [String: Int]?
+    /// "yyyy-MM-dd": the day the worker left this activity's employer ("uit
+    /// dienst", HQ 20261021140000_employee_archive). Only the worker feed fills
+    /// it; nil while they work there, and on an older server without the column.
+    /// Such activities are history: read-only, no clocking, swaps or availability.
+    public var left_on: String? = nil
 
     /// People rostered on `day`, including the caller: the worker feed's
     /// crew_counts when present, else counted from the roster (operator view).
@@ -327,6 +332,7 @@ public enum WorkerNotificationKind: String, Codable {
     case swap_offered, swap_accepted, swap_approved, swap_declined
     case open_shift         // "Uitvraag": the planner asks who wants an open place
     case pickup_approved, pickup_declined
+    case crew_message       // the planner's own text to an event's crew (notify_crew_message)
     case other
 
     public init(from decoder: Decoder) throws {
@@ -364,9 +370,16 @@ public struct MyOrganization: Decodable, Identifiable, Hashable {
     /// The worker's employees row there — ties shifts to this employer.
     public let employee_id: UUID
     public var id: UUID { employee_id }
+    /// "yyyy-MM-dd": the day the employer put this worker "uit dienst" (HQ
+    /// 20261021140000_employee_archive). Nil for a current employer, for a row
+    /// the worker disconnected themselves, and on an older server.
+    public var left_on: String? = nil
 
     /// Working there, or asked to and waiting.
     public var isCurrent: Bool { approval_status == "approved" || approval_status == "pending" }
+
+    /// A former employer: the worker keeps read-only access to their history there.
+    public var isFormer: Bool { approval_status == "disconnected" && left_on != nil }
 }
 
 /// Reply of `worker-self-signup`. On failure `error` is one of: missing_fields,
@@ -434,6 +447,16 @@ public enum SchemaDates {
 
     public static func string(_ date: Date) -> String { formatter.string(from: date) }
     public static func date(_ day: String) -> Date? { formatter.date(from: String(day.prefix(10))) }
+
+    /// "21 okt 2026" / "21 Oct 2026" for a `date` column, in the app's language.
+    public static func display(_ day: String) -> String {
+        guard let d = date(day) else { return String(day.prefix(10)) }
+        let f = DateFormatter()
+        f.locale = FRLanguage.locale
+        f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
+        f.dateFormat = "d MMM yyyy"
+        return f.string(from: d)
+    }
 
     public static func days(from start: String, to end: String) -> [String] {
         guard let s = date(start), let e = date(end), s <= e else { return [start] }

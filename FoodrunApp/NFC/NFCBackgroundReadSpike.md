@@ -51,7 +51,7 @@ Ship #2 alongside #1 as fallback. Concrete tasks when landing:
 - [ ] Register `foodrun.nl` for universal links (`apple-app-site-association` on the
       VPS at `https://foodrun.nl/.well-known/…`).
 - [ ] Xcode target → Signing & Capabilities → Associated Domains: `applinks:foodrun.nl`.
-- [ ] Info.plist: `NSNFCReaderUsageDescription` (already required for #1),
+- [ ] Info.plist: `NFCReaderUsageDescription` (already required for #1),
       `com.apple.developer.nfc.readersession.formats`.
 - [ ] Handle inbound URL in `FoodrunApp.swift .onOpenURL`. Match
       `/clock/<truck_id>?activity=<uuid>` → dispatch to `ClockStore.recordClockIn`.

@@ -7,8 +7,17 @@ struct AvailabilityMode: View {
     @Environment(AvailabilityStore.self) private var availability
 
     var body: some View {
+        if schedule.employees.isEmpty && !schedule.formerEmployees.isEmpty {
+            // Only employers the worker has left: nobody to give availability to.
+            notice(Text("availability.formerOnly"), color: Color.foodrun.mutedForegroundSoft)
+        } else {
+            editor
+        }
+    }
+
+    private var editor: some View {
         @Bindable var av = availability
-        VStack(spacing: 14) {
+        return VStack(spacing: 14) {
             FRStepperRow("availability.wantThisWeek", value: Binding(
                 get: { av.wantShifts },
                 set: { av.setWanted($0, weekOf: schedule.selectedDate) }

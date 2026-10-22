@@ -213,6 +213,7 @@ struct CrewPinSheet: View {
                     .foregroundStyle(Color.foodrun.backgroundInverseInk)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .background(Capsule().fill(Color.foodrun.foreground))
+                    .compositingGroup()
                     .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
                 }
                 .buttonStyle(.plain)

@@ -30,13 +30,22 @@ public final class NFCReader: NSObject {
     private var session: NFCNDEFReaderSession?
     private var callback: ((NFCReadResult) -> Void)?
 
-    public var isAvailable: Bool { NFCNDEFReaderSession.readingAvailable }
+    /// NFC hardware present AND the Info.plist purpose string is there. iOS kills
+    /// the app the moment a reader session begins without `NFCReaderUsageDescription`
+    /// (note: no "NS" prefix — `NSNFCReaderUsageDescription` is not a key iOS reads),
+    /// so a build that lost the string reports "unsupported" instead of crashing.
+    public var isAvailable: Bool {
+        NFCNDEFReaderSession.readingAvailable
+            && Bundle.main.object(forInfoDictionaryKey: "NFCReaderUsageDescription") != nil
+    }
 
     public func start(hint: String, callback: @escaping (NFCReadResult) -> Void) {
         guard isAvailable else {
             callback(.unavailable)
             return
         }
+        // A second tap while Apple's sheet is still up: close the old session first.
+        session?.invalidate()
         self.callback = callback
         session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: true)
         session?.alertMessage = hint
@@ -102,8 +111,11 @@ extension NFCReader: NFCNDEFReaderSessionDelegate {
             (ns.code == NFCReaderError.readerSessionInvalidationErrorUserCanceled.rawValue ||
              ns.code == NFCReaderError.readerSessionInvalidationErrorFirstNDEFTagRead.rawValue)
         DispatchQueue.main.async {
+            // Only the current session clears state; a replaced one just goes away.
+            guard session === self.session else { return }
             self.callback?(cancelled ? .cancelled : .error(error))
             self.callback = nil
+            self.session = nil
         }
     }
 }

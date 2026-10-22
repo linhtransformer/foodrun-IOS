@@ -122,6 +122,7 @@ public struct FRWeekCarousel: View {
                             .fill(isToday ? Color.foodrun.foreground :
                                   (selected ? Color.foodrun.neuTrack : Color.foodrun.card))
                     )
+                    .compositingGroup()
                     .shadow(color: .black.opacity(isToday ? 0.2 : 0), radius: isToday ? 5 : 0, y: isToday ? 2 : 0)
                 Rectangle()
                     .fill(bar ?? .clear)

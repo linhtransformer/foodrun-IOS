@@ -54,6 +54,7 @@ public struct FRNextShiftCard: View {
             }
             .foregroundStyle(Color.foodrun.backgroundInverseInk)
         }
+        .compositingGroup()
         .shadow(color: .black.opacity(0.18), radius: 12, y: 6)
     }
 

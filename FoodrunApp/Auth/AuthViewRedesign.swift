@@ -12,6 +12,7 @@ public struct AuthViewRedesign: View {
     @State private var showPassword: Bool = false
     @State private var showReset: Bool = false
     @State private var showSignUp: Bool = false
+    @State private var opening: CrewOpenedURL?
 
     public init() {}
 
@@ -27,6 +28,7 @@ public struct AuthViewRedesign: View {
                 }
         }
         .tint(Color.foodrun.foreground)
+        .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
     }
 
     private var login: some View {
@@ -154,12 +156,13 @@ public struct AuthViewRedesign: View {
                 .buttonStyle(.plain)
             }
             .font(.system(size: 14))
-            Link(destination: AppConfig.privacyURL) {
+            Button { opening = CrewOpenedURL(url: AppConfig.privacyURL) } label: {
                 Text("legal.privacy")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                     .underline()
             }
+            .buttonStyle(.plain)
         }
     }
 }

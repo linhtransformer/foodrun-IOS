@@ -61,7 +61,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: nl.foodrun.app
             CFBundleURLSchemes: [foodrun]
-        NSNFCReaderUsageDescription: Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.
+        NFCReaderUsageDescription: Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.
         # Photo tasks (CrewPhotoViews.swift). The library uses PhotosPicker, which needs no permission.
         NSCameraUsageDescription: Foodrun uses the camera when a task asks you for a photo, for example of your truck set-up.
         # Pin a location on the event (CrewPinViews.swift). Asked when the pin sheet opens for an event

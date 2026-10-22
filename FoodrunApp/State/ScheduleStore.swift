@@ -26,6 +26,24 @@ public struct WorkerShift: Identifiable, Hashable {
     public var checklistCount: Int = 0
 
     public var date: Date { SchemaDates.date(day) ?? Date() }
+
+    /// A shift at an employer the worker has left ("uit dienst"): history only.
+    /// The server refuses clocking, swaps and availability there.
+    public var isAtFormerEmployer: Bool { activity.left_on != nil }
+
+    /// Whether hours can still be sent for this shift. Always at a current
+    /// employer; at a former one only for days before leaving, up to 14 days
+    /// after leaving — the server's employee_archived_guard (it counts from the
+    /// moment of leaving; counting from the start of that day stays inside it).
+    public func acceptsHours(now: Date = Date()) -> Bool {
+        guard let leftOn = activity.left_on else { return true }
+        guard day < String(leftOn.prefix(10)),
+              let left = SchemaDates.date(leftOn),
+              let deadline = Calendar(identifier: .gregorian).date(byAdding: .day, value: 14, to: left)
+        else { return false }
+        return now <= deadline
+    }
+
     public var timeLabel: String {
         guard let start, let end else { return FRLanguage.string("shift.timeTBD") }
         return "\(start) – \(end)"
@@ -88,9 +106,19 @@ public final class ScheduleStore {
     /// than one employer.
     public var organizations: [MyOrganization] = []
 
-    /// Show which employer a shift is for only when there is more than one.
+    /// The worker's rows at employers they have left ("uit dienst") whose past
+    /// shifts the feed still returns (activities with `left_on`). Kept apart
+    /// from `employees` so availability, leave and the like never reach them;
+    /// only history (shifts, hours) uses them.
+    public var formerEmployees: [DBEmployee] = []
+
+    /// Employee rows whose hours the worker sees: current and former employers.
+    public var historyEmployeeIds: [UUID] { (employees + formerEmployees).map(\.id) }
+
+    /// Show which employer a shift is for only when there is more than one
+    /// (a former employer counts: its past shifts are still listed).
     public var worksForSeveral: Bool {
-        organizations.filter { $0.approval_status == "approved" }.count > 1
+        organizations.filter { $0.approval_status == "approved" || $0.isFormer }.count > 1
     }
 
     /// The organization behind one of the worker's employee rows.
@@ -110,7 +138,9 @@ public final class ScheduleStore {
 
     /// Signed in, but no employer has added this account yet (and it isn't an
     /// operator using the app themselves).
-    public var isUnlinked: Bool { hasLoaded && lastError == nil && employees.isEmpty && !isOperator }
+    /// Someone who left every employer still gets their history, so a former
+    /// employer with past shifts counts as linked.
+    public var isUnlinked: Bool { hasLoaded && lastError == nil && employees.isEmpty && formerEmployees.isEmpty && !isOperator }
 
     public enum ShiftsMode: String, CaseIterable { case shifts, roster, availability }
 
@@ -126,6 +156,16 @@ public final class ScheduleStore {
             let acts = try await WorkerAPI.fetchWorkerActivities()
             // Taken off the team in HQ (is_active = false) = no shifts from that employer.
             employees = emps.filter { $0.isApproved && $0.isActive }
+            // Left an employer ("uit dienst"): the feed still sends past shifts
+            // there, marked with left_on. Same row the server picks (oldest first).
+            let current = Set(employees.map(\.user_id))
+            let leftEmployers = Set(acts.filter { $0.left_on != nil }.map(\.user_id)).subtracting(current)
+            var former: [DBEmployee] = []
+            for e in emps where e.approval_status == "disconnected" && leftEmployers.contains(e.user_id)
+                && !former.contains(where: { $0.user_id == e.user_id }) {
+                former.append(e)
+            }
+            formerEmployees = former
             hasPendingRequest = emps.contains { $0.approval_status == "pending" }
             activities = acts
             lastError = nil
@@ -155,7 +195,10 @@ public final class ScheduleStore {
 
     /// The worker's employee row at the operator who owns `activity`.
     public func employee(for activity: DBActivity) -> DBEmployee? {
-        employees.first { $0.user_id == activity.user_id }
+        if activity.left_on != nil {
+            return formerEmployees.first { $0.user_id == activity.user_id }
+        }
+        return employees.first { $0.user_id == activity.user_id }
     }
 
     /// Every rostered shift, oldest first.
@@ -177,10 +220,10 @@ public final class ScheduleStore {
         .sorted { ($0.day, $0.start ?? "") < ($1.day, $1.start ?? "") }
     }
 
-    /// Today and later — the "Still to work" list.
+    /// Today and later — the "Still to work" list. Never a former employer's.
     public var upcomingShifts: [WorkerShift] {
         let todayKey = SchemaDates.string(today)
-        return shifts.filter { $0.day >= todayKey }
+        return shifts.filter { $0.day >= todayKey && !$0.isAtFormerEmployer }
     }
 
     /// The hero card: first upcoming shift.

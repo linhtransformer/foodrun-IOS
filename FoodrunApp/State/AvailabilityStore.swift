@@ -160,7 +160,7 @@ public final class AvailabilityStore {
             lastError = nil
             return true
         } catch {
-            lastError = error.localizedDescription
+            lastError = WorkerAPI.archivedMessage(for: error) ?? error.localizedDescription
             return false
         }
     }

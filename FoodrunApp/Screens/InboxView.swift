@@ -174,6 +174,10 @@ public struct InboxView: View {
                     Text("inbox.swap").frText(FRType.fieldLabel)
                         .foregroundStyle(Color.foodrun.subject.swapOpenInk)
                 }
+                if item.type == .crew_message {
+                    Text("inbox.crewMessage").frText(FRType.fieldLabel)
+                        .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
+                }
                 HStack {
                     Text(item.title).frText(FRType.rowTitle)
                     Spacer()

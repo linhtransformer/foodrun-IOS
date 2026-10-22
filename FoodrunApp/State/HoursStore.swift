@@ -73,7 +73,7 @@ public final class HoursStore {
             await load(employeeIds: Array(Set(rows.map(\.employee_id) + [shift.employee.id])))
             return true
         } catch {
-            lastError = error.localizedDescription
+            lastError = WorkerAPI.archivedMessage(for: error) ?? error.localizedDescription
             return false
         }
     }

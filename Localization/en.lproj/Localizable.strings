@@ -135,6 +135,10 @@
 "profile.section.account" = "Account";
 "profile.language" = "Language";
 "profile.help"            = "Help & contact";
+"help.body"               = "Questions about your roster, hours or pay? Your employer handles those — ask your planner.\n\nApp not working as it should? Email us and say what you did and what happened.";
+"help.mail"               = "Email support";
+"help.mail.subject"       = "Foodrun app: help";
+"help.copied"             = "No mail app set up — the email address has been copied.";
 "profile.logout"          = "Log out";
 "profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
 
@@ -147,6 +151,7 @@
 
 // MARK: Add shift (admin)
 "roster.addShift"           = "Add shift";
+"roster.operatorView"       = "Employer view: you see your own company's whole roster. Turn off: Me → Employer tools.";
 "addShift.title"            = "Add shift";
 "addShift.adminBadge"       = "Admin";
 "addShift.description"      = "Rosters people on the chosen days. They see the shift in their app right away.";
@@ -501,6 +506,12 @@
 "profile.section.organizations" = "Your organizations";
 "profile.org.pending"       = "Waiting for approval";
 
+// Left an employer: only your history is still there
+"profile.org.leftOn %@"     = "Left on %@";
+"shift.formerEmployer %@"   = "Left on %@ · view only";
+"availability.formerOnly"   = "You don’t work for any employer right now, so there’s no one to give your availability to.";
+"error.employeeArchived"    = "You no longer work here. Hours could be submitted up to 14 days after your last day.";
+
 // Clock tags
 "clock.tag.alertTitle"      = "Couldn’t clock";
 "clock.tag.invalid"         = "This tag is no longer in use. Ask your manager.";
@@ -550,6 +561,7 @@
 "detail.swapOpen"               = "Offered to swap · see Swaps";
 "shift.break %lld"              = "break %lld min";
 "inbox.swap"                    = "SWAP";
+"inbox.crewMessage"             = "MESSAGE";
 "swap.everyone"                 = "Everyone";
 "swap.everyone.body"            = "Every colleague who isn't working then";
 "swap.note.placeholder"         = "Why? (optional)";
@@ -607,4 +619,4 @@
 "profile.leave"                 = "Time off";
 "profile.section.employer"      = "Employer";
 "profile.operatorTools"         = "Employer tools";
-"profile.operatorTools.body"    = "Off: use the app the way your staff see it.";
+"profile.operatorTools.body"    = "On: your company's whole roster and Add shift. Off: see the app the way your staff do.";

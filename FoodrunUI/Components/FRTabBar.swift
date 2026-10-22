@@ -56,6 +56,7 @@ public struct FRTabBar: View {
                 .fill(Color.foodrun.foreground)
         )
         .padding(.horizontal, 12)
+        .compositingGroup()
         .shadow(color: .black.opacity(0.28), radius: 12, y: 6)
         .accessibilityElement(children: .contain)
     }

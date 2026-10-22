@@ -48,6 +48,9 @@ public struct ShiftDetailView: View {
     /// The rostered shift this screen shows (activity × day), from ScheduleStore.
     private var shift: WorkerShift? { schedule.shift(activityId: activityId, day: SchemaDates.string(date)) }
     private var activity: DBActivity? { shift?.activity ?? schedule.activities.first { $0.id == activityId } }
+    /// The day the worker left this employer, if they did: the shift is history
+    /// then — no clocking, no swap (the server refuses both).
+    private var leftOn: String? { activity?.left_on }
 
     /// Summary card starts folded (like the Shifts hero) so the tabs sit high.
     @State private var summaryExpanded = false
@@ -69,7 +72,7 @@ public struct ShiftDetailView: View {
                     crewSection
                 }
                 if AppConfig.Features.checklists { gateCard }
-                if AppConfig.Features.shiftSwaps { requestSwap }
+                if AppConfig.Features.shiftSwaps && leftOn == nil { requestSwap }
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, 8)
@@ -81,7 +84,7 @@ public struct ShiftDetailView: View {
         .toolbar(.hidden, for: .navigationBar)
         .refreshable { if AppConfig.Features.crewTasks { await store.load() } }
         .task {
-            if schedule.isToday(date), let emp = shift?.employee.id {
+            if schedule.isToday(date), leftOn == nil, let emp = shift?.employee.id {
                 clock.activityId = activityId
                 await clock.refreshLatestEvent(employeeId: emp)
                 await clock.loadClockRules(activityIds: [activityId])
@@ -360,6 +363,7 @@ public struct ShiftDetailView: View {
             RoundedRectangle(cornerRadius: FRRadius.hero.value, style: .continuous)
                 .fill(isTodayShift ? Color.foodrun.foreground : Color.foodrun.card)
         )
+        .compositingGroup()
         .shadow(color: .black.opacity(isTodayShift ? 0.22 : 0), radius: isTodayShift ? 14 : 0, y: isTodayShift ? 8 : 0)
         .modifier(SummaryCardNeu(applyNeu: !isTodayShift))
     }
@@ -646,7 +650,16 @@ public struct ShiftDetailView: View {
     /// clocking out.
     @ViewBuilder
     private var nfcStrip: some View {
-        if !clockedInHere {
+        if let leftOn {
+            // A former employer: nothing to clock, only to look back on.
+            HStack(spacing: 8) {
+                Image(systemName: "clock.arrow.circlepath")
+                Text("shift.formerEmployer \(SchemaDates.display(leftOn))")
+            }
+            .frText(FRType.rowSubtitle)
+            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else if !clockedInHere {
             HStack(spacing: 10) {
                 nfcHint
                 // No tag at hand (or no NFC): clock in with a tap. Today's shift only.

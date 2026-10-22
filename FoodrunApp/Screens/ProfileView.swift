@@ -1,4 +1,6 @@
+import MessageUI
 import SwiftUI
+import UIKit
 
 // Bundle §8. Profile. Everything here is real: name/email from the linked
 // employee row + auth session, stats from the loaded schedule and hours, and
@@ -18,9 +20,10 @@ public struct ProfileView: View {
         ScrollView {
             VStack(spacing: 16) {
                 avatar
+                // Right under the name so an employer finds the switch without scrolling.
+                if schedule.hasOwnStaff { employerSection }
                 if !schedule.employees.isEmpty { stats }
                 if !schedule.employees.isEmpty { workSection }
-                if schedule.hasOwnStaff { employerSection }
                 if !organizations.isEmpty { organizationsSection }
                 ProfileAccountSection()
             }
@@ -91,8 +94,11 @@ public struct ProfileView: View {
 
     /// Who this account works for (or is waiting on) — so it's never a guess
     /// which employer a login is tied to.
-    /// Employers this account works for or is waiting on (not declined / left).
-    private var organizations: [MyOrganization] { schedule.organizations.filter(\.isCurrent) }
+    /// Employers this account works for or is waiting on (not declined), then
+    /// the ones it has left ("uit dienst"), marked as such.
+    private var organizations: [MyOrganization] {
+        schedule.organizations.filter(\.isCurrent) + schedule.organizations.filter(\.isFormer)
+    }
 
     private var organizationsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -101,7 +107,15 @@ public struct ProfileView: View {
                 ForEach(organizations) { org in
                     HStack(spacing: 12) {
                         Image(systemName: "building.2").font(.system(size: 15, weight: .medium))
-                        Text(verbatim: org.name).frText(FRType.rowTitle)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: org.name).frText(FRType.rowTitle)
+                            // Left: a muted line instead of looking like a current employer.
+                            if org.isFormer, let leftOn = org.left_on {
+                                Text("profile.org.leftOn \(SchemaDates.display(leftOn))")
+                                    .frText(FRType.rowSubtitle)
+                                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                            }
+                        }
                         Spacer(minLength: 8)
                         if org.approval_status == "pending" {
                             Text("profile.org.pending")
@@ -190,6 +204,8 @@ struct ProfileAccountSection: View {
     @State private var deleteFailed = false
     @State private var showLanguage = false
     @State private var pendingLanguage: FRLanguage?
+    @State private var opening: CrewOpenedURL?
+    @State private var showHelp = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -204,11 +220,13 @@ struct ProfileAccountSection: View {
                 Button { showLanguage = true } label: {
                     row("globe", "profile.language", value: FRLanguage.current.displayName, trailing: "chevron.right")
                 }
-                Link(destination: AppConfig.privacyURL) {
-                    row("hand.raised", "legal.privacy", trailing: "arrow.up.right")
+                // Both open inside the app: privacy in an in-app Safari sheet,
+                // help as a sheet with an in-app mail composer.
+                Button { opening = CrewOpenedURL(url: AppConfig.privacyURL) } label: {
+                    row("hand.raised", "legal.privacy", trailing: "chevron.right")
                 }
-                Link(destination: AppConfig.supportURL) {
-                    row("questionmark.circle", "profile.help", trailing: "envelope")
+                Button { showHelp = true } label: {
+                    row("questionmark.circle", "profile.help", trailing: "chevron.right")
                 }
                 Button { confirmLogout = true } label: {
                     row("rectangle.portrait.and.arrow.right", "profile.logout", trailing: nil)
@@ -226,6 +244,12 @@ struct ProfileAccountSection: View {
         }
         .sheet(isPresented: $showJoin) {
             JoinRequestView { await schedule.load() }
+        }
+        .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
+        .sheet(isPresented: $showHelp) {
+            HelpSheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showLanguage, onDismiss: applyLanguage) {
             languageSheet
@@ -321,5 +345,95 @@ struct ProfileAccountSection: View {
             FRLanguage.set(pendingLanguage)
         }
         pendingLanguage = nil
+    }
+}
+
+/// Me → Hulp & contact. Stays in the app: who to ask about what, and a mail to
+/// support written in Apple's in-app composer. A phone without a mail account
+/// gets the address copied instead.
+struct HelpSheet: View {
+    @State private var composing = false
+    @State private var copied = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("profile.help").frText(FRType.sectionHeader)
+            Text("help.body")
+                .frText(FRType.body)
+                .foregroundStyle(Color.foodrun.foreground)
+                .fixedSize(horizontal: false, vertical: true)
+            FRPrimaryButton(FRLanguage.string("help.mail")) {
+                if MFMailComposeViewController.canSendMail() {
+                    composing = true
+                } else {
+                    UIPasteboard.general.string = AppConfig.supportEmail
+                    copied = true
+                    FRHaptic.success.fire()
+                }
+            }
+            Text(verbatim: AppConfig.supportEmail)
+                .frText(FRType.rowSubtitle)
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity)
+            if copied {
+                Text("help.copied")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.subject.positive)
+                    .frame(maxWidth: .infinity)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.foodrun.background)
+        .sheet(isPresented: $composing) {
+            SupportMailComposer(
+                recipient: AppConfig.supportEmail,
+                subject: FRLanguage.string("help.mail.subject"),
+                body: "\n\n—\nFoodrun iOS \(Self.appVersion)",
+                onFinish: { composing = false }
+            )
+            .ignoresSafeArea()
+        }
+    }
+
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
+    }
+}
+
+/// Apple's mail composer, inside the app.
+struct SupportMailComposer: UIViewControllerRepresentable {
+    let recipient: String
+    let subject: String
+    let body: String
+    let onFinish: () -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(onFinish: onFinish) }
+
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let controller = MFMailComposeViewController()
+        controller.mailComposeDelegate = context.coordinator
+        controller.setToRecipients([recipient])
+        controller.setSubject(subject)
+        controller.setMessageBody(body, isHTML: false)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: MFMailComposeViewController, context: Context) {}
+
+    final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let onFinish: () -> Void
+        init(onFinish: @escaping () -> Void) { self.onFinish = onFinish }
+
+        func mailComposeController(_ controller: MFMailComposeViewController,
+                                   didFinishWith result: MFMailComposeResult, error: Error?) {
+            onFinish()
+        }
     }
 }

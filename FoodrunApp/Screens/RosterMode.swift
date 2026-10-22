@@ -15,28 +15,58 @@ struct RosterMode: View {
 
     private var dayKey: String { SchemaDates.string(schedule.selectedDate) }
 
-    /// Rows for the selected day.
-    private var entries: [Entry] {
-        if schedule.isOperator {
-            let names = Dictionary(uniqueKeysWithValues: schedule.operatorEmployees.map { ($0.id.uuidString.lowercased(), $0) })
-            let myIds = Set(schedule.employees.map { $0.id.uuidString.lowercased() })
-            return schedule.operatorActivities.flatMap { activity -> [Entry] in
-                activity.rosteredIds(on: dayKey).compactMap { id in
-                    guard let emp = names[id] else { return nil }
-                    let w = activity.window(on: dayKey, for: emp.id)
-                    return Entry(id: "\(activity.id)|\(id)", employee: emp, activity: activity, time: w?.start ?? "", isYou: myIds.contains(id))
-                }
-            }
-            .sorted { ($0.time, $0.employee.fullName) < ($1.time, $1.employee.fullName) }
-        }
-        guard let mine = schedule.shiftOnSelectedDayFull else { return [] }
-        return [Entry(id: mine.id, employee: mine.employee, activity: mine.activity, time: mine.start ?? "", isYou: true)]
+    /// The signed-in person's own shifts on the selected day, at every employer
+    /// (one employee row per organization — a worker can work for several).
+    private var myShiftsToday: [WorkerShift] {
+        schedule.shifts.filter { $0.day == dayKey }
     }
 
-    /// Colleagues a worker can't see by name.
+    /// Own shifts the operator roster below doesn't cover: shifts at another
+    /// employer, or an own row that isn't on the operator's staff list.
+    private var myShiftsOutsideOperatorRoster: [WorkerShift] {
+        guard schedule.isOperator else { return myShiftsToday }
+        let covered = Set(operatorEntries.map(\.id))
+        return myShiftsToday.filter { !covered.contains(Self.entryId($0.activity.id, $0.employee.id.uuidString)) }
+    }
+
+    /// Operator (own company): everyone rostered, by name, editable.
+    private var operatorEntries: [Entry] {
+        guard schedule.isOperator else { return [] }
+        let names = Dictionary(schedule.operatorEmployees.map { ($0.id.uuidString.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
+        let myIds = Set(schedule.employees.map { $0.id.uuidString.lowercased() })
+        return schedule.operatorActivities.flatMap { activity -> [Entry] in
+            activity.rosteredIds(on: dayKey).compactMap { id in
+                guard let emp = names[id] else { return nil }
+                let w = activity.window(on: dayKey, for: emp.id)
+                return Entry(id: Self.entryId(activity.id, id), employee: emp, activity: activity,
+                             time: w?.start ?? "", isYou: myIds.contains(id), editable: true)
+            }
+        }
+    }
+
+    /// Rows for the selected day: the operator roster (if any) plus the
+    /// signed-in person's own shifts, so "you" is always listed.
+    private var entries: [Entry] {
+        let mine = myShiftsOutsideOperatorRoster.map { s in
+            Entry(id: Self.entryId(s.activity.id, s.employee.id.uuidString), employee: s.employee,
+                  activity: s.activity, time: s.start ?? "", isYou: true, editable: false)
+        }
+        return (operatorEntries + mine)
+            .sorted { ($0.time, $0.employee.fullName) < ($1.time, $1.employee.fullName) }
+    }
+
+    /// Colleagues on the person's own shifts that can't be shown by name
+    /// (workers only read their own employee row — RLS).
     private var hiddenColleagues: Int {
-        guard !schedule.isOperator, let mine = schedule.shiftOnSelectedDayFull else { return 0 }
-        return max(0, mine.activity.headcount(on: dayKey) - 1)
+        // The operator's own activities already list everyone by name.
+        let ownActivities = Set(schedule.isOperator ? schedule.operatorActivities.map(\.id) : [])
+        return myShiftsOutsideOperatorRoster
+            .filter { !ownActivities.contains($0.activity.id) }
+            .reduce(0) { sum, s in sum + max(0, s.activity.headcount(on: dayKey) - 1) }
+    }
+
+    private static func entryId(_ activityId: UUID, _ employeeId: String) -> String {
+        "\(activityId.uuidString.lowercased())|\(employeeId.lowercased())"
     }
 
     private var headcount: Int { entries.count + hiddenColleagues }
@@ -68,6 +98,21 @@ struct RosterMode: View {
                     .accessibilityLabel(Text("roster.addShift"))
                 }
             }
+            if schedule.isOperator {
+                // Says why everyone is listed, and where the switch lives.
+                Button { router.tab = .me } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Image(systemName: "briefcase")
+                        Text("roster.operatorView")
+                            .frText(FRType.rowSubtitle)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
             if entries.isEmpty {
                 Text("roster.empty")
                     .frText(FRType.rowSubtitle)
@@ -91,7 +136,7 @@ struct RosterMode: View {
                         time: e.time,
                         isYou: e.isYou
                     )
-                    if schedule.isOperator {
+                    if schedule.isOperator && e.editable {
                         Button { editing = e } label: { row.contentShape(Rectangle()) }
                             .buttonStyle(.plain)
                             .accessibilityHint(Text("roster.edit.hint"))
@@ -117,6 +162,8 @@ struct RosterMode: View {
         let activity: DBActivity
         let time: String
         let isYou: Bool
+        /// Only the operator's own company's roster can be edited from here.
+        let editable: Bool
     }
 
     private func initials(_ name: String) -> String {

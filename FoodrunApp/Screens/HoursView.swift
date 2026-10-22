@@ -29,18 +29,20 @@ public struct HoursView: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .refreshable {
-            await hours.load(employeeIds: schedule.employees.map(\.id))
+            await hours.load(employeeIds: schedule.historyEmployeeIds)
         }
     }
 
     // MARK: - Derived
 
     /// Finished shifts with no hours yet, or hours the operator sent back.
-    /// A shift only becomes submittable once its end time has passed.
+    /// A shift only becomes submittable once its end time has passed. At an
+    /// employer the worker has left, only until 14 days after leaving; after
+    /// that the shift drops off (its hours stay in the month log).
     private var dueShifts: [WorkerShift] {
         let now = Date()
         return schedule.shifts.filter { shift in
-            guard shift.endsAt <= now else { return false }
+            guard shift.endsAt <= now, shift.acceptsHours(now: now) else { return false }
             let row = hours.row(activityId: shift.activity.id, day: shift.day)
             return row == nil || row?.status == .rejected
         }
@@ -51,7 +53,7 @@ public struct HoursView: View {
         let now = Date()
         let todayKey = SchemaDates.string(now)
         return schedule.shifts.filter { shift in
-            shift.day == todayKey && shift.endsAt > now
+            shift.day == todayKey && shift.endsAt > now && !shift.isAtFormerEmployer
                 && hours.row(activityId: shift.activity.id, day: shift.day) == nil
         }
     }

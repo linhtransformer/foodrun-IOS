@@ -135,6 +135,10 @@
 "profile.section.account" = "Account";
 "profile.language" = "Taal";
 "profile.help"            = "Hulp & contact";
+"help.body"               = "Vragen over je rooster, uren of loon? Die regelt je werkgever — vraag het je planner.\n\nWerkt de app niet zoals het hoort? Mail ons en schrijf erbij wat je deed en wat er gebeurde.";
+"help.mail"               = "Mail de support";
+"help.mail.subject"       = "Foodrun-app: hulp";
+"help.copied"             = "Geen mail-app ingesteld — het e-mailadres is gekopieerd.";
 "profile.logout"          = "Uitloggen";
 "profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
 
@@ -147,6 +151,7 @@
 
 // MARK: Dienst toevoegen (admin)
 "roster.addShift"           = "Dienst toevoegen";
+"roster.operatorView"       = "Werkgever-weergave: je ziet het hele rooster van je eigen bedrijf. Uitzetten: Ik → Werkgever-functies.";
 "addShift.title"            = "Dienst toevoegen";
 "addShift.adminBadge"       = "Admin";
 "addShift.description"      = "Roostert medewerkers op de gekozen dagen. Ze zien de dienst meteen in hun app.";
@@ -501,6 +506,12 @@
 "profile.section.organizations" = "Je organisaties";
 "profile.org.pending"       = "Wacht op goedkeuring";
 
+// Uit dienst: een werkgever waar je niet meer werkt (alleen je geschiedenis)
+"profile.org.leftOn %@"     = "Uit dienst sinds %@";
+"shift.formerEmployer %@"   = "Uit dienst sinds %@ · alleen inzien";
+"availability.formerOnly"   = "Je werkt nu bij geen enkele werkgever, dus beschikbaarheid doorgeven kan niet.";
+"error.employeeArchived"    = "Je werkt hier niet meer. Uren indienen kon tot 14 dagen na je laatste dag.";
+
 // Kloktags
 "clock.tag.alertTitle"      = "Klokken lukte niet";
 "clock.tag.invalid"         = "Deze tag is niet meer in gebruik. Vraag het je manager.";
@@ -550,6 +561,7 @@
 "detail.swapOpen"               = "Aangeboden om te ruilen · bekijk Ruilen";
 "shift.break %lld"              = "pauze %lld min";
 "inbox.swap"                    = "RUILEN";
+"inbox.crewMessage"             = "BERICHT";
 "swap.everyone"                 = "Iedereen";
 "swap.everyone.body"            = "Elke collega die dan niet werkt";
 "swap.note.placeholder"         = "Waarom? (mag leeg)";
@@ -607,4 +619,4 @@
 "profile.leave"                 = "Verlof";
 "profile.section.employer"      = "Werkgever";
 "profile.operatorTools"         = "Werkgever-functies";
-"profile.operatorTools.body"    = "Uit: gebruik de app zoals je medewerkers hem zien.";
+"profile.operatorTools.body"    = "Aan: het hele rooster van je bedrijf en Dienst toevoegen. Uit: je ziet de app zoals je medewerkers hem zien.";

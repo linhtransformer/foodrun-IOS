@@ -144,6 +144,8 @@ public final class ClockStore {
     private static func tagMessage(for error: Error) -> String {
         let raw = String(describing: error) + " " + error.localizedDescription
         for (code, key) in [
+            // First: it is a 42501 too, which would read as "permission denied".
+            ("employee_archived", "error.employeeArchived"),
             ("invalid_tag", "clock.tag.invalid"),
             ("not_linked", "clock.tag.notLinked"),
             ("no_shift_here_today", "clock.tag.noShift"),
@@ -189,6 +191,9 @@ public final class ClockStore {
                 // The employer switched the button off while the app was open.
                 tagOnlyActivities.insert(activityId)
                 lastError = FRLanguage.string("clock.tag.required")
+            } else if let archived = WorkerAPI.archivedMessage(for: error) {
+                // Put "uit dienst" while the app was open.
+                lastError = archived
             } else {
                 lastError = friendlyError(error, direction: isCurrentlyIn ? .out : .`in`)
             }

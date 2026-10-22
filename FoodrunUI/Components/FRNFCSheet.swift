@@ -83,6 +83,7 @@ public struct NFCResultSheet: View {
                 .fill(Color.foodrun.background)
                 .ignoresSafeArea(edges: .bottom)
         )
+        .compositingGroup()
         .shadow(color: .black.opacity(0.2), radius: 40, y: -10)
     }
 

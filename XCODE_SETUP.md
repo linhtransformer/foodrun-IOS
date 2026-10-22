@@ -16,7 +16,7 @@ Phase 1 NFC clock-in code that just landed.
 ## 2. Add the NFC usage string to Info.plist
 
 - Project → target `Foodrun` → **Info** → add a new row:
-  - Key: `NSNFCReaderUsageDescription` (Xcode shows this as *"Privacy - NFC Scan Usage
+  - Key: `NFCReaderUsageDescription` (Xcode shows this as *"Privacy - NFC Scan Usage
     Description"*).
   - Value: `Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.`
 - Without this key, `NFCNDEFReaderSession.begin()` traps at runtime.

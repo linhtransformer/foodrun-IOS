@@ -49,7 +49,8 @@ public struct AppShell: View {
             changes.track(schedule.shifts, today: SchemaDates.string(schedule.today), userId: uid)
         }
         let ids = schedule.employees.map(\.id)
-        async let h: Void = hours.load(employeeIds: ids)
+        // Hours include a former employer's (history); availability never does.
+        async let h: Void = hours.load(employeeIds: schedule.historyEmployeeIds)
         async let a: Void = availability.load(employeeIds: ids)
         async let i: Void = inbox.load()
         async let t: Void = crewTasks.load()
@@ -119,7 +120,7 @@ public struct AppShell: View {
         .onChange(of: clock.nfcResult) { _, result in
             // A clock-out usually means hours are due — refresh so the Hours tab
             // shows the "Waiting for you" card straight away.
-            if result == .clockedOut { Task { await hours.load(employeeIds: schedule.employees.map(\.id)) } }
+            if result == .clockedOut { Task { await hours.load(employeeIds: schedule.historyEmployeeIds) } }
         }
         .environment(router)
         .environment(schedule)

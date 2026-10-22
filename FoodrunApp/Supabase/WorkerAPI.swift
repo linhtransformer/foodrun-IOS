@@ -399,6 +399,15 @@ enum WorkerAPI {
             .execute()
     }
 
+    /// The guard's answer once the employer put this worker "uit dienst"
+    /// (`employee_archived`, errcode 42501 — HQ 20261021140000_employee_archive):
+    /// clocking, availability and late hours there are refused. A friendly
+    /// line for that case, nil for any other error.
+    static func archivedMessage(for error: Error) -> String? {
+        let raw = String(describing: error) + " " + error.localizedDescription
+        return raw.contains("employee_archived") ? FRLanguage.string("error.employeeArchived") : nil
+    }
+
     static func markRead(_ id: UUID) async throws {
         try await client
             .from("worker_notifications")
