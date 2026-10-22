@@ -27,9 +27,11 @@ struct RosterMode: View {
     }
 
     /// Own shifts the operator roster below doesn't cover: shifts at another
-    /// employer, or an own row that isn't on the operator's staff list.
+    /// employer, or an own row that isn't on the operator's staff list. Empty when
+    /// the team roster lists those shifts instead (operatorTeam).
     private var myShiftsOutsideOperatorRoster: [WorkerShift] {
         guard schedule.isOperator else { return myShiftsToday }
+        guard !operatorSeesTeam else { return [] }
         let covered = Set(operatorEntries.map(\.id))
         return myShiftsToday.filter { !covered.contains(Self.entryId($0.activity.id, $0.employee.id.uuidString)) }
     }
@@ -74,7 +76,24 @@ struct RosterMode: View {
         "\(activityId.uuidString.lowercased())|\(employeeId.lowercased())"
     }
 
-    private var headcount: Int { showsTeam ? teamToday.count : entries.count + hiddenColleagues }
+    private var headcount: Int {
+        if showsTeam { return teamToday.count }
+        return entries.count + (operatorSeesTeam ? operatorTeam.count : hiddenColleagues)
+    }
+
+    /// The operator's own company's activities: edited from operatorEntries.
+    private var ownActivityIds: Set<UUID> {
+        schedule.isOperator ? Set(schedule.operatorActivities.map(\.id)) : []
+    }
+
+    /// Operator who also works elsewhere: the team roster fills in the other employers.
+    private var operatorSeesTeam: Bool { AppConfig.Features.shiftSwaps && schedule.isOperator && swaps.teamLoaded }
+
+    /// Operator view: everyone on the day's shifts at the other employers, by name.
+    private var operatorTeam: [TeamShift] {
+        guard operatorSeesTeam else { return [] }
+        return teamToday.filter { !ownActivityIds.contains($0.activity.id) }
+    }
 
     /// Worker view with the team roster loaded (swaps switched on).
     private var showsTeam: Bool { AppConfig.Features.shiftSwaps && !schedule.isOperator && swaps.teamLoaded }
@@ -84,8 +103,8 @@ struct RosterMode: View {
     }
 
     private var openToday: [OpenShift] {
-        guard AppConfig.Features.shiftSwaps && !schedule.isOperator else { return [] }
-        return swaps.openShifts(on: dayKey)
+        guard AppConfig.Features.shiftSwaps else { return [] }
+        return swaps.openShifts(on: dayKey).filter { !ownActivityIds.contains($0.activity.id) }
     }
 
     /// Monday of the selected week: the team roster loads a week at a time.
@@ -137,7 +156,7 @@ struct RosterMode: View {
                 }
                 .buttonStyle(.plain)
             }
-            if showsTeam && teamToday.contains(where: { !$0.is_me }) {
+            if (showsTeam ? teamToday : operatorTeam).contains(where: { !$0.is_me }) {
                 Text("roster.tapToAsk")
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
@@ -163,7 +182,8 @@ struct RosterMode: View {
                 .presentationDragIndicator(.visible)
         }
         .task(id: "\(weekKey)|\(schedule.isOperator)") {
-            guard AppConfig.Features.shiftSwaps && !schedule.isOperator else { return }
+            // Operators too: their shifts at other employers list colleagues from it.
+            guard AppConfig.Features.shiftSwaps else { return }
             await swaps.loadTeam(around: schedule.selectedDate)
         }
     }
@@ -176,40 +196,42 @@ struct RosterMode: View {
             emptyBox
         }
         VStack(spacing: 8) {
-            ForEach(teamToday) { t in
-                Button {
-                    if t.is_me {
-                        if let date = SchemaDates.date(t.day) {
-                            router.pushOnShifts(.shiftDetail(activityId: t.activity.id, date: date))
-                        }
-                    } else {
-                        asking = t
-                        FRHaptic.light.fire()
-                    }
-                } label: {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        FRRosterRow(
-                            name: t.name,
-                            initials: initials(t.name),
-                            avatarColor: Color.foodrunData(hex: t.color ?? t.activity.color),
-                            role: schedule.worksForSeveral ? (t.employer ?? "") : "",
-                            truckName: t.activity.title,
-                            truckColor: Color.foodrunData(hex: t.activity.color),
-                            time: PeopleFormat.window(t.window),
-                            isYou: t.is_me
-                        )
-                        if t.ask != nil {
-                            Text("swaps.requested")
-                                .frText(FRType.fieldLabel)
-                                .foregroundStyle(Color.foodrun.subject.warning)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint(t.is_me ? Text("roster.openMine.hint") : Text("roster.ask.hint"))
-            }
+            ForEach(teamToday) { teamRow($0) }
         }
+    }
+
+    private func teamRow(_ t: TeamShift) -> some View {
+        Button {
+            if t.is_me {
+                if let date = SchemaDates.date(t.day) {
+                    router.pushOnShifts(.shiftDetail(activityId: t.activity.id, date: date))
+                }
+            } else {
+                asking = t
+                FRHaptic.light.fire()
+            }
+        } label: {
+            VStack(alignment: .trailing, spacing: 4) {
+                FRRosterRow(
+                    name: t.name,
+                    initials: initials(t.name),
+                    avatarColor: Color.foodrunData(hex: t.color ?? t.activity.color),
+                    role: schedule.worksForSeveral ? (t.employer ?? "") : "",
+                    truckName: t.activity.title,
+                    truckColor: Color.foodrunData(hex: t.activity.color),
+                    time: PeopleFormat.window(t.window),
+                    isYou: t.is_me
+                )
+                if t.ask != nil {
+                    Text("swaps.requested")
+                        .frText(FRType.fieldLabel)
+                        .foregroundStyle(Color.foodrun.subject.warning)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(t.is_me ? Text("roster.openMine.hint") : Text("roster.ask.hint"))
     }
 
     private func openRow(_ open: OpenShift) -> some View {
@@ -261,7 +283,7 @@ struct RosterMode: View {
 
     @ViewBuilder
     private var operatorList: some View {
-        if entries.isEmpty && openToday.isEmpty {
+        if entries.isEmpty && operatorTeam.isEmpty && openToday.isEmpty {
             emptyBox
         }
         VStack(spacing: 8) {
@@ -284,7 +306,8 @@ struct RosterMode: View {
                     row
                 }
             }
-            if hiddenColleagues > 0 {
+            ForEach(operatorTeam) { teamRow($0) }
+            if !operatorSeesTeam && hiddenColleagues > 0 {
                 Text("detail.crew.others \(hiddenColleagues)")
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
