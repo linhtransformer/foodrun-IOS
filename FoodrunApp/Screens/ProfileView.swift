@@ -21,7 +21,6 @@ public struct ProfileView: View {
             VStack(spacing: 16) {
                 avatar
                 // Right under the name so an employer finds the switch without scrolling.
-                if schedule.hasOwnStaff { employerSection }
                 if !schedule.employees.isEmpty { stats }
                 if !schedule.employees.isEmpty { workSection }
                 if !organizations.isEmpty { organizationsSection }
@@ -49,24 +48,6 @@ public struct ProfileView: View {
                 }
             }
             .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// An employer using the app themselves can hide the planner tools and see it as their staff do.
-    private var employerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("profile.section.employer").frText(FRType.sectionHeader)
-            Toggle(isOn: Binding(get: { schedule.showsOperatorTools }, set: { schedule.setShowsOperatorTools($0) })) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("profile.operatorTools").frText(FRType.rowTitle)
-                    Text("profile.operatorTools.body").frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                }
-            }
-            .tint(Color.foodrun.foreground)
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
-            .frNeu(.raised)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

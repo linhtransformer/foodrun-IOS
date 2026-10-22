@@ -4,7 +4,7 @@ import SwiftUI
 //
 // Workers see the published roster of their employer(s) by name (get_my_team_roster) and the
 // day's open shifts. Tapping a colleague's shift asks to take it over (TakeoverSheet); the
-// answer comes through the Inbox. Operators (org owners with Werkgever-functies on) see their
+// answer comes through the Inbox. Operators (org owners) see their
 // own company's roster editable and get the "+" — the same daily_employees /
 // daily_employee_times fields HQ's scheduling board edits. If the team roster can't load,
 // workers fall back to their own shifts plus a headcount.
@@ -140,21 +140,6 @@ struct RosterMode: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("roster.addShift"))
                 }
-            }
-            if schedule.isOperator {
-                // Says why everyone is listed, and where the switch lives.
-                Button { router.tab = .me } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Image(systemName: "briefcase")
-                        Text("roster.operatorView")
-                            .frText(FRType.rowSubtitle)
-                            .multilineTextAlignment(.leading)
-                    }
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
             }
             if (showsTeam ? teamToday : operatorTeam).contains(where: { !$0.is_me }) {
                 Text("roster.tapToAsk")

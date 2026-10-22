@@ -88,19 +88,11 @@ public final class ScheduleStore {
     /// True when the last load fetched the roster. Change tracking only diffs
     /// real data, never the empty state a failed request leaves behind.
     public private(set) var rosterLoaded = false
-    /// Operator (org owner) context — powers the admin "Add shift" sheet on the
-    /// Roster tab. False for ordinary workers, and for an employer who switched
-    /// "Werkgever-functies" off in Profile to use the app like their staff do.
-    public var isOperator: Bool { hasOwnStaff && showsOperatorTools }
+    /// Operator (org owner) context — the whole roster of their company and the
+    /// "Add shift" sheet on the Roster view. False for ordinary workers.
+    public var isOperator: Bool { hasOwnStaff }
     /// The account has staff of its own (employees.user_id = me).
     public var hasOwnStaff = false
-    /// Profile → "Werkgever-functies" (stored on the phone; on by default).
-    public private(set) var showsOperatorTools: Bool = UserDefaults.standard.object(forKey: "showOperatorTools") as? Bool ?? true
-
-    public func setShowsOperatorTools(_ on: Bool) {
-        showsOperatorTools = on
-        UserDefaults.standard.set(on, forKey: "showOperatorTools")
-    }
     /// Organizations this account belongs to (RPC get_my_organizations; empty
     /// until the server offers it). Several when the worker works for more
     /// than one employer.

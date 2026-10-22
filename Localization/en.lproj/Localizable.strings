@@ -152,7 +152,6 @@
 
 // MARK: Add shift (admin)
 "roster.addShift"           = "Add shift";
-"roster.operatorView"       = "Employer view: you see your own company's whole roster. Turn off: Me → Employer tools.";
 "addShift.title"            = "Add shift";
 "addShift.adminBadge"       = "Admin";
 "addShift.description"      = "Rosters people on the chosen days. They see the shift in their app right away.";
@@ -619,9 +618,6 @@
 "profile.section.work"          = "Shifts and time off";
 "profile.swaps"                 = "Swap shifts";
 "profile.leave"                 = "Time off";
-"profile.section.employer"      = "Employer";
-"profile.operatorTools"         = "Employer tools";
-"profile.operatorTools.body"    = "On: your company's whole roster and Add shift. Off: see the app the way your staff do.";
 
 /* Ruilen, part 2: ask a colleague for their shift (Rooster tab) and answer in the Inbox */
 "takeover.title %@"             = "Take over %@'s shift?";

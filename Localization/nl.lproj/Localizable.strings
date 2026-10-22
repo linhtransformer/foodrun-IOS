@@ -152,7 +152,6 @@
 
 // MARK: Dienst toevoegen (admin)
 "roster.addShift"           = "Dienst toevoegen";
-"roster.operatorView"       = "Werkgever-weergave: je ziet het hele rooster van je eigen bedrijf. Uitzetten: Ik → Werkgever-functies.";
 "addShift.title"            = "Dienst toevoegen";
 "addShift.adminBadge"       = "Admin";
 "addShift.description"      = "Roostert medewerkers op de gekozen dagen. Ze zien de dienst meteen in hun app.";
@@ -619,9 +618,6 @@
 "profile.section.work"          = "Diensten en verlof";
 "profile.swaps"                 = "Diensten ruilen";
 "profile.leave"                 = "Verlof";
-"profile.section.employer"      = "Werkgever";
-"profile.operatorTools"         = "Werkgever-functies";
-"profile.operatorTools.body"    = "Aan: het hele rooster van je bedrijf en Dienst toevoegen. Uit: je ziet de app zoals je medewerkers hem zien.";
 
 /* Ruilen, deel 2: een collega om een dienst vragen (Rooster-tab) en antwoorden in de Inbox */
 "takeover.title %@"             = "Dienst van %@ overnemen?";
