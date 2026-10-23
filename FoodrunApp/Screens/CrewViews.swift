@@ -180,7 +180,7 @@ struct CrewTaskRow: View {
                 Text(verbatim: task.title)
                     .frText(FRType.rowTitle)
                 if let instructions = task.instructions, !instructions.isEmpty {
-                    Text(verbatim: instructions)
+                    Text(CrewFormat.linkified(instructions))
                         .frText(FRType.rowSubtitle)
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 }
@@ -437,7 +437,7 @@ struct CrewDishSheet: View {
                 if let recipe = dish.recipe {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("crew.dish.recipe").frText(FRType.sectionHeader)
-                        Text(verbatim: recipe)
+                        Text(CrewFormat.linkified(recipe))
                             .frText(FRType.body)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(14)
@@ -484,7 +484,7 @@ struct CrewAnswerSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(verbatim: title).font(.system(size: 22, weight: .bold))
             if let prompt, !prompt.isEmpty {
-                Text(verbatim: prompt).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Text(CrewFormat.linkified(prompt)).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
 
             HStack(spacing: 10) {
@@ -773,7 +773,7 @@ struct CrewCountSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: title).font(.system(size: 22, weight: .bold))
-                Text(verbatim: prompt).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Text(CrewFormat.linkified(prompt)).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
 
             VStack(alignment: .leading, spacing: 8) {
