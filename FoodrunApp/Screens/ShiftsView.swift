@@ -16,7 +16,6 @@ public struct ShiftsView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                hero
                 modePills
                 if schedule.mode != .shifts {
                     weekCarousel
@@ -25,7 +24,21 @@ public struct ShiftsView: View {
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, FRSpacing.screenTop.value)
-            .padding(.bottom, FRSpacing.screenBottom.value)
+            .padding(.bottom, 16)
+        }
+        // The next-shift card floats just above the tab bar, in thumb reach, and the page
+        // starts with the pills. The inset also keeps the list's end clear of card and bar.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            hero
+                .padding(.horizontal, FRSpacing.screenH.value)
+                .padding(.top, 14)
+                .padding(.bottom, Self.tabBarClearance)
+                .background(
+                    LinearGradient(colors: [Color.foodrun.background.opacity(0), Color.foodrun.background],
+                                   startPoint: .top, endPoint: .init(x: 0.5, y: 0.25))
+                        .ignoresSafeArea(edges: .bottom)
+                        .allowsHitTesting(false)
+                )
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .refreshable { await schedule.load() }
@@ -40,16 +53,22 @@ public struct ShiftsView: View {
 
     // MARK: - Hero
 
+    /// From the bottom safe area to just above the floating tab bar (AppShell: 22pt from the
+    /// screen edge, ~72pt tall) with a 10pt gap.
+    private static let tabBarClearance: CGFloat = 70
+
     @ViewBuilder
     private var hero: some View {
-        if let shift = schedule.nextShift {
+        // Only on the day itself (or while still on the clock, e.g. past midnight): other
+        // shifts are in the list below, revealed when they come up.
+        if let shift = schedule.nextShift, schedule.isToday(shift.date) || clock.clockedIn {
             // `elapsed` is worked out from the clock-in time; redraw every second while on the
             // clock so the timer runs (paused otherwise — nothing to count).
             TimelineView(.animation(minimumInterval: 1, paused: !clock.clockedIn)) { _ in
                 heroCard(shift)
             }
-        } else {
-            emptyHero
+            // Its own height, not the space the bottom inset offers.
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -76,25 +95,6 @@ public struct ShiftsView: View {
             // Whole card opens detail (bundle §Next-shift hero).
             router.pushOnShifts(.shiftDetail(activityId: shift.activity.id, date: shift.date))
         }
-    }
-
-    private var emptyHero: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("hero.eyebrow.nextShift")
-                .frText(FRType.eyebrow)
-                .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.55))
-            Text(LocalizedStringKey(schedule.isLoading ? "shifts.loading" : "shifts.none"))
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(Color.foodrun.backgroundInverseInk)
-            if let err = schedule.lastError {
-                Text(err)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.6))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: FRRadius.hero.value, style: .continuous).fill(Color.foodrun.foreground))
     }
 
     // MARK: - Mode pills

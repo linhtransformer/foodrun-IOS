@@ -37,7 +37,7 @@
 "shifts.stillToWork.title"       = "Nog te werken";
 
 // MARK: Hero
-"hero.eyebrow.nextShift"  = "Volgende dienst";
+"hero.eyebrow.nextShift"  = "Dienst vandaag";
 "hero.expand"             = "Kaart uitklappen";
 "hero.collapse"           = "Kaart inklappen";
 "hero.onTheClock"         = "Aan het werk";

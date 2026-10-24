@@ -37,7 +37,7 @@
 "shifts.stillToWork.title"       = "Still to work";
 
 // MARK: Hero
-"hero.eyebrow.nextShift"  = "Next shift";
+"hero.eyebrow.nextShift"  = "Today’s shift";
 "hero.expand"             = "Expand shift card";
 "hero.collapse"           = "Collapse shift card";
 "hero.onTheClock"         = "On the clock";
