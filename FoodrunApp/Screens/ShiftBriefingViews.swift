@@ -82,6 +82,7 @@ struct ShiftBriefingContent: View {
         let closed = event.activity.is_closed || readOnly
         ForEach(Array((briefing.locations ?? []).enumerated()), id: \.offset) { _, location in
             CrewLocationCard(location: location,
+                             addedByColor: location.added_by.flatMap { memberColor(briefing, $0) },
                              onDelete: (location.mine ?? false) && !closed ? { deleting = location } : nil)
                 // Rows are keyed by index: when a pin above is removed, the next
                 // location slides into this slot — reset the card so its map
@@ -108,6 +109,12 @@ struct ShiftBriefingContent: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    /// The team colour of the person who pinned a spot, from any day of the event.
+    private func memberColor(_ briefing: CrewBriefing, _ name: String) -> String? {
+        (briefing.team ?? []).lazy.compactMap { $0.members }.joined()
+            .first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.color
     }
 
     // MARK: Today
@@ -602,6 +609,8 @@ struct CrewInfoRow: View {
 /// notes and a Route button that opens Apple Maps.
 struct CrewLocationCard: View {
     let location: CrewLocation
+    /// The pinner's team colour ("#rrggbb"), when they are on the event's team.
+    var addedByColor: String? = nil
     /// Set for a pin I placed: shows a remove button.
     var onDelete: (() -> Void)? = nil
     @Environment(\.openURL) private var openURL
@@ -620,6 +629,11 @@ struct CrewLocationCard: View {
                 .frame(height: 160)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .allowsHitTesting(false)
+                .overlay(alignment: .topTrailing) {
+                    if let by = location.added_by { addedByPill(by).padding(8) }
+                }
+            } else if let by = location.added_by {
+                HStack { Spacer(minLength: 0); addedByPill(by) }
             }
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -649,13 +663,8 @@ struct CrewLocationCard: View {
             if let image = location.image, let url = URL(string: image) {
                 CrewRemoteImage(url: url)
             }
-            if location.added_by != nil || onDelete != nil {
+            if onDelete != nil {
                 HStack(spacing: 8) {
-                    if let by = location.added_by {
-                        Label(String(format: FRLanguage.string("pin.addedBy %@"), by), systemImage: "mappin")
-                            .frText(FRType.rowSubtitle)
-                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                    }
                     Spacer(minLength: 8)
                     if let onDelete {
                         Button(action: onDelete) {
@@ -683,6 +692,21 @@ struct CrewLocationCard: View {
         }
         guard let address = location.address?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
         return URL(string: "http://maps.apple.com/?daddr=\(address)")
+    }
+
+    /// "📍 Linh Tran" in the pinner's team colour, like the Team chips.
+    private func addedByPill(_ name: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: "mappin").font(.system(size: 11, weight: .semibold))
+            Text(verbatim: name).lineLimit(1)
+        }
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(Color.foodrun.foreground)
+        .padding(.horizontal, 10).padding(.vertical, 5)
+        .background(Capsule().fill(addedByColor.map { Color.foodrunData(hex: $0) } ?? Color.foodrun.card))
+        .overlay(Capsule().strokeBorder(Color.foodrun.border, lineWidth: addedByColor == nil ? 1 : 0))
+        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+        .accessibilityLabel(Text(verbatim: String(format: FRLanguage.string("pin.addedBy %@"), name)))
     }
 }
 
