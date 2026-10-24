@@ -167,7 +167,7 @@ public struct ShiftDetailView: View {
             case .briefing:
                 ShiftBriefingContent(store: store, event: event, day: day, onOpenDish: { openDish = $0 })
             case .setup:
-                ShiftSetupContent(briefing: event.briefing)
+                ShiftSetupContent(store: store, event: event)
             case .tasks:
                 if event.activity.is_closed { closedLine }
                 ShiftTasksContent(store: store, event: event, day: day,

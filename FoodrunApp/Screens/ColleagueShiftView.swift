@@ -113,7 +113,7 @@ struct ColleagueShiftView: View {
             }
             switch tab {
             case .setup:
-                ShiftSetupContent(briefing: event.briefing)
+                ShiftSetupContent(store: store, event: event, readOnly: true)
             default:
                 ShiftBriefingContent(store: store, event: event, day: shift.day,
                                      onOpenDish: { openDish = $0 }, readOnly: true)

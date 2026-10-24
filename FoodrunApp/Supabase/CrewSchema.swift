@@ -127,6 +127,11 @@ public struct CrewLocation: Decodable, Hashable {
     public let added_by: String?     // crew member who pinned it from the app
     public let pin_id: String?
     public let mine: Bool?           // I pinned it → I may remove it
+    /// "setup" for a spot pinned on the Setup tab (build-up / teardown); nil or "script"
+    /// for the Draaiboek. Absent on a server without Setup pins.
+    public var section: String? = nil
+
+    public var isSetup: Bool { section == "setup" }
 }
 
 public struct CrewDailyComment: Decodable, Hashable {

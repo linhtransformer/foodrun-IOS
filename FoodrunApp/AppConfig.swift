@@ -32,5 +32,9 @@ enum AppConfig {
         /// Medewerkers → Koppelcode; RPC find_organization_by_join_code, live
         /// 2026-10-15).
         static let joinByCode = true
+        /// "Locatie pinnen" on the shift's Setup tab: pins with section "setup", shown only
+        /// there. Needs submit_my_location_pin(p_section) + `section` on get_my_event's
+        /// locations (HQ) — keep false until that is live, or the Setup pin call fails.
+        static let setupPins = false
     }
 }

@@ -20,8 +20,6 @@ struct ShiftBriefingContent: View {
 
     @State private var opening: CrewOpenedURL?
     @State private var openError: String?
-    @State private var pinning = false
-    @State private var deleting: CrewLocation?
 
     private var briefing: CrewBriefing? { event.briefing }
     private var dishes: [CrewDish] { event.dishes ?? [] }
@@ -52,69 +50,16 @@ struct ShiftBriefingContent: View {
             }
         }
         .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
-        .sheet(isPresented: $pinning) {
-            let start = (briefing?.locations ?? []).first { $0.lat != nil && $0.lng != nil }
-            CrewPinSheet(startLatitude: start?.lat, startLongitude: start?.lng) { name, lat, lng, address, notes, photo in
-                await store.addPin(name: name, latitude: lat, longitude: lng, address: address, notes: notes, photo: photo)
-            }
-        }
-        .confirmationDialog(
-            FRLanguage.string("pin.deleteConfirm"),
-            isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
-            titleVisibility: .visible,
-            presenting: deleting
-        ) { location in
-            Button(FRLanguage.string("pin.delete"), role: .destructive) {
-                Task {
-                    let ok = await store.deletePin(location)
-                    if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
-                }
-            }
-        }
     }
 
     // MARK: Locations + pins
 
-    /// The event's locations and pins, then "Locatie pinnen" so the crew can
-    /// mark a spot themselves (like the script portal's Pin a Location).
-    @ViewBuilder
+    /// The event's locations and the Draaiboek's pins; pins placed on the Setup tab stay there.
     private func locationsSection(_ briefing: CrewBriefing) -> some View {
-        let closed = event.activity.is_closed || readOnly
-        ForEach(Array((briefing.locations ?? []).enumerated()), id: \.offset) { _, location in
-            CrewLocationCard(location: location,
-                             addedByColor: location.added_by.flatMap { memberColor(briefing, $0) },
-                             onDelete: (location.mine ?? false) && !closed ? { deleting = location } : nil)
-                // Rows are keyed by index: when a pin above is removed, the next
-                // location slides into this slot — reset the card so its map
-                // (initialPosition) re-centres instead of showing the old spot.
-                .id(location)
-        }
-        if !closed {
-            Button { pinning = true } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "mappin.and.ellipse")
-                    Text("pin.add")
-                    Spacer()
-                    Image(systemName: "plus")
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.foodrun.foreground)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .overlay(
-                    RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
-                        .strokeBorder(Color.foodrun.mutedForegroundSoft.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4]))
-                )
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    /// The team colour of the person who pinned a spot, from any day of the event.
-    private func memberColor(_ briefing: CrewBriefing, _ name: String) -> String? {
-        (briefing.team ?? []).lazy.compactMap { $0.members }.joined()
-            .first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.color
+        CrewLocationsSection(store: store, briefing: briefing,
+                             locations: (briefing.locations ?? []).filter { !$0.isSetup },
+                             section: nil,
+                             canPin: !(event.activity.is_closed || readOnly))
     }
 
     // MARK: Today
@@ -389,18 +334,33 @@ struct ShiftBriefingContent: View {
 // MARK: - Setup (build-up and teardown)
 
 struct ShiftSetupContent: View {
-    let briefing: CrewBriefing?
+    let store: EventStore
+    let event: CrewEvent
+    /// A colleague's shift (ColleagueShiftView): the Setup pins show, but no pinning.
+    var readOnly = false
 
     @State private var opening: CrewOpenedURL?
 
+    private var briefing: CrewBriefing? { event.briefing }
+    /// Spots pinned for build-up / teardown (section "setup"): only on this tab.
+    private var setupPins: [CrewLocation] { (briefing?.locations ?? []).filter(\.isSetup) }
+    private var canPin: Bool {
+        AppConfig.Features.setupPins && !readOnly && !event.activity.is_closed && briefing != nil
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if briefing?.setup == nil && briefing?.teardown == nil && briefing?.electricity == nil {
+            if briefing?.setup == nil && briefing?.teardown == nil && briefing?.electricity == nil
+                && setupPins.isEmpty && !canPin {
                 CrewBriefingEmpty(key: "setup.none")
             }
             if let setup = briefing?.setup { block(setup, icon: "wrench.and.screwdriver", title: "setup.buildUp") }
             if let power = briefing?.electricity { CrewPowerCard(power: power) }
             if let teardown = briefing?.teardown { block(teardown, icon: "shippingbox", title: "setup.teardown") }
+            if let briefing, !setupPins.isEmpty || canPin {
+                CrewLocationsSection(store: store, briefing: briefing, locations: setupPins,
+                                     section: "setup", canPin: canPin)
+            }
         }
         .sheet(item: $opening) { CrewSafariView(url: $0.url).ignoresSafeArea() }
     }
@@ -607,6 +567,79 @@ struct CrewInfoRow: View {
 
 /// One location: map with a pin (when it has coordinates), name, address,
 /// notes and a Route button that opens Apple Maps.
+// MARK: - Locations with "Locatie pinnen"
+
+/// Location cards plus "Locatie pinnen", so the crew can mark a spot themselves (like the
+/// script portal's Pin a Location). `section` nil = the Draaiboek, "setup" = the Setup tab.
+struct CrewLocationsSection: View {
+    let store: EventStore
+    let briefing: CrewBriefing
+    let locations: [CrewLocation]
+    let section: String?
+    let canPin: Bool
+
+    @State private var pinning = false
+    @State private var deleting: CrewLocation?
+
+    var body: some View {
+        ForEach(Array(locations.enumerated()), id: \.offset) { _, location in
+            CrewLocationCard(location: location,
+                             addedByColor: location.added_by.flatMap(memberColor),
+                             onDelete: (location.mine ?? false) && canPin ? { deleting = location } : nil)
+                // Rows are keyed by index: when a pin above is removed, the next
+                // location slides into this slot — reset the card so its map
+                // (initialPosition) re-centres instead of showing the old spot.
+                .id(location)
+        }
+        if canPin {
+            Button { pinning = true } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "mappin.and.ellipse")
+                    Text("pin.add")
+                    Spacer()
+                    Image(systemName: "plus")
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.foreground)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(
+                    RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                        .strokeBorder(Color.foodrun.mutedForegroundSoft.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4]))
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $pinning) {
+                let start = (briefing.locations ?? []).first { $0.lat != nil && $0.lng != nil }
+                CrewPinSheet(startLatitude: start?.lat, startLongitude: start?.lng) { name, lat, lng, address, notes, photo in
+                    await store.addPin(name: name, latitude: lat, longitude: lng, address: address,
+                                       notes: notes, photo: photo, section: section)
+                }
+            }
+            .confirmationDialog(
+                FRLanguage.string("pin.deleteConfirm"),
+                isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+                titleVisibility: .visible,
+                presenting: deleting
+            ) { location in
+                Button(FRLanguage.string("pin.delete"), role: .destructive) {
+                    Task {
+                        let ok = await store.deletePin(location)
+                        if ok { FRHaptic.success.fire() } else { FRHaptic.error.fire() }
+                    }
+                }
+            }
+        }
+    }
+
+    /// The team colour of the person who pinned a spot, from any day of the event.
+    private func memberColor(_ name: String) -> String? {
+        (briefing.team ?? []).lazy.compactMap { $0.members }.joined()
+            .first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.color
+    }
+}
+
 struct CrewLocationCard: View {
     let location: CrewLocation
     /// The pinner's team colour ("#rrggbb"), when they are on the event's team.

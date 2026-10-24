@@ -83,11 +83,11 @@ enum CrewAPI {
 
     /// Pin a location on the event (the script portal's "Pin a Location").
     static func submitPin(activityId: UUID, name: String, latitude: Double, longitude: Double,
-                          address: String?, notes: String?, imageURL: String?) async throws {
+                          address: String?, notes: String?, imageURL: String?, section: String? = nil) async throws {
         _ = try await client
             .rpc("submit_my_location_pin",
                  params: PinParams(p_activity_id: activityId, p_name: name, p_lat: latitude, p_lng: longitude,
-                                   p_address: address, p_notes: notes, p_image_url: imageURL))
+                                   p_address: address, p_notes: notes, p_image_url: imageURL, p_section: section))
             .execute()
     }
 
@@ -200,9 +200,12 @@ private struct PinParams: Encodable {
     let p_address: String?
     let p_notes: String?
     let p_image_url: String?
+    /// "setup" for a Setup-tab pin. Sent only then, so a Draaiboek pin also works on a
+    /// server without the argument.
+    let p_section: String?
 
     private enum CodingKeys: String, CodingKey {
-        case p_activity_id, p_name, p_lat, p_lng, p_address, p_notes, p_image_url
+        case p_activity_id, p_name, p_lat, p_lng, p_address, p_notes, p_image_url, p_section
     }
 
     // Explicit nulls: PostgREST matches the function by argument names.
@@ -215,6 +218,7 @@ private struct PinParams: Encodable {
         try c.encode(p_address, forKey: .p_address)
         try c.encode(p_notes, forKey: .p_notes)
         try c.encode(p_image_url, forKey: .p_image_url)
+        try c.encodeIfPresent(p_section, forKey: .p_section)
     }
 }
 

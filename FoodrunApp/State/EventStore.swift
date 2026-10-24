@@ -113,7 +113,7 @@ public final class EventStore {
     /// Pin a location on the event; the photo (optional) goes up first.
     @discardableResult
     public func addPin(name: String, latitude: Double, longitude: Double, address: String?,
-                       notes: String?, photo: Data?) async -> Bool {
+                       notes: String?, photo: Data?, section: String? = nil) async -> Bool {
         guard let employeeId = event?.employee_id else { return false }
         do {
             var imageURL: String?
@@ -121,7 +121,7 @@ public final class EventStore {
                 imageURL = try await CrewAPI.uploadPinPhoto(activityId: activityId, employeeId: employeeId, jpeg: photo).absoluteString
             }
             try await CrewAPI.submitPin(activityId: activityId, name: name, latitude: latitude, longitude: longitude,
-                                        address: address, notes: notes, imageURL: imageURL)
+                                        address: address, notes: notes, imageURL: imageURL, section: section)
             await load()
             return true
         } catch {
