@@ -425,3 +425,19 @@ Verlof, the reminder opens Availability, `roster_updated` the Shifts tab.
 
 When any app changes a shape: update `SharedSchema.swift`, this file, and the
 HQ vault (`wiki/architecture/worker-portal.md`) in the same change.
+
+### Setup pins (requested 2026-10-24, app side behind `AppConfig.Features.setupPins`)
+
+The shift's Setup tab gets its own "Locatie pinnen". Those pins belong to build-up /
+teardown and show only on the Setup tab, never in the Draaiboek.
+
+- `submit_my_location_pin(..., p_section text default 'script')`: `'script'` | `'setup'`.
+  The app sends `p_section` only for a Setup pin, so the default keeps older app builds
+  and Draaiboek pins working unchanged.
+- `get_my_event(...).briefing.locations[]`: each entry carries `section` (`'script'` |
+  `'setup'`). Locations an operator adds in the script editor are `'script'`, unless
+  added in the editor's Setup part.
+- `delete_my_location_pin` is unchanged.
+- HQ shows Setup pins in the Setup (opbouw / afbouw) part of the script editor and the
+  crew portal, not with the script's locations.
+Once this is live, set `setupPins = true`.
