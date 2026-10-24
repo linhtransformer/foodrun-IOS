@@ -65,7 +65,8 @@ public struct ShiftsView: View {
             expanded: $scheduleBindable.heroExpanded,
             onTapListening: { armNFCReader(for: shift) },
             onTapChecklist: { openTasksIfUnlocked(shift) },
-            checklistProgress: (tasks.completed, tasks.items.count)
+            checklistProgress: (tasks.completed, tasks.items.count),
+            canClock: schedule.isToday(shift.date) && !shift.isAtFormerEmployer
         )
         .onTapGesture {
             // Whole card opens detail (bundle §Next-shift hero).

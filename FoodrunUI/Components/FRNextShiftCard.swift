@@ -18,6 +18,8 @@ public struct FRNextShiftCard: View {
     public var onTapListening: () -> Void
     public var onTapChecklist: () -> Void
     public var checklistProgress: (Int, Int)   // done / total
+    /// Today's shift: the folded card gets a "Klok in" / "Klok uit" pill that opens the tag scan.
+    public var canClock: Bool = false
 
     public var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -106,8 +108,30 @@ public struct FRNextShiftCard: View {
                 Text("\(dayLabel) · \(role)")
                     .font(.system(size: 12))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.6))
+                    .lineLimit(1)
+                if canClock {
+                    Spacer(minLength: 0)
+                    clockPill
+                }
             }
         }
+    }
+
+    /// Small white pill on the folded card: scan the truck's tag without opening the shift.
+    private var clockPill: some View {
+        Button(action: onTapListening) {
+            HStack(spacing: 5) {
+                Image(systemName: "wave.3.right").font(.system(size: 11, weight: .semibold))
+                Text(clockedIn ? "clock.out" : "clock.in")
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(Color.foodrun.foreground)
+            .padding(.horizontal, 11).padding(.vertical, 6)
+            .background(Capsule().fill(Color.foodrun.backgroundInverseInk))
+            .fixedSize()
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("hero.nfc.listening"))
     }
 
     private var expandedBody: some View {
