@@ -37,9 +37,11 @@ public struct AppShell: View {
 
     /// Pull everything the worker sees. Runs on sign-in and each time the app
     /// returns to the foreground, so approvals/roster edits made in HQ show up.
-    private func clockWithScannedTag() async {
+    private func clockWithScannedTag() {
         guard !isPreview, let token = ScannedClockTag.shared.take() else { return }
-        await clock.clockWithTag(token: token)
+        // Not in the `.task(id:)` itself: take() clears the token, which changes that id,
+        // so SwiftUI cancels the task — and with it the clock_with_tag request.
+        Task { await clock.clockWithTag(token: token) }
     }
 
     private func loadAll() async {
@@ -103,7 +105,7 @@ public struct AppShell: View {
         .task { await ShiftChangeStore.requestAuthorization() }
         // A clock tag scanned with the app closed, in the background or before
         // signing in: clock as soon as a signed-in shell is on screen.
-        .task(id: ScannedClockTag.shared.token) { await clockWithScannedTag() }
+        .task(id: ScannedClockTag.shared.token) { clockWithScannedTag() }
         // Accepted an email invite: the new employer's shifts show at once.
         .onChange(of: PendingInvite.shared.joinedAt) { _, _ in Task { await loadAll() } }
         .alert(

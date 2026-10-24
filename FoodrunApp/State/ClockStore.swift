@@ -119,6 +119,7 @@ public final class ClockStore {
             FRHaptic.success.fire()
         } catch {
             let raw = String(describing: error) + " " + error.localizedDescription
+            NSLog("[clock] clock_with_tag failed: %@", raw)
             tagErrorCode = Self.noShiftCodes.contains(where: raw.contains) ? "no_shift_here_today" : nil
             tagError = Self.tagMessage(for: error)
             FRHaptic.error.fire()
