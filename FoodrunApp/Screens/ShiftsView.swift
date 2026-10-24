@@ -166,7 +166,7 @@ public struct ShiftsView: View {
             case .cancelled:
                 break
             case .error(let e):
-                clock.tagError = e.localizedDescription
+                clock.tagError = ClockStore.readerMessage(for: e)
                 FRHaptic.error.fire()
             case .unavailable:
                 clock.tagError = FRLanguage.string("clock.nfc.unsupported")
