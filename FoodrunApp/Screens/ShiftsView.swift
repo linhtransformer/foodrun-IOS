@@ -43,7 +43,11 @@ public struct ShiftsView: View {
     @ViewBuilder
     private var hero: some View {
         if let shift = schedule.nextShift {
-            heroCard(shift)
+            // `elapsed` is worked out from the clock-in time; redraw every second while on the
+            // clock so the timer runs (paused otherwise — nothing to count).
+            TimelineView(.animation(minimumInterval: 1, paused: !clock.clockedIn)) { _ in
+                heroCard(shift)
+            }
         } else {
             emptyHero
         }
