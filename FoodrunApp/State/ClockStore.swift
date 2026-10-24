@@ -1,3 +1,4 @@
+import CoreNFC
 import Foundation
 import SwiftUI
 import Supabase
@@ -39,6 +40,9 @@ public final class ClockStore {
     /// A failed tag scan, shown as an alert wherever the worker is in the app
     /// (a tag can be scanned with the app closed or on any tab).
     public var tagError: String?
+    /// The server's code for that failure (`no_shift_here_today`, …), so the alert can add
+    /// the next shift.
+    public var tagErrorCode: String?
 
     /// Name of the shift the last tag clocked (from the server), for the result sheet.
     public var lastTagActivityName: String?
@@ -92,6 +96,7 @@ public final class ClockStore {
     /// (RPC clock_with_tag — see SchemaContract.md).
     public func clockWithTag(token: String) async {
         tagError = nil
+        tagErrorCode = nil
         lastError = nil
         do {
             let result: ClockWithTagResult = try await SupabaseManager.shared.client
@@ -113,8 +118,37 @@ public final class ClockStore {
             }
             FRHaptic.success.fire()
         } catch {
+            let raw = String(describing: error) + " " + error.localizedDescription
+            tagErrorCode = Self.noShiftCodes.contains(where: raw.contains) ? "no_shift_here_today" : nil
             tagError = Self.tagMessage(for: error)
             FRHaptic.error.fire()
+        }
+    }
+
+    /// "Je volgende dienst is zo 25 okt om 08:00 · Markt Haarlem."
+    public static func nextShiftLine(_ shift: WorkerShift) -> String {
+        let when = [PeopleFormat.day(shift.day), shift.start.map { String(format: FRLanguage.string("clock.next.at %@"), $0) }]
+            .compactMap { $0 }.joined(separator: " ")
+        return String(format: FRLanguage.string("clock.next %@ %@"), when, shift.activity.food_truck ?? shift.activity.name)
+    }
+
+    /// Words the server may use for "no shift here today" (the contract's, plus older spellings).
+    private static let noShiftCodes = ["no_shift_here_today", "no_shift_today", "not_rostered_today"]
+
+    /// The phone's own NFC errors, in words a crew member can act on.
+    public static func readerMessage(for error: Error) -> String {
+        let ns = error as NSError
+        guard ns.domain == NFCReaderError.errorDomain else { return FRLanguage.string("clock.tag.failed") }
+        switch NFCReaderError.Code(rawValue: ns.code) {
+        case .readerTransceiveErrorTagConnectionLost, .readerTransceiveErrorRetryExceeded,
+             .readerTransceiveErrorTagResponseError, .readerTransceiveErrorTagNotConnected:
+            return FRLanguage.string("clock.nfc.lost")
+        case .readerSessionInvalidationErrorSessionTimeout:
+            return FRLanguage.string("clock.nfc.timeout")
+        case .readerErrorUnsupportedFeature:
+            return FRLanguage.string("clock.nfc.unsupported")
+        default:
+            return FRLanguage.string("clock.nfc.lost")
         }
     }
 
@@ -149,6 +183,8 @@ public final class ClockStore {
             ("invalid_tag", "clock.tag.invalid"),
             ("not_linked", "clock.tag.notLinked"),
             ("no_shift_here_today", "clock.tag.noShift"),
+            ("no_shift_today", "clock.tag.noShift"),
+            ("not_rostered_today", "clock.tag.noShift"),
             ("not_authenticated", "clock.tag.signIn"),
             ("permission denied", "clock.tag.signIn"),   // 42501: no session
         ] where raw.contains(code) {

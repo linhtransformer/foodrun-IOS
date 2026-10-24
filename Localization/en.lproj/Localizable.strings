@@ -524,6 +524,11 @@
 "clock.tag.failed"          = "Clocking didn’t work. Check your connection and try again.";
 "clock.nfc.unreadable"      = "That tag isn’t readable — try again.";
 "clock.nfc.unsupported"     = "This iPhone can’t read NFC tags.";
+"clock.notToday.future %@"   = "You can clock in on %@, the day of this shift.";
+"clock.next %@ %@"           = "Your next shift is %1$@ · %2$@.";
+"clock.next.at %@"           = "at %@";
+"clock.nfc.lost"             = "The tag slipped away. Hold the top of your phone still against the tag and try again.";
+"clock.nfc.timeout"          = "No tag found in time. Tap again and hold your phone to the tag.";
 "clock.nfc.hintIn"          = "Hold your phone to the tag to clock in";
 "clock.nfc.hintOut"         = "Hold your phone to the tag to clock out";
 "clock.error.in"            = "Couldn’t clock in.";

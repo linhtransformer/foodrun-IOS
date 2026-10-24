@@ -524,6 +524,11 @@
 "clock.tag.failed"          = "Klokken lukte niet. Check je verbinding en probeer het opnieuw.";
 "clock.nfc.unreadable"      = "Deze tag is niet leesbaar — probeer het opnieuw.";
 "clock.nfc.unsupported"     = "Deze iPhone kan geen NFC-tags lezen.";
+"clock.notToday.future %@"   = "Inklokken kan op %@, de dag van deze dienst.";
+"clock.next %@ %@"           = "Je volgende dienst is %1$@ · %2$@.";
+"clock.next.at %@"           = "om %@";
+"clock.nfc.lost"             = "De tag viel weg. Houd de bovenkant van je telefoon stil tegen de tag en probeer het opnieuw.";
+"clock.nfc.timeout"          = "Geen tag gevonden. Tik nog een keer en houd je telefoon tegen de tag.";
 "clock.nfc.hintIn"          = "Houd je telefoon tegen de tag om in te klokken";
 "clock.nfc.hintOut"         = "Houd je telefoon tegen de tag om uit te klokken";
 "clock.error.in"            = "Inklokken lukte niet.";

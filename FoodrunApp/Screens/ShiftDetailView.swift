@@ -659,6 +659,18 @@ public struct ShiftDetailView: View {
             .frText(FRType.rowSubtitle)
             .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             .frame(maxWidth: .infinity, alignment: .leading)
+        } else if !clockedInHere && !isTodayShift {
+            // Clocking only works on the day itself (the server looks for today's shift):
+            // say when instead of offering a scan that can only fail.
+            if let line = notTodayLine {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: "calendar")
+                    Text(verbatim: line).multilineTextAlignment(.leading)
+                }
+                .frText(FRType.rowSubtitle)
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         } else if !clockedInHere {
             HStack(spacing: 10) {
                 nfcHint
@@ -678,6 +690,15 @@ public struct ShiftDetailView: View {
             }
         }
         if let error = clock.lastError { errorLine(error) }
+    }
+
+    /// A coming shift: "Inklokken kan op zo 25 okt, de dag van deze dienst."
+    /// A past one: "Je volgende dienst is zo 25 okt om 08:00." (nil when there is none).
+    private var notTodayLine: String? {
+        if date > schedule.today {
+            return String(format: FRLanguage.string("clock.notToday.future %@"), PeopleFormat.day(SchemaDates.string(date)))
+        }
+        return schedule.nextShift.map(ClockStore.nextShiftLine)
     }
 
     private var nfcHint: some View {
@@ -719,7 +740,7 @@ public struct ShiftDetailView: View {
             case .cancelled:
                 break
             case .error(let e):
-                clock.tagError = e.localizedDescription
+                clock.tagError = ClockStore.readerMessage(for: e)
                 FRHaptic.error.fire()
             case .unavailable:
                 clock.tagError = FRLanguage.string("clock.nfc.unsupported")

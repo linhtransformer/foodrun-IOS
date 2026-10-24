@@ -112,7 +112,7 @@ public struct AppShell: View {
         ) {
             Button("action.ok", role: .cancel) { clock.tagError = nil }
         } message: {
-            Text(verbatim: clock.tagError ?? "")
+            Text(verbatim: tagAlertMessage)
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await loadAll() } }
@@ -228,6 +228,14 @@ public struct AppShell: View {
         if inbox.unreadCount + changes.unreadCount > 0 || (AppConfig.Features.shiftSwaps && swaps.attentionCount > 0) { s.insert(.inbox) }
         if showsCrewTasks && crewTasks.openCount(on: SchemaDates.string(Date())) > 0 { s.insert(.tasks) }
         return s
+    }
+
+    /// The tag error, plus the next shift when the problem is "no shift here today".
+    private var tagAlertMessage: String {
+        let base = clock.tagError ?? ""
+        guard clock.tagErrorCode == "no_shift_here_today", let next = schedule.nextShift,
+              next.day > SchemaDates.string(schedule.today) else { return base }
+        return base + "\n\n" + ClockStore.nextShiftLine(next)
     }
 
     /// "4 u 12 min" between the last clock-in and clock-out.
