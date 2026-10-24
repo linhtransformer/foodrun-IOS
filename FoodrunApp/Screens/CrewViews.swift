@@ -125,23 +125,20 @@ enum CrewFormat {
 
     /// Text with its web addresses tappable — operators paste links into notes.
     static func linkified(_ text: String) -> AttributedString {
+        // **bold**, *italic* and [label](url) as typed in the script editor; line breaks stay.
+        var out = (try? AttributedString(
+            markdown: text,
+            options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        )) ?? AttributedString(text)
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
-            return AttributedString(text)
+            return out
         }
-        var out = AttributedString()
-        var cursor = text.startIndex
-        for match in detector.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
-            guard let url = match.url, let range = Range(match.range, in: text), range.lowerBound >= cursor else { continue }
-            if cursor < range.lowerBound {
-                out += AttributedString(String(text[cursor..<range.lowerBound]))
-            }
-            var link = AttributedString(String(text[range]))
-            link.link = url
-            out += link
-            cursor = range.upperBound
-        }
-        if cursor < text.endIndex {
-            out += AttributedString(String(text[cursor...]))
+        let plain = String(out.characters)
+        for match in detector.matches(in: plain, range: NSRange(plain.startIndex..., in: plain)) {
+            guard let url = match.url, let range = Range(match.range, in: plain) else { continue }
+            let lower = out.characters.index(out.startIndex, offsetBy: plain.distance(from: plain.startIndex, to: range.lowerBound))
+            let upper = out.characters.index(lower, offsetBy: plain.distance(from: range.lowerBound, to: range.upperBound))
+            if out[lower..<upper].link == nil { out[lower..<upper].link = url }
         }
         return out
     }

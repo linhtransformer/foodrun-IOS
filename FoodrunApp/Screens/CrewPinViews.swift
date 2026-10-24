@@ -96,6 +96,9 @@ struct CrewPinSheet: View {
     @State private var photo: UIImage?
     @State private var working = false
     @State private var failed = false
+    @FocusState private var focus: Field?
+
+    private enum Field { case name, notes }
 
     private var canSave: Bool { !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !working }
 
@@ -114,6 +117,9 @@ struct CrewPinSheet: View {
                     Text("pin.name").frText(FRType.sectionHeader)
                     TextField(FRLanguage.string("pin.namePrompt"), text: $name)
                         .textInputAutocapitalization(.sentences)
+                        .focused($focus, equals: .name)
+                        .submitLabel(.next)
+                        .onSubmit { focus = .notes }
                         .padding(.horizontal, 16).padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
                         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
@@ -123,6 +129,16 @@ struct CrewPinSheet: View {
                     Text("crew.prep.noteLabel").frText(FRType.sectionHeader)
                     TextField(FRLanguage.string("pin.notesPrompt"), text: $notes, axis: .vertical)
                         .lineLimit(1...4)
+                        .focused($focus, equals: .notes)
+                        .submitLabel(.done)
+                        // A multi-line field turns Return into a new line: treat it as "done" instead,
+                        // or the keyboard stays over "Pin opslaan".
+                        .onChange(of: notes) { _, value in
+                            if value.hasSuffix("\n") {
+                                notes = String(value.dropLast())
+                                focus = nil
+                            }
+                        }
                         .padding(.horizontal, 16).padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
                         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
@@ -151,6 +167,7 @@ struct CrewPinSheet: View {
             }
             .padding(20)
         }
+        .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
         .presentationDragIndicator(.visible)
         .onAppear {
