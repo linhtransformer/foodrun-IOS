@@ -405,8 +405,9 @@ linked employee row.
 `open_shift`, `pickup_approved`, `pickup_declined`. Swap kinds open Ruilen, leave kinds open
 Verlof, the reminder opens Availability, `roster_updated` the Shifts tab.
 
-**Employer accounts**: `ScheduleStore.isOperator` = owns staff **and** Profile →
-"Werkgever-functies" is on (stored on the phone). Off = the app behaves as for a worker.
+**Employer accounts**: `ScheduleStore.isOperator` = owns staff. (The Profile →
+"Werkgever-functies" switch was removed on 2026-10-22: owners always get the full roster and
+Add shift.)
 
 ## Open items
 
