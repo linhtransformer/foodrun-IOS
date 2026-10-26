@@ -72,6 +72,9 @@ list, keep what still applies and add what you find missing:
 9. **Codes:** the organisation's join code, an email invite link for a fresh address, and a
    second organisation (also test) that the worker can join with that code.
 10. **A former employer:** an "uit dienst" employee row with past shifts, to test history only.
+11. **Clocking scenarios** (step 2b): a shift that started 2 hours ago (for a late clock-in), one
+    that ended yesterday (for a forgotten clock-out), one tonight 22:00–02:00, and a second
+    truck with its own tag (for the wrong-truck scan).
 
 Wait until HQ confirms each item, with ids or names, in
 `docs/testing/handoff/hq-done.md`. Items that HQ can't create stay on the list, marked
@@ -221,6 +224,31 @@ file. "n/a" is an answer, a blank is not.
     - iPhone SE size and Dynamic Type at its largest
     - dark mode if supported
     - nothing cut off or overlapping (for example a pill over the **+**)
+
+## Step 2b — clocking when things go wrong
+
+People forget, scan twice, or scan at the wrong truck. Test each scenario below on
+`[iOS test]` shifts. Write down what the **app** shows, what the worker can do about it, and
+which line in `ios-did.md` lets HQ check its side. Then answer the question at the end of
+each scenario.
+
+| # | Scenario | Do this | Check in the app |
+|---|---|---|---|
+| C1 | **Forgot to clock in**, worked the whole shift | No scan, no button, let the shift end | Does the hours card still let them send hours? Which times does it suggest (roster, not clock)? Is there a hint that no clock-in exists, and room for a note? |
+| C2 | **Clocked in late**, 2 hours after the start | Clock in mid-shift | Timer, and "sinds …": does it show the clock-in time, not the shift start? Hours card: clock window vs roster times. |
+| C3 | **Forgot to clock out**, still "on the clock" the next day | Clock in, don't clock out, look the day after | Does the home card keep a timer running past 24 h? Is there a prompt like "Je bent nog ingeklokt sinds gisteren 12:00"? Can they still clock out? Hours card with a clock-in but no clock-out. |
+| C4 | **Scanned twice** within a minute | Scan, then scan again | The second scan clocks out: is that clear, and can it be undone? Should a scan within a few minutes ask first? |
+| C5 | **Wrong truck** | Scan a tag of a truck they aren't rostered on today | Message names the right place or the next shift. Nothing gets written. |
+| C6 | **Night shift** past midnight | Clock in 22:00, clock out 02:00 | Clock-out lands on the same shift. Hours card and Uren show one shift, not two days. |
+| C7 | **Admin corrects the time in HQ** | HQ changes the clock-in / clock-out or the hours, then writes it in `hq-did.md` | After a refresh: do the hours card, Uren status and month total show the corrected times? Does the worker get a notification that says what changed and by whom? Can the worker see the old and new time? |
+| C8 | **Admin adds a missing clock-in or clock-out** | HQ adds the event for C1 / C3 | The app shows the shift as clocked, the timer stops, and the hours card picks up the times. |
+
+For each scenario, also ask whether the app should **help** here. For example:
+- a reminder when a shift has started without a clock-in
+- a reminder when it ended and the worker is still clocked in
+- a "forgot to clock" option when sending hours
+
+Mark each one `gap` with a short proposal. Don't build it without the user's OK.
 
 ## Step 3 — record and fix
 

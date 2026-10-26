@@ -68,6 +68,8 @@ use this standard set:
 9. **Codes:** the join code, one email invite to a fresh address, and a second test
    organisation.
 10. **History:** one "uit dienst" employee with past shifts.
+11. **For the clocking scenarios** (step 2b): a shift that started 2 hours ago, one that
+    ended yesterday, one tonight 22:00–02:00, and a second truck with its own tag.
 
 Write what you created to **`docs/testing/handoff/hq-done.md`**: per item the name, date and
 id, or "blocked: <reason>" if HQ can't make it.
@@ -178,6 +180,27 @@ is not):
     - roster updated
     - profile edited
     No action notifies when it shouldn't, for example on a test that's undone.
+
+## Step 2b — clocking when things go wrong
+
+The iOS session plays these out on `[iOS test]` shifts and writes them in `ios-did.md`
+(scenarios C1–C8). For each one, check what **HQ** shows and what an operator can do about
+it:
+
+| # | Scenario (done in the app) | Check in HQ |
+|---|---|---|
+| C1 | **Forgot to clock in**, sent hours anyway | Does Uren show the hours without a clock event, and mark that clearly (e.g. "geen inklok")? Can the operator approve, edit or reject knowingly? |
+| C2 | **Clocked in late** | Are planned, clocked and submitted times side by side, with the difference visible? |
+| C3 | **Forgot to clock out** | Does HQ show an open clock-in that is hours or days old? Is there a list or warning of "still clocked in"? Does the server ever close it automatically? It should not do so silently. |
+| C4 | **Scanned twice** within a minute | An in and an out seconds apart: is that visible as a probable mistake? Can the operator remove it? |
+| C5 | **Wrong truck** | Nothing written. If something was written, that's a bug. |
+| C6 | **Night shift**, 22:00–02:00 | Both events on the same shift and the same work day, in Europe/Amsterdam. |
+| C7 | **Operator corrects the time** | **Can an operator change someone's clock-in / clock-out, or the hours, here, and where?** After saving: <br>• is it stored as `source = 'manual'`, with who changed it and when (audit)? <br>• does the original time stay visible? <br>• does the worker get exactly one notification that says what changed? <br>Write each change in `hq-did.md` so iOS can check that the app follows. |
+| C8 | **Operator adds a missing clock-in or clock-out** for C1 / C3 | Possible? Is it marked as added by the operator? Does the app pick it up (via `hq-did.md`)? |
+
+If something can't be done in HQ at all (for example there's no way to correct a time, no
+"still clocked in" overview, or no audit of who changed it), mark it `gap` with a short
+proposal. Don't build it without the user's OK.
 
 ## Step 3 — record and fix
 
