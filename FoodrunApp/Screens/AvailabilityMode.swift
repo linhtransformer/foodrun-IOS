@@ -49,8 +49,9 @@ struct AvailabilityMode: View {
                 ),
                 reasonRequired: availability.reasonRequired
             )
-            .disabled(weekClosed)
-            .opacity(weekClosed ? 0.55 : 1)
+            // A passed deadline or a day the employer closed: the server refuses changes.
+            .disabled(weekClosed || dayClosed)
+            .opacity(weekClosed || dayClosed ? 0.55 : 1)
 
             if availability.reasonRequired && availability.stateFor(schedule.selectedDate) == .unavailable {
                 notice(Text("availability.reasonRequired"), color: Color.foodrun.mutedForegroundSoft)
@@ -86,6 +87,8 @@ struct AvailabilityMode: View {
 
     /// The employer's deadline for this week has passed: the server refuses changes, so the
     /// page says so instead of letting the worker fill in a week that can't be saved.
+    private var dayClosed: Bool { availability.closedBy(schedule.selectedDate) != nil }
+
     private var weekClosed: Bool {
         guard let at = availability.closesAt(weekOf: schedule.selectedDate) else { return false }
         return at < Date()
