@@ -193,7 +193,7 @@ it:
 | C2 | **Clocked in late** | Are planned, clocked and submitted times side by side, with the difference visible? |
 | C3 | **Forgot to clock out** | Does HQ show an open clock-in that is hours or days old? Is there a list or warning of "still clocked in"? Does the server ever close it automatically? It should not do so silently. |
 | C4 | **Scanned twice** within a minute | An in and an out seconds apart: is that visible as a probable mistake? Can the operator remove it? |
-| C5 | **Wrong truck** | Nothing written. If something was written, that's a bug. |
+| C5 | **Wrong truck** (a), **clocked in on truck A, scanned truck B** (b), **two workers, one tag** (c) | (a) and (b): nothing written; in (b) the open clock-in on A stays open. (c): each worker gets their own event on their own shift. Anything else is a bug. |
 | C6 | **Night shift**, 22:00–02:00 | Both events on the same shift and the same work day, in Europe/Amsterdam. |
 | C7 | **Operator corrects the time** | **Can an operator change someone's clock-in / clock-out, or the hours, here, and where?** After saving: <br>• is it stored as `source = 'manual'`, with who changed it and when (audit)? <br>• does the original time stay visible? <br>• does the worker get exactly one notification that says what changed? <br>Write each change in `hq-did.md` so iOS can check that the app follows. |
 | C8 | **Operator adds a missing clock-in or clock-out** for C1 / C3 | Possible? Is it marked as added by the operator? Does the app pick it up (via `hq-did.md`)? |
