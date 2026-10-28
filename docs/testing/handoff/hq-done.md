@@ -1,6 +1,6 @@
 # HQ → iOS: test data created (step 0)
 
-Written by the HQ session on **Mon 26 Oct 2026**; **re-seeded on Wed 28 Oct 2026, 10:05 (Europe/Amsterdam)**, so every id
+Written by the HQ session on **Mon 26 Oct 2026**; **re-seeded on Wed 28 Oct 2026, 11:05 (Europe/Amsterdam)**, so every id
 and date below is new. There was no `ios-needs.md` yet, so this is the standard set from `hq-stakeholders-audit.md`. All
 times are Europe/Amsterdam.
 
@@ -37,6 +37,7 @@ Re-seed (ids change, dates move with today), from the HQ repo:
 | 2 | Tomorrow | Stadsfestival, 29 Oct |
 | 2 | 3 days ago | **[iOS test] Afgelopen markt** `cdb2d19b-06fc-426a-add4-7de115bc269f`, 25 Oct 11:00–19:00: no hours sent, no clock events (also C1) |
 | 2 | Multi-day, on 2 of its days | **[iOS test] Havenfestival (3 dagen)** `b731a9b5-aa3f-4556-b833-a9a1e4e0c675`, 30 Oct–1 Nov 11:00–19:00. Sanne on **30 Oct and 1 Nov**, not 31 Oct (owner + Linh on 31 Oct) |
+| 2 | Opbouw / afbouw on a day of its own | Havenfestival (above) has its **opbouw Thu 29 Oct 19:00–22:00** and its **afbouw Mon 2 Nov 10:00–13:00**, each outside the event's own days (30 Oct–1 Nov). HQ rostered **Sanne on the opbouw**, 19:00–22:00, type **Opbouw** (see `hq-did.md` D4); nobody is on the afbouw. In the app it is a normal shift on 29 Oct under Havenfestival. Clocking there with the NFC tag needs HQ migration `20261028120000` (waits for the owner); the clock button works already |
 | 2 | "Hide name from workers" | **[iOS test] Besloten bedrijfsfeest** `af5c0973-93f6-4fd9-b034-6f93d95052a0`, Wed 4 Nov 18:00–23:00. Sanne should see **"Festival"** (the worker feed already returns "Festival") |
 | 2 | Break, note, shift type, checklist | **[iOS test] Foodtruck Weekend** `267241bc-9b4f-4f19-965b-07335508580e`, Sanne on **Mon 2 Nov** 12:00–22:00: 30 min break, note "Jij doet vandaag de kassa en sluit af.", type **Opbouw**, checklist **Afsluiten** (vestiging Testkeuken Centrum, so the "Centrum" briefing shows too) |
 | 2 | Open for availability, not rostered | **[iOS test] Open oproep: Zomerfeest** `fb2301d0-1c8f-4a74-968e-9b63ad8596d8`, 9–10 Nov |
