@@ -20,6 +20,10 @@ public struct FRNextShiftCard: View {
     public var checklistProgress: (Int, Int)   // done / total
     /// Today's shift: the folded card gets a "Klok in" / "Klok uit" pill that opens the tag scan.
     public var canClock: Bool = false
+    /// "11:12" — when the worker actually clocked in (the shift start when nil).
+    public var clockInTime: String? = nil
+    /// Time left until the shift's planned end; nil = planned duration minus time worked.
+    public var remaining: TimeInterval? = nil
 
     public var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -71,6 +75,7 @@ public struct FRNextShiftCard: View {
                 Circle().fill(truckColor).frame(width: 7, height: 7)
                 Text(truckName)
                     .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
             }
             .padding(.horizontal, 10).padding(.vertical, 5)
             .background(Capsule().fill(Color.foodrun.backgroundInverseInk.opacity(0.10)))
@@ -87,10 +92,13 @@ public struct FRNextShiftCard: View {
                     .tracking(2.4)
                     .textCase(.uppercase)
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.55))
+                    .lineLimit(1)
+                    .fixedSize()
                 Circle().fill(truckColor).frame(width: 6, height: 6)
                 Text(truckName)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.85))
+                    .lineLimit(1)
                 Spacer(minLength: 0)
                 if clockedIn {
                     HStack(spacing: 5) {
@@ -105,6 +113,8 @@ public struct FRNextShiftCard: View {
                 Text("\(start) – \(end)")
                     .font(.system(size: 20, weight: .heavy).monospacedDigit())
                     .tracking(-0.4)
+                    .lineLimit(1)
+                    .fixedSize()
                 Text("\(dayLabel) · \(role)")
                     .font(.system(size: 12))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.6))
@@ -164,14 +174,14 @@ public struct FRNextShiftCard: View {
                     .frText(FRType.eyebrow)
                     .foregroundStyle(Color.foodrun.subject.onTheClockGreen)
                 Spacer()
-                Text("hero.since \(start)")
+                Text("hero.since \(clockInTime ?? start)")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.55))
             }
             Text(formatClock(elapsed))
                 .frText(FRType.heroClockLive)
-            let remaining = max(0, plannedDuration - elapsed)
-            Text("hero.of \(formatDuration(plannedDuration)) · \(formatDuration(remaining)) left")
+            let left = max(0, remaining ?? (plannedDuration - elapsed))
+            Text("hero.of \(formatDuration(plannedDuration)) · \(formatDuration(left)) left")
                 .font(.system(size: 11))
                 .foregroundStyle(Color.foodrun.backgroundInverseInk.opacity(0.55))
             ProgressView(value: min(1, elapsed / max(1, plannedDuration)))
@@ -199,6 +209,7 @@ public struct FRNextShiftCard: View {
                         .font(.system(size: 12, weight: .medium))
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 10)
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -239,10 +250,15 @@ public struct FRNextShiftCard: View {
         return String(format: "%d:%02d:%02d", h, m, s)
     }
 
+    /// "5 u 48 min" / "8 u" (NL), "5h 48m" / "8h" (EN).
     private func formatDuration(_ t: TimeInterval) -> String {
-        let h = Int(t) / 3600
-        let m = (Int(t) % 3600) / 60
-        return "\(h)h \(String(format: "%02d", m))m"
+        let total = Int(max(0, t)) / 60
+        let h = total / 60, m = total % 60
+        let dutch = FRLanguage.resolvedCode == "nl"
+        let hours = dutch ? "\(h) u" : "\(h)h"
+        guard m > 0 else { return hours }
+        guard h > 0 else { return dutch ? "\(m) min" : "\(m)m" }
+        return dutch ? "\(hours) \(m) min" : "\(hours) \(m)m"
     }
 }
 

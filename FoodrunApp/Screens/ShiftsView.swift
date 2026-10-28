@@ -11,6 +11,9 @@ public struct ShiftsView: View {
     @Environment(AvailabilityStore.self) private var availability
     @Environment(TasksStore.self) private var tasks
 
+    /// The phone can't read tags but the employer allows the button: confirm a clock without one.
+    @State private var manualClockShift: WorkerShift?
+
     public init() {}
 
     public var body: some View {
@@ -48,6 +51,17 @@ public struct ShiftsView: View {
             guard let shift = schedule.nextShift else { return }
             clock.activityId = shift.activity.id
             await clock.refreshLatestEvent(employeeId: shift.employee.id)
+            await clock.loadClockRules(activityIds: [shift.activity.id])
+        }
+        .confirmationDialog(
+            Text(clock.clockedIn ? "clock.confirmOut" : "clock.confirmIn"),
+            isPresented: Binding(get: { manualClockShift != nil }, set: { if !$0 { manualClockShift = nil } }),
+            titleVisibility: .visible,
+            presenting: manualClockShift
+        ) { shift in
+            Button(clock.clockedIn ? "clock.out" : "clock.in") { clockWithoutTag(shift) }
+        } message: { _ in
+            Text("clock.noNFC.useButton")
         }
     }
 
@@ -89,7 +103,9 @@ public struct ShiftsView: View {
             onTapListening: { armNFCReader(for: shift) },
             onTapChecklist: { openTasksIfUnlocked(shift) },
             checklistProgress: (tasks.completed, tasks.items.count),
-            canClock: schedule.isToday(shift.date) && !shift.isAtFormerEmployer
+            canClock: schedule.isToday(shift.date) && !shift.isAtFormerEmployer,
+            clockInTime: clock.clockInAt.map(Self.hhmm),
+            remaining: shift.endsAt.timeIntervalSinceNow
         )
         .onTapGesture {
             // Whole card opens detail (bundle §Next-shift hero).
@@ -174,8 +190,26 @@ public struct ShiftsView: View {
                 clock.tagError = ClockStore.readerMessage(for: e)
                 FRHaptic.error.fire()
             case .unavailable:
-                clock.tagError = FRLanguage.string("clock.nfc.unsupported")
-                FRHaptic.error.fire()
+                // No NFC on this phone: offer the button when the employer allows it.
+                if clock.allowsButton(for: shift.activity.id) {
+                    manualClockShift = shift
+                } else {
+                    clock.tagError = FRLanguage.string("clock.nfc.unsupported")
+                    FRHaptic.error.fire()
+                }
+            }
+        }
+    }
+
+    /// Same RPCs as the shift screen's "Klok in" button. This page has no error line, so a
+    /// refusal is shown as the clock alert.
+    private func clockWithoutTag(_ shift: WorkerShift) {
+        clock.activityId = shift.activity.id
+        Task {
+            await clock.toggleManually()
+            if let error = clock.lastError {
+                clock.tagError = error
+                clock.lastError = nil
             }
         }
     }
@@ -190,6 +224,11 @@ public struct ShiftsView: View {
         } else {
             router.pushOnShifts(.shiftDetail(activityId: shift.activity.id, date: shift.date))
         }
+    }
+
+    private static func hhmm(_ date: Date) -> String {
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
+        return f.string(from: date)
     }
 
     private func dayLabel(_ date: Date) -> String {

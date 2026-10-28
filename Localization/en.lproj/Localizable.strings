@@ -43,7 +43,7 @@
 "hero.onTheClock"         = "On the clock";
 "hero.since %@"           = "since %@";
 "hero.of %@ · %@ left"    = "of %@ · %@ left";
-"hero.nfc.listening"      = "Tap here, then hold your phone to the tag on Truck Mees to clock in";
+"hero.nfc.listening"      = "Tap here, then hold your phone to the tag on the truck to clock";
 "hero.checklist"          = "Open checklist";
 
 // MARK: Week carousel
@@ -524,6 +524,7 @@
 "clock.tag.failed"          = "Clocking didn’t work. Check your connection and try again.";
 "clock.nfc.unreadable"      = "That tag isn’t readable — try again.";
 "clock.nfc.unsupported"     = "This iPhone can’t read NFC tags.";
+"clock.noNFC.useButton"      = "This iPhone can’t read tags. Your employer lets you clock without one.";
 "clock.notToday.future %@"   = "You can clock in on %@, the day of this shift.";
 "clock.next %@ %@"           = "Your next shift is %1$@ · %2$@.";
 "clock.next.at %@"           = "at %@";

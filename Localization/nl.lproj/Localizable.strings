@@ -43,7 +43,7 @@
 "hero.onTheClock"         = "Aan het werk";
 "hero.since %@"           = "sinds %@";
 "hero.of %@ · %@ left"    = "van %@ · %@ over";
-"hero.nfc.listening"      = "Tik hier en houd je telefoon tegen de tag op Truck Mees om in te klokken";
+"hero.nfc.listening"      = "Tik hier en houd je telefoon tegen de tag op de truck om te klokken";
 "hero.checklist"          = "Checklist openen";
 
 // MARK: Week
@@ -524,6 +524,7 @@
 "clock.tag.failed"          = "Klokken lukte niet. Check je verbinding en probeer het opnieuw.";
 "clock.nfc.unreadable"      = "Deze tag is niet leesbaar — probeer het opnieuw.";
 "clock.nfc.unsupported"     = "Deze iPhone kan geen NFC-tags lezen.";
+"clock.noNFC.useButton"      = "Deze iPhone kan geen tags lezen. Je werkgever laat je ook zonder tag klokken.";
 "clock.notToday.future %@"   = "Inklokken kan op %@, de dag van deze dienst.";
 "clock.next %@ %@"           = "Je volgende dienst is %1$@ · %2$@.";
 "clock.next.at %@"           = "om %@";
