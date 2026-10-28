@@ -462,3 +462,21 @@ day falls outside the event's own days (`start_date … end_date`). Nothing new 
 `transport_legs`, `transport_leg_assignments`, the five transport RPCs and `activities.overnight_nights` /
 `accommodation_address|coords` (+ the same two on `activity_groups`) are gone. The app never used them.
 `employees.car_capacity` stays.
+
+### Clock corrections, one message per publish, Dutch hired / removed (server live 2026-10-28)
+
+HQ migrations `20261028140000_clock_corrections` and `20261028150000_one_message_per_publish`.
+
+- **New inbox type `clock_corrected`** (url `/me/hours`, `activity_id` set): HQ corrected, added or removed one of the
+  worker's clock events. Title/body are Dutch and complete, e.g. "Je inklok is aangepast" ·
+  "27-10: 10:04 → 10:00 · Stadsfestival"; "Er is een uitklok voor je toegevoegd"; "Je uitklok is verwijderd". Until the
+  app knows the type it decodes as `.other` (fine); best: open the shift's hours.
+- **`shift_clock_events`** got `created_by`, `edited_by`, `edited_by_name`, `edited_at`, `original_event_at` (the time
+  before HQ's first correction). Events HQ adds have `source = 'manual'`. The app may show "aangepast door
+  <edited_by_name> (was HH:MM)" in a clock history; nothing else changes for reads or for `clock_in` / `clock_out` /
+  `clock_with_tag`.
+- **Publishing in HQ's Rooster** now sends only `roster_updated` (no `hired` / `removed` next to it). Other paths still
+  send `hired` / `removed`, now in Dutch ("Je staat op een nieuw evenement" / "Je bent van een evenement gehaald"), and
+  a hidden event's name there is "Festival" (was "A festival").
+- **Availability deadline** (`get_my_availability_rules().deadline.weekday`): **0 = Monday**, as written above; 3 is
+  Thursday. Don't accept a Sunday-based value.
