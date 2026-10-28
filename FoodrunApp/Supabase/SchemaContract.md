@@ -427,7 +427,7 @@ Add shift.)
 When any app changes a shape: update `SharedSchema.swift`, this file, and the
 HQ vault (`wiki/architecture/worker-portal.md`) in the same change.
 
-### Setup pins (requested 2026-10-24, app side behind `AppConfig.Features.setupPins`)
+### Setup pins (requested 2026-10-24; server live 2026-10-26, `setupPins = true` since 2026-10-28)
 
 The shift's Setup tab gets its own "Locatie pinnen". Those pins belong to build-up /
 teardown and show only on the Setup tab, never in the Draaiboek.

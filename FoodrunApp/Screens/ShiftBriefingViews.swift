@@ -781,6 +781,8 @@ struct CrewRemoteImage: View {
             if let image = phase.image {
                 // The whole picture, as the operator uploaded it — a plan or a sign must not lose its edges.
                 image.resizable().scaledToFit()
+                    // Round the picture itself: a portrait one is narrower than the card.
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .frame(minWidth: 0, maxWidth: .infinity)
                     .frame(maxHeight: 420)
             } else {

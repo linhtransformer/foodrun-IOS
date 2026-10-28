@@ -33,8 +33,8 @@ enum AppConfig {
         /// 2026-10-15).
         static let joinByCode = true
         /// "Locatie pinnen" on the shift's Setup tab: pins with section "setup", shown only
-        /// there. Needs submit_my_location_pin(p_section) + `section` on get_my_event's
-        /// locations (HQ) — keep false until that is live, or the Setup pin call fails.
-        static let setupPins = false
+        /// there (submit_my_location_pin(p_section) + `section` on get_my_event's locations,
+        /// live on HQ since 2026-10-26).
+        static let setupPins = true
     }
 }
