@@ -442,3 +442,23 @@ teardown and show only on the Setup tab, never in the Draaiboek.
 - HQ shows Setup pins in the Setup (opbouw / afbouw) part of the script editor and the
   crew portal, not with the script's locations.
 Once this is live, set `setupPins = true`.
+
+### Opbouw / afbouw days on the roster (server live 2026-10-28, HQ migration `20261028120000`)
+
+HQ's Rooster can now roster people on an event's opbouw (`setup_date`) or afbouw (`teardown_date`) day when that
+day falls outside the event's own days (`start_date … end_date`). Nothing new in the shape:
+
+- The shift is stored like any other day: a `daily_employees[day]` key and `daily_employee_times[day][id]`, with
+  `shiftType` "Opbouw" / "Afbouw". `scheduledDays(for:)` already lists it, so it shows as a normal shift under
+  the event. Don't filter a worker's shifts by `start_date … end_date`; `activitiesRunning(on:)` (availability)
+  still uses the event's own days, which is right.
+- `clock_with_tag`: a per-day roster entry now counts on any day from the opbouw to the afbouw (it answered
+  `no_shift_here_today` on such a day before). The legacy flat `employees` list still only covers start … end.
+- `get_my_worker_activities(p_from, p_to)`: the window filter now uses the opbouw … afbouw span, so a range that
+  only holds the opbouw day still returns the event. Same columns.
+
+### Transport planner removed (HQ migration `20261026130000`, 2026-10-28)
+
+`transport_legs`, `transport_leg_assignments`, the five transport RPCs and `activities.overnight_nights` /
+`accommodation_address|coords` (+ the same two on `activity_groups`) are gone. The app never used them.
+`employees.car_capacity` stays.
