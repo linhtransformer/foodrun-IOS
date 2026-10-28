@@ -66,6 +66,7 @@
 "availability.legend.notAvailable" = "Niet beschikbaar";
 "availability.legend.work"         = "Er is werk";
 "availability.reason.placeholder"  = "Reden (optioneel)";
+"availability.reason.required"  = "Reden (verplicht)";
 "availability.closesThu"           = "Sluit do 23:59";
 "availability.agent %lld %lld"     = "Je wilt %1$lld diensten deze week (standaard %2$lld). De agent plant binnen je open uren.";
 "availability.saveWeek %lld"       = "Week %lld opslaan";
@@ -569,6 +570,7 @@
 "availability.reasonRequired"   = "Je werkgever vraagt een reden als je niet kunt.";
 "availability.workThatDay %@"   = "Werk op deze dag: %@";
 "availability.closesAt"         = "Sluit %@";
+"availability.closedAt"         = "Gesloten sinds %@";
 "detail.checklists %lld"        = "Checklists bij deze dienst: %lld";
 "detail.swapAccepted %@"        = "%@ neemt hem over · wacht op goedkeuring";
 "detail.swapOpen"               = "Aangeboden om te ruilen · bekijk Ruilen";

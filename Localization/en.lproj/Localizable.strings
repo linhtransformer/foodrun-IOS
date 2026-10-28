@@ -66,6 +66,7 @@
 "availability.legend.notAvailable" = "Not available";
 "availability.legend.work"         = "Work that day";
 "availability.reason.placeholder"  = "Reason (optional)";
+"availability.reason.required"  = "Reason (required)";
 "availability.closesThu"           = "Closes Thu 23:59";
 "availability.agent %lld %lld"     = "You want %1$lld shifts this week (standard %2$lld). The agent will schedule inside your open windows.";
 "availability.saveWeek %lld"       = "Save Week %lld";
@@ -569,6 +570,7 @@
 "availability.reasonRequired"   = "Your employer asks for a reason when you can't work.";
 "availability.workThatDay %@"   = "Work on this day: %@";
 "availability.closesAt"         = "Closes %@";
+"availability.closedAt"         = "Closed since %@";
 "detail.checklists %lld"        = "Checklists with this shift: %lld";
 "detail.swapAccepted %@"        = "%@ takes it over · waiting for approval";
 "detail.swapOpen"               = "Offered to swap · see Swaps";

@@ -46,8 +46,11 @@ struct AvailabilityMode: View {
                 reason: Binding(
                     get: { av.reasonFor(schedule.selectedDate) },
                     set: { av.setReason($0, for: schedule.selectedDate) }
-                )
+                ),
+                reasonRequired: availability.reasonRequired
             )
+            .disabled(weekClosed)
+            .opacity(weekClosed ? 0.55 : 1)
 
             if availability.reasonRequired && availability.stateFor(schedule.selectedDate) == .unavailable {
                 notice(Text("availability.reasonRequired"), color: Color.foodrun.mutedForegroundSoft)
@@ -81,6 +84,13 @@ struct AvailabilityMode: View {
         return unique.isEmpty ? nil : unique.joined(separator: ", ")
     }
 
+    /// The employer's deadline for this week has passed: the server refuses changes, so the
+    /// page says so instead of letting the worker fill in a week that can't be saved.
+    private var weekClosed: Bool {
+        guard let at = availability.closesAt(weekOf: schedule.selectedDate) else { return false }
+        return at < Date()
+    }
+
     /// "Sluit do 18:00" — when the employer stops taking availability for this week.
     private var closesLabel: String? {
         guard let at = availability.closesAt(weekOf: schedule.selectedDate) else { return nil }
@@ -88,7 +98,8 @@ struct AvailabilityMode: View {
         f.locale = FRLanguage.locale
         f.timeZone = TimeZone(identifier: "Europe/Amsterdam")
         f.dateFormat = "EEE d MMM HH:mm"
-        return String(format: FRLanguage.string("availability.closesAt"), f.string(from: at))
+        return String(format: FRLanguage.string(at < Date() ? "availability.closedAt" : "availability.closesAt"),
+                      f.string(from: at))
     }
 
     private var legendAndCloses: some View {
@@ -104,7 +115,7 @@ struct AvailabilityMode: View {
                     .frText(FRType.fieldLabel)
                     .foregroundStyle(Color.foodrun.foreground)
                     .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(Capsule().fill(Color.foodrun.subject.warningPill))
+                    .background(Capsule().fill(weekClosed ? Color.foodrun.neuTrack : Color.foodrun.subject.warningPill))
             }
         }
     }
@@ -135,6 +146,7 @@ struct AvailabilityMode: View {
                 .frCTAShadow()
         }
         .buttonStyle(.plain)
-        .disabled(availability.isSaving)
+        .disabled(availability.isSaving || weekClosed)
+        .opacity(weekClosed ? 0.4 : 1)
     }
 }

@@ -8,6 +8,8 @@ public struct FRAvailabilityCard: View {
     @Binding public var window: ClosedRange<Int>       // hours 0…24
     @Binding public var state: AvailabilityStore.State
     @Binding public var reason: String
+    /// The employer asks a reason for "not available" (availability rules).
+    public var reasonRequired: Bool = false
 
     public var body: some View {
         VStack(spacing: 16) {
@@ -89,7 +91,7 @@ public struct FRAvailabilityCard: View {
     private var reasonField: some View {
         HStack {
             TextField(text: $reason) {
-                Text("availability.reason.placeholder")
+                Text(reasonRequired ? "availability.reason.required" : "availability.reason.placeholder")
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
             .font(.system(size: 14))
@@ -106,7 +108,8 @@ public struct FRAvailabilityCard: View {
     }
 
     private var dateLine: String {
-        let f = DateFormatter(); f.dateFormat = "d-M-yyyy"
+        // "woensdag 28 oktober", like the rest of the app (was "28-10-2026").
+        let f = DateFormatter(); f.locale = FRLanguage.locale; f.dateFormat = "EEEE d MMMM"
         return f.string(from: date)
     }
     private func hh(_ hour: Int) -> String { String(format: "%02d:00", hour) }
