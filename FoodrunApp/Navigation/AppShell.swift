@@ -98,6 +98,9 @@ public struct AppShell: View {
                     .padding(.bottom, 22)
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    // Stay at the bottom while typing: riding up with the keyboard, the bar
+                    // covered the field and the button above it (hours note, availability reason).
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
                 }
             }
         }

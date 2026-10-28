@@ -18,6 +18,9 @@ struct SubmitHoursCard: View {
     @State private var prefilled = false
     @State private var editingField: TimeField?
     @State private var tapWindow: TapWindow?
+    /// The clock events were looked up and there were none: the worker forgot to clock (C1).
+    @State private var noClockEvents = false
+    @FocusState private var noteFocused: Bool
 
     private enum TimeField { case start, end, brk }
 
@@ -31,7 +34,7 @@ struct SubmitHoursCard: View {
         let rejected = hours.row(activityId: shift.activity.id, day: shift.day)
         let payable = payableHours
         VStack(alignment: .leading, spacing: 10) {
-            if let tapWindow { tapCard(tapWindow) }
+            if let tapWindow, tapWindow.clockOut != nil { tapCard(tapWindow) }
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     Circle().fill(Color.foodrunData(hex: shift.activity.color)).frame(width: 8, height: 8)
@@ -44,6 +47,15 @@ struct SubmitHoursCard: View {
                 Text([shift.activity.name, shift.activity.location].compactMap { $0 }.joined(separator: " · "))
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+
+                if noClockEvents {
+                    warning("hours.noClock.title", "hours.noClock.body")
+                } else if let tapWindow, tapWindow.clockOut == nil {
+                    // Clocked in, never out: the shift has ended, so the worker forgot (C3).
+                    warning(LocalizedStringKey(String(format: FRLanguage.string("hours.noClockOut.title %@"),
+                                                      clockTime(tapWindow.clockIn))),
+                            "hours.noClockOut.body")
+                }
 
                 if let rejected, rejected.status == .rejected {
                     Text("hours.rejected \(rejected.rejected_reason ?? "")")
@@ -63,8 +75,20 @@ struct SubmitHoursCard: View {
                     wheel(for: editingField)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                TextField("hours.note.placeholder", text: $note, axis: .vertical)
+                TextField(noClockEvents || tapWindow?.clockOut == nil && tapWindow != nil
+                          ? "hours.noClock.notePlaceholder" : "hours.note.placeholder",
+                          text: $note, axis: .vertical)
                     .lineLimit(1...4)
+                    .focused($noteFocused)
+                    .submitLabel(.done)
+                    // Return closes the keyboard (a multi-line field would add a line), so the
+                    // send button underneath is reachable.
+                    .onChange(of: note) { _, value in
+                        if value.hasSuffix("\n") {
+                            note = String(value.dropLast())
+                            noteFocused = false
+                        }
+                    }
                     .font(.system(size: 14))
                     .padding(.horizontal, 12).padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
@@ -99,6 +123,28 @@ struct SubmitHoursCard: View {
         }
         .onAppear(perform: prefill)
         .task(id: shift.id) { await loadTapWindow() }
+    }
+
+    /// No clock-in on this shift: say so before the worker sends roster times, so the manager
+    /// isn't surprised and the note explains what happened.
+    private func warning(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "exclamationmark.circle")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.foodrun.subject.warning)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).frText(FRType.rowTitle)
+                Text(body)
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(Color.foodrun.subject.warning.opacity(0.12)))
+        .accessibilityElement(children: .combine)
     }
 
     /// Read-only: the times the NFC tag recorded. Kept apart from the editable
@@ -226,9 +272,14 @@ struct SubmitHoursCard: View {
 
     private func loadTapWindow() async {
         tapWindow = nil
+        noClockEvents = false
         guard let events = try? await WorkerAPI.fetchClockEvents(
             employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day
-        ), let clockIn = events.first(where: { $0.kind == .`in` }) else { return }
+        ) else { return }   // couldn't look: say nothing rather than something wrong
+        guard let clockIn = events.first(where: { $0.kind == .`in` }) else {
+            noClockEvents = true
+            return
+        }
         let clockOut = events.last { $0.kind == .out && $0.event_at > clockIn.event_at }
         tapWindow = TapWindow(clockIn: clockIn.event_at, clockOut: clockOut?.event_at)
     }

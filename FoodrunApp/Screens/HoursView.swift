@@ -27,6 +27,7 @@ public struct HoursView: View {
             .padding(.top, FRSpacing.screenTop.value)
             .padding(.bottom, FRSpacing.screenBottom.value)
         }
+        .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
         .refreshable {
             await hours.load(employeeIds: schedule.historyEmployeeIds)

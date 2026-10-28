@@ -185,6 +185,11 @@
 "hours.tap.title"           = "Phone tap";
 "hours.tap.locked"          = "From the tag on your truck · read-only";
 "hours.tap.stillIn"         = "Still clocked in";
+"hours.noClock.title"            = "You didn’t clock in for this shift";
+"hours.noClock.body"             = "The times below come from the roster. Change them to what you really worked.";
+"hours.noClock.notePlaceholder"  = "What happened? E.g. forgot to clock in, started at 11:15";
+"hours.noClockOut.title %@"      = "Clocked in at %@, never out";
+"hours.noClockOut.body"          = "Set the end time below to when you really stopped.";
 "hours.tile.hour"           = "Hour";
 "hours.tile.minute"         = "Minute";
 "tasks.forShift"            = "For shift";
