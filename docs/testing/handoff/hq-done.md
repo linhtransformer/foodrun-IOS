@@ -57,8 +57,18 @@ Re-seed (ids change, dates move with today), from the HQ repo:
 | 10 | Uit dienst in the company | **Bram Oudgediende** `73443043-f16b-42d7-baff-87b59e96fbfc` (no account): worked Braderie 22 Oct (approved hours) and Afgelopen markt 25 Oct; his Havenfestival 1 Nov shift was cleared by Uit dienst. For HQ history |
 | 11 | Started 2 hours ago | **[iOS test] Klok: begon 2 uur geleden** `f3081002-86fa-4f43-819e-a14106423709`, 28 Oct **09:00–17:00**, no truck (clock with the button). Fixed times: when you test after about 17:00 today, re-seed so it moves |
 | 11 | Ended yesterday | **[iOS test] Klok: gisteren, niet uitgeklokt** `1db0ac0b-2bf8-4f2e-bf45-02b288864903`, 27 Oct 10:00–18:00, with a **clock-in at 10:04 and no clock-out** (seeded, `source = 'mobile'`) |
-| 11 | Tonight 22:00–02:00 | **[iOS test] Klok: nachtdienst** `077a6208-6727-4b27-a2ea-96ff45cb3841`, 28 Oct 22:00–02:00 on **Testtruck**. At the Testtruck tag the shift with the nearest start wins, unless Sanne is still clocked in on Stadsfestival (then the scan clocks her out there) |
+| 11 | Tonight 22:00–02:00 | **[iOS test] Klok: nachtdienst** `077a6208-6727-4b27-a2ea-96ff45cb3841`, 28 Oct 22:00–02:00 on **Testtruck** — **moved to Thu 29 Oct** (N1 below). At the Testtruck tag the shift with the nearest start wins, unless Sanne is still clocked in on Stadsfestival (then the scan clocks her out there) |
 | 11 | Second truck with its own tag | **Testtruck 2** (truck of the company, own active tag; the user has the link). Sanne has no shift on it. Testtruck is now a truck of the company too, so HQ shows its tag |
 
 Today Sanne has three shifts (Stadsfestival, "begon 2 uur geleden", nachtdienst). That is on purpose for the clock scenarios;
 it also tests what the home card does with more than one shift on a day.
+
+## ios-needs N1–N3 — made Thu 29 Oct 10:48
+
+No re-seed: every other date in this file stays as it is.
+
+| # | Need | What HQ made |
+|---|---|---|
+| N1 | Night shift for Sanne tonight | **[iOS test] Klok: nachtdienst** `077a6208-6727-4b27-a2ea-96ff45cb3841` moved from 28 Oct to **Thu 29 Oct 22:00 – Fri 30 Oct 02:00**, on **Testtruck**, Sanne only (per-day roster 22:00–02:00). It was unused on 28 Oct (no clock events, no hours), so it was moved rather than re-seeded; no message was sent. Checked: Sanne's feed (`get_my_worker_activities`) has it on 29 Oct. Today she also has **Stadsfestival 10:00–18:00 on Testtruck**: clock out there first. At the Testtruck tag the server takes an open shift first, then the shift whose start is nearest, so a scan around 22:00 clocks in on the night shift, and the scan after midnight clocks out on it (the server looks back one day for an open shift). Testtruck's tag is the active one since 17 Oct, unchanged (the user has the link) |
+| N2 | Testtruck 2 with its own tag | Unchanged and active (own tag since 26 Oct; the user has the link). Sanne has no shift on Testtruck 2 on 29 or 30 Oct |
+| N3 | A day tomorrow with a tag (C4) | **[iOS test] Stadsfestival** `5ec682c2-5419-4c8c-b0a3-124a9dc24a63` **Fri 30 Oct 10:00–18:00 on Testtruck** stays, with Sanne rostered. Nothing new made |
