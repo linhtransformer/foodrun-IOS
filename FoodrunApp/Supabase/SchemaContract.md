@@ -480,3 +480,12 @@ HQ migrations `20261028140000_clock_corrections` and `20261028150000_one_message
   a hidden event's name there is "Festival" (was "A festival").
 - **Availability deadline** (`get_my_availability_rules().deadline.weekday`): **0 = Monday**, as written above; 3 is
   Thursday. Don't accept a Sunday-based value.
+
+### Forgot to clock out: the next scan clocks in (server live 2026-10-29, HQ migration `20261029120000`)
+
+- `clock_with_tag`: an open clock-in is only closed by a scan until its planned end + 4 h (18 h after the clock-in
+  when the roster has no times). Later, the scan clocks in on today's shift at that truck (or `no_shift_here_today`)
+  and the old `in` stays without an `out`. Night shifts keep working (22:00–02:00 closes until 06:00). On today's day
+  of the same shift a late scan still clocks out. Same arguments and answer.
+- `get_open_clock_ins` (HQ only) has new columns `work_date`, `via_tag`, `hours_end_time`, `hours_status`.
+- `clock_in_shift(activity, employee, in_at)`: internal helper, not callable by the app.
