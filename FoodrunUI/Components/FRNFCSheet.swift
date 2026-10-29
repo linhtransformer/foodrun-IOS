@@ -51,6 +51,8 @@ public struct NFCResultSheet: View {
     public let span: String?            // "19:02 – 23:14"
     /// When checklists are off, the clock-in primary button just closes the sheet.
     public var checklistsEnabled: Bool = true
+    /// Clocked out within two minutes of clocking in: probably a second scan by mistake.
+    public var quickClockOut: Bool = false
     public var onOpenChecklist: () -> Void
     public var onDismissUndo: () -> Void
 
@@ -60,7 +62,18 @@ public struct NFCResultSheet: View {
             badge
             titleLabel
             tiles
-            agentNote
+            if result == .clockedOut && quickClockOut {
+                Label { Text("nfc.quickOut") } icon: { Image(systemName: "arrow.uturn.backward.circle") }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.subject.warning)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.foodrun.subject.warning.opacity(0.12)))
+            } else {
+                agentNote
+            }
             Button(action: onOpenChecklist) {
                 Text(primaryCTA)
                     .font(.system(size: 15, weight: .semibold))

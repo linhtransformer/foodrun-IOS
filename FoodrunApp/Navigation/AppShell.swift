@@ -155,6 +155,9 @@ public struct AppShell: View {
                         ?? schedule.nextShift.map { $0.activity.food_truck ?? $0.activity.name } ?? "",
                     worked: workedLabel, span: spanLabel,
                     checklistsEnabled: isPreview || AppConfig.Features.checklists,
+                    quickClockOut: clock.clockInAt.flatMap { start in
+                        clock.clockOutAt.map { $0.timeIntervalSince(start) < 120 }
+                    } ?? false,
                     onOpenChecklist: {
                         // Primary button: clock-in → checklist (or just close when
                         // checklists are off); clock-out → "Review my hours".

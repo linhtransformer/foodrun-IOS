@@ -12,9 +12,6 @@ public struct HoursView: View {
     @Environment(HoursStore.self) private var hours
     @Environment(ScheduleStore.self) private var schedule
     @Environment(TabRouter.self) private var router
-    @Environment(ClockStore.self) private var clock
-    /// Shift ids clocked out of today (see loadClockedOut).
-    @State private var clockedOut: Set<String> = []
 
     public init() {}
 
@@ -34,52 +31,36 @@ public struct HoursView: View {
         .background(Color.foodrun.background.ignoresSafeArea())
         .refreshable {
             await hours.load(employeeIds: schedule.historyEmployeeIds)
-            await loadClockedOut()
         }
-        // On opening the tab and after every clock-in / clock-out.
-        .task(id: "\(clock.clockedIn)|\(clock.latestEventKind.map { "\($0)" } ?? "")") { await loadClockedOut() }
+
     }
 
     // MARK: - Derived
 
     /// Finished shifts with no hours yet, or hours the operator sent back, newest first.
-    /// A shift becomes submittable once its end time has passed, or as soon as the worker
-    /// clocked out of it (left early, or done). At an employer the worker has left, only
-    /// until 14 days after leaving; after that the shift drops off (its hours stay in the
-    /// month log).
+    /// A shift becomes submittable once its planned end has passed. At an employer the
+    /// worker has left, only until 14 days after leaving; after that the shift drops off
+    /// (its hours stay in the month log).
     private var dueShifts: [WorkerShift] {
         let now = Date()
         return schedule.shifts.filter { shift in
-            guard shift.endsAt <= now || clockedOut.contains(shift.id), shift.acceptsHours(now: now) else { return false }
+            guard shift.endsAt <= now, shift.acceptsHours(now: now) else { return false }
             let row = hours.row(activityId: shift.activity.id, day: shift.day)
             return row == nil || row?.status == .rejected
         }
         .sorted { ($0.day, $0.start ?? "") > ($1.day, $1.start ?? "") }
     }
 
-    /// Today's shifts that haven't ended yet and aren't clocked out: shown locked, with when
-    /// they open.
+    /// Today's shifts that haven't ended yet: shown as a full card (clock times filled in), but
+    /// sending waits until the shift is done.
     private var runningShifts: [WorkerShift] {
         let now = Date()
         let todayKey = SchemaDates.string(now)
         return schedule.shifts.filter { shift in
             shift.day == todayKey && shift.endsAt > now && !shift.isAtFormerEmployer
-                && !clockedOut.contains(shift.id)
                 && hours.row(activityId: shift.activity.id, day: shift.day) == nil
         }
         .sorted { ($0.start ?? "") > ($1.start ?? "") }
-    }
-
-    /// Today's shifts whose latest clock event is a clock-out.
-    private func loadClockedOut() async {
-        let todayKey = SchemaDates.string(Date())
-        var done: Set<String> = []
-        for shift in schedule.shifts where shift.day == todayKey && !shift.isAtFormerEmployer {
-            guard let events = try? await WorkerAPI.fetchClockEvents(
-                employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day) else { continue }
-            if events.sorted(by: { $0.event_at < $1.event_at }).last?.kind == .out { done.insert(shift.id) }
-        }
-        clockedOut = done
     }
 
     /// Submitted hours of the shown month, newest day first.
@@ -168,35 +149,12 @@ public struct HoursView: View {
             }
             // Newest first: today's running shifts, then the finished ones from new to old.
             ForEach(runningShifts) { shift in
-                lockedRow(shift)
+                SubmitHoursCard(shift: shift, opensAt: shift.endsAt)
             }
             ForEach(dueShifts) { shift in
                 SubmitHoursCard(shift: shift)
             }
         }
-    }
-
-    /// A shift still in progress: visible, but hours open only after it ends.
-    private func lockedRow(_ shift: WorkerShift) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 12))
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: "\(dayLabel(shift.date)) · \(shift.activity.name)")
-                    .frText(FRType.rowTitle)
-                    .lineLimit(1)
-                Text("hours.availableFrom \(endTime(shift))")
-                    .frText(FRType.rowSubtitle)
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(14)
-        .overlay(
-            RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
-                .strokeBorder(Color.foodrun.border, style: StrokeStyle(lineWidth: 1, dash: [4]))
-        )
     }
 
     private func endTime(_ shift: WorkerShift) -> String {

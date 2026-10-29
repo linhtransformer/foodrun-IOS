@@ -9,6 +9,8 @@ struct SubmitHoursCard: View {
     @Environment(HoursStore.self) private var hours
 
     let shift: WorkerShift
+    /// A shift still running: the card shows, but sending waits until this moment (its end).
+    var opensAt: Date? = nil
 
     @State private var editStart = "09:00"
     @State private var editEnd = "17:00"
@@ -21,6 +23,9 @@ struct SubmitHoursCard: View {
     /// The clock events were looked up and there were none: the worker forgot to clock (C1).
     @State private var noClockEvents = false
     @FocusState private var noteFocused: Bool
+    @State private var tooEarly = false
+
+    private var stillRunning: Bool { opensAt.map { $0 > Date() } ?? false }
 
     private enum TimeField { case start, end, brk }
 
@@ -47,7 +52,10 @@ struct SubmitHoursCard: View {
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
 
-                if noClockEvents {
+                if stillRunning {
+                    // Nothing to warn about yet: the worker may not have clocked (in or out) so far.
+                    EmptyView()
+                } else if noClockEvents {
                     warning("hours.noClock.title", "hours.noClock.body")
                 } else if let tapWindow, tapWindow.clockOut == nil {
                     // Clocked in, never out: the shift has ended, so the worker forgot (C3).
@@ -74,7 +82,12 @@ struct SubmitHoursCard: View {
                     wheel(for: editingField)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                TextField(noClockEvents || tapWindow?.clockOut == nil && tapWindow != nil
+                if let overtime = overtimeLabel {
+                    Label { Text(verbatim: overtime) } icon: { Image(systemName: "clock.badge.exclamationmark") }
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                TextField(!stillRunning && (noClockEvents || tapWindow?.clockOut == nil && tapWindow != nil)
                           ? "hours.noClock.notePlaceholder" : "hours.note.placeholder",
                           text: $note, axis: .vertical)
                     .lineLimit(1...4)
@@ -97,6 +110,11 @@ struct SubmitHoursCard: View {
                     Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
                 }
                 Button {
+                    if stillRunning {
+                        tooEarly = true
+                        FRHaptic.warning.fire()
+                        return
+                    }
                     Task {
                         if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: trimmedNote,
                                               start: editStart, end: editEnd) {
@@ -106,11 +124,14 @@ struct SubmitHoursCard: View {
                         }
                     }
                 } label: {
-                    Text("hours.submit \(FRLanguage.hours(payable))")
+                    HStack(spacing: 6) {
+                        if stillRunning { Image(systemName: "lock.fill").font(.system(size: 12, weight: .semibold)) }
+                        Text("hours.submit \(FRLanguage.hours(payable))")
+                    }
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(Color.foodrun.backgroundInverseInk)
                         .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(Capsule().fill(payable > 0 ? Color.foodrun.foreground : Color.foodrun.disabledInk))
+                        .background(Capsule().fill(payable > 0 && !stillRunning ? Color.foodrun.foreground : Color.foodrun.disabledInk))
                         .frCTAShadow()
                 }
                 .buttonStyle(.plain)
@@ -119,6 +140,11 @@ struct SubmitHoursCard: View {
             .padding(16)
             .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
             .frNeu(.raised)
+        }
+        .alert(Text("hours.tooEarly.title"), isPresented: $tooEarly) {
+            Button("action.ok", role: .cancel) {}
+        } message: {
+            Text(verbatim: String(format: FRLanguage.string("hours.tooEarly.body %@"), opensAt.map(clockTime) ?? ""))
         }
         .onAppear(perform: prefill)
         .task(id: shift.id) { await loadTapWindow() }
@@ -275,6 +301,19 @@ struct SubmitHoursCard: View {
         editStart = clockTime(firstIn.event_at)
         editEnd = clockTime(lastOut.event_at)
         editBreak = max(editBreak, Int((gap / 60).rounded()))
+    }
+
+    /// "1 u 30 min na je geplande eindtijd (18:00) — telt als overuren": the end is later than
+    /// the roster's end (clocked out late, or set by hand).
+    private var overtimeLabel: String? {
+        guard let planned = shift.end?.prefix(5) else { return nil }
+        func m(_ t: Substring) -> Int { (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.suffix(2)) ?? 0) }
+        var extra = m(Substring(editEnd)) - m(planned)
+        if extra < -12 * 60 { extra += 1440 }   // past midnight
+        guard extra >= 5, extra < 12 * 60 else { return nil }
+        let h = extra / 60, mins = extra % 60
+        let amount = h == 0 ? "\(mins) min" : (mins == 0 ? "\(h) u" : "\(h) u \(mins) min")
+        return String(format: FRLanguage.string("hours.overtime %@ %@"), amount, String(planned))
     }
 
     private func clockTime(_ date: Date) -> String {

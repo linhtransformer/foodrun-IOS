@@ -185,6 +185,10 @@
 "hours.tap.title"           = "Phone tap";
 "hours.tap.locked"          = "From the tag on your truck · read-only";
 "hours.tap.stillIn"         = "Still clocked in";
+"hours.tooEarly.title"          = "Your shift isn’t over yet";
+"hours.tooEarly.body %@"        = "You can send your hours from %@, when your shift ends.";
+"hours.overtime %@ %@"          = "%1$@ after your planned end (%2$@) — counts as overtime";
+"nfc.quickOut"                  = "You just clocked in — by mistake? Scan again to clock back in.";
 "hours.noClock.title"            = "You didn’t clock in for this shift";
 "hours.noClock.body"             = "The times below come from the roster. Change them to what you really worked.";
 "hours.noClock.notePlaceholder"  = "What happened? E.g. forgot to clock in, started at 11:15";
