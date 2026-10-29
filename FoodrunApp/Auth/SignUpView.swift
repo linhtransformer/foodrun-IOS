@@ -13,6 +13,9 @@ struct SignUpView: View {
     @State private var showPassword: Bool = false
     /// Set once the confirmation email is out: the form makes way for "Check your email".
     @State private var confirmationSentTo: String?
+    @FocusState private var focus: Field?
+
+    private enum Field { case email, password }
 
     var body: some View {
         Group {
@@ -33,6 +36,8 @@ struct SignUpView: View {
             }
         }
         .onAppear { auth.reset() }
+        .onChange(of: email) { _, _ in if case .failed = auth.status { auth.reset() } }
+        .onChange(of: password) { _, _ in if case .failed = auth.status { auth.reset() } }
         .onDisappear { auth.reset() }
     }
 
@@ -57,6 +62,9 @@ struct SignUpView: View {
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .font(.system(size: 15))
+                            .focused($focus, equals: .email)
+                            .submitLabel(.next)
+                            .onSubmit { focus = .password }
                     }
                     AuthField(label: "auth.password") {
                         HStack(spacing: 10) {
@@ -69,6 +77,10 @@ struct SignUpView: View {
                             }
                             .textContentType(.newPassword)
                             .font(.system(size: 15))
+                            .focused($focus, equals: .password)
+                            .submitLabel(.done)
+                            // Return only closes the keyboard: making an account stays a deliberate tap.
+                            .onSubmit { focus = nil }
                             Button { showPassword.toggle() } label: {
                                 Image(systemName: showPassword ? "eye.slash" : "eye")
                                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
