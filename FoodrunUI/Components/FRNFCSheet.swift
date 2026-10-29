@@ -140,16 +140,16 @@ public struct NFCResultSheet: View {
         .frNeu(.pressed)
     }
 
-    /// What happens next, as a small black pill with a white outline (was a blue note). Sized to
+    /// What happens next, as a small white pill with black text and outline (was a blue note). Sized to
     /// its text so it reads as a label, not as a second button next to the black CTA.
     private var agentNote: some View {
         Text(result == .clockedIn ? "nfc.agent.clockedIn" : "nfc.agent.clockedOut")
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(Color.foodrun.backgroundInverseInk)
+            .foregroundStyle(Color.foodrun.foreground)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(Capsule().fill(Color.foodrun.foreground))
-            .overlay(Capsule().strokeBorder(Color.foodrun.backgroundInverseInk, lineWidth: 1).padding(2))
+            .background(Capsule().fill(Color.foodrun.card))
+            .overlay(Capsule().strokeBorder(Color.foodrun.foreground, lineWidth: 1))
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: 320)
     }
