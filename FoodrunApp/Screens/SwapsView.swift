@@ -47,7 +47,9 @@ public struct SwapsView: View {
                     }
                     ForEach(swaps.board.my_shifts) { myShiftRow($0) }
                 }
-                let history = swaps.board.mine.filter { $0.kind == "pickup" || ($0.kind == "ask" && $0.role == "taker") || ($0.status != "open" && $0.status != "accepted") }
+                // Everything I take over (offers I accepted, asks, open places) plus finished requests;
+                // my own running offers already show on their shift above.
+                let history = swaps.board.mine.filter { $0.role == "taker" || ($0.status != "open" && $0.status != "accepted") }
                 if !history.isEmpty {
                     section("swaps.section.history") { ForEach(history) { historyRow($0) } }
                 }

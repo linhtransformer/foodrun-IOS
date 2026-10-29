@@ -10,9 +10,10 @@ public struct SwapInboxCards: View {
 
     public init() {}
 
-    /// My own asks that haven't been decided yet.
+    /// Shifts I'm taking that haven't been decided yet: my asks, an offer I accepted and open
+    /// places I asked for. Without these an accepted offer simply vanished from the Inbox.
     private static func runningAsks(_ swaps: SwapStore) -> [MySwapRequest] {
-        swaps.board.mine.filter { $0.kind == "ask" && $0.role == "taker" && ($0.status == "open" || $0.status == "accepted") }
+        swaps.board.mine.filter { $0.role == "taker" && ($0.status == "open" || $0.status == "accepted") }
     }
 
     private var myRunningAsks: [MySwapRequest] { Self.runningAsks(swaps) }
@@ -88,7 +89,10 @@ public struct SwapInboxCards: View {
                 kicker
                 shiftLine(r.activity, r.day, r.window, employer: r.employer)
                 Group {
-                    if r.status == "accepted" {
+                    if r.kind != "ask" {
+                        // An offer I took or an open place I asked for: only the planner is left.
+                        Text(LocalizedStringKey(r.status == "accepted" ? "swaps.status.accepted" : "swaps.status.open"))
+                    } else if r.status == "accepted" {
                         Text("takeover.status.accepted \(r.from_name ?? "")")
                     } else {
                         Text("takeover.status.open \(r.from_name ?? "")")

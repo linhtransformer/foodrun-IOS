@@ -479,7 +479,9 @@ struct CrewAnswerSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(verbatim: title).font(.system(size: 22, weight: .bold))
+            // Title + ✕: the sheet also closes without swiping, and the title wraps instead of
+            // being squeezed into overlapping lines when the keyboard takes half the screen.
+            CrewSheetHeader(title: title) { dismiss() }
             if let prompt, !prompt.isEmpty {
                 Text(CrewFormat.linkified(prompt)).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }

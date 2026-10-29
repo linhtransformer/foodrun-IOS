@@ -408,6 +408,7 @@ struct CrewSheetHeader: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: title).font(.system(size: 24, weight: .bold))
+                    .fixedSize(horizontal: false, vertical: true)
                 if let subtitle {
                     Text(verbatim: subtitle).frText(FRType.rowSubtitle)
                         .foregroundStyle(Color.foodrun.mutedForegroundSoft)
