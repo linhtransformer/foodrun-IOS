@@ -18,6 +18,14 @@
 "auth.headline"           = "Your shifts.\nOne tap away.";
 "auth.subheadline"        = "Sign in to see your schedule, clock in and log your hours.";
 "auth.email"              = "Email";
+"auth.error.invalidLogin"       = "Wrong email address or password.";
+"auth.error.notConfirmed"       = "Confirm your email address first: open the link in the email we sent you.";
+"auth.error.alreadyRegistered"  = "There’s already an account with this email address. Log in, or reset your password.";
+"auth.error.tooMany"            = "Too many tries. Wait a few minutes and try again.";
+"auth.error.weakPassword"       = "Choose a stronger password: at least 8 characters.";
+"auth.error.samePassword"       = "That is your current password. Choose a new one.";
+"auth.error.codeExpired"        = "This code has expired. Ask for a new one.";
+"auth.error.network"            = "No connection. Check your internet and try again.";
 "auth.email.placeholder"  = "you@example.com";
 "auth.password"           = "Password";
 "auth.password.placeholder" = "Password";

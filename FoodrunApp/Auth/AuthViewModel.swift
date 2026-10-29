@@ -96,7 +96,7 @@ final class AuthViewModel: ObservableObject {
             try await client.auth.signInWithOTP(email: email.trimmed, redirectTo: AppConfig.authCallback)
             status = .magicLinkSent
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         }
     }
 
@@ -109,7 +109,7 @@ final class AuthViewModel: ObservableObject {
             _ = try await client.auth.signIn(email: email.trimmed, password: password)
             status = .idle
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         }
     }
 
@@ -124,7 +124,7 @@ final class AuthViewModel: ObservableObject {
             )
             status = response.session == nil ? .signUpConfirmationSent : .idle
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         }
     }
 
@@ -152,7 +152,7 @@ final class AuthViewModel: ObservableObject {
             try await client.auth.resetPasswordForEmail(email.trimmed, redirectTo: AppConfig.authCallback)
             status = .resetCodeSent
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         }
     }
 
@@ -172,7 +172,7 @@ final class AuthViewModel: ObservableObject {
             return true
         } catch {
             mustSetNewPassword = false
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
             return false
         }
     }
@@ -188,7 +188,7 @@ final class AuthViewModel: ObservableObject {
             mustSetNewPassword = false
             status = .idle
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         }
     }
 
@@ -207,7 +207,7 @@ final class AuthViewModel: ObservableObject {
             // The user closing the sheet isn't an error worth showing.
             if (error as? ASAuthorizationError)?.code == .canceled { return }
             print("Apple sign-in failed (Apple sheet): \(error)")
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
         case .success(let authorization):
             guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
                   let tokenData = credential.identityToken,
@@ -230,7 +230,7 @@ final class AuthViewModel: ObservableObject {
                 status = .idle
             } catch {
                 print("Apple sign-in failed (Supabase id-token exchange): \(error)")
-                status = .failed(error.localizedDescription)
+                status = .failed(Self.friendly(error))
             }
         }
     }
@@ -249,7 +249,7 @@ final class AuthViewModel: ObservableObject {
             if (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin {
                 status = .idle
             } else {
-                status = .failed(error.localizedDescription)
+                status = .failed(Self.friendly(error))
             }
         }
     }
@@ -281,13 +281,38 @@ final class AuthViewModel: ObservableObject {
             status = .idle
             return true
         } catch {
-            status = .failed(error.localizedDescription)
+            status = .failed(Self.friendly(error))
             return false
         }
     }
 
     func reset() {
         status = .idle
+    }
+
+    /// The auth server's English messages, in words a crew member can act on (NL / EN).
+    /// Anything unknown keeps the server's text, so nothing is hidden.
+    static func friendly(_ error: Error) -> String {
+        if error is URLError { return FRLanguage.string("auth.error.network") }
+        let raw = (String(describing: error) + " " + error.localizedDescription).lowercased()
+        let map: [(String, String)] = [
+            ("invalid login credentials", "auth.error.invalidLogin"),
+            ("invalid_credentials", "auth.error.invalidLogin"),
+            ("email not confirmed", "auth.error.notConfirmed"),
+            ("email_not_confirmed", "auth.error.notConfirmed"),
+            ("user already registered", "auth.error.alreadyRegistered"),
+            ("user_already_exists", "auth.error.alreadyRegistered"),
+            ("rate limit", "auth.error.tooMany"),
+            ("over_email_send_rate_limit", "auth.error.tooMany"),
+            ("over_request_rate_limit", "auth.error.tooMany"),
+            ("weak_password", "auth.error.weakPassword"),
+            ("password should be", "auth.error.weakPassword"),
+            ("same_password", "auth.error.samePassword"),
+            ("token has expired", "auth.error.codeExpired"),
+            ("otp_expired", "auth.error.codeExpired"),
+        ]
+        for (needle, key) in map where raw.contains(needle) { return FRLanguage.string(key) }
+        return error.localizedDescription
     }
 
     // MARK: - Validation

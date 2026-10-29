@@ -13,6 +13,9 @@ public struct AuthViewRedesign: View {
     @State private var showReset: Bool = false
     @State private var showSignUp: Bool = false
     @State private var opening: CrewOpenedURL?
+    @FocusState private var focus: Field?
+
+    private enum Field { case email, password }
 
     public init() {}
 
@@ -63,6 +66,9 @@ public struct AuthViewRedesign: View {
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())
         .disabled(auth.status == .working)
+        // A message about what was typed goes away once the worker changes it.
+        .onChange(of: email) { _, _ in if case .failed = auth.status { auth.reset() } }
+        .onChange(of: password) { _, _ in if case .failed = auth.status { auth.reset() } }
     }
 
     private var brand: some View {
@@ -98,6 +104,9 @@ public struct AuthViewRedesign: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .font(.system(size: 15))
+                    .focused($focus, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit { focus = .password }
             }
             AuthField(label: "auth.password") {
                 HStack(spacing: 10) {
@@ -110,6 +119,9 @@ public struct AuthViewRedesign: View {
                     }
                     .textContentType(.password)
                     .font(.system(size: 15))
+                    .focused($focus, equals: .password)
+                    .submitLabel(.go)
+                    .onSubmit { Task { await auth.signIn(email: email, password: password) } }
                     Button { showPassword.toggle() } label: {
                         Image(systemName: showPassword ? "eye.slash" : "eye")
                             .foregroundStyle(Color.foodrun.mutedForegroundSoft)

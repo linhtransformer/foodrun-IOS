@@ -18,6 +18,14 @@
 "auth.headline"           = "Je diensten.\nEén tik weg.";
 "auth.subheadline"        = "Log in om je rooster te zien, in te klokken en je uren door te geven.";
 "auth.email"              = "E-mail";
+"auth.error.invalidLogin"       = "Onjuist e-mailadres of wachtwoord.";
+"auth.error.notConfirmed"       = "Bevestig eerst je e-mailadres: open de link in de mail die we je stuurden.";
+"auth.error.alreadyRegistered"  = "Er is al een account met dit e-mailadres. Log in, of stel je wachtwoord opnieuw in.";
+"auth.error.tooMany"            = "Te vaak geprobeerd. Wacht een paar minuten en probeer het opnieuw.";
+"auth.error.weakPassword"       = "Kies een sterker wachtwoord: minstens 8 tekens.";
+"auth.error.samePassword"       = "Dat is je huidige wachtwoord. Kies een nieuw.";
+"auth.error.codeExpired"        = "Deze code is verlopen. Vraag een nieuwe aan.";
+"auth.error.network"            = "Geen verbinding. Check je internet en probeer het opnieuw.";
 "auth.email.placeholder"  = "jij@voorbeeld.nl";
 "auth.password"           = "Wachtwoord";
 "auth.password.placeholder" = "Wachtwoord";
