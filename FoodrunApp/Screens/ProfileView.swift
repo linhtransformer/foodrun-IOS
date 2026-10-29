@@ -217,7 +217,8 @@ struct ProfileAccountSection: View {
                 }
             }
             .buttonStyle(.plain)
-            Text("profile.version")
+            // The real version and build ("Foodrun 1.0 (9)"), so it's clear which build a phone runs.
+            Text(verbatim: "Foodrun \(FoodrunVersion.text)")
                 .frText(FRType.rowSubtitle)
                 .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 .frame(maxWidth: .infinity)
@@ -380,12 +381,7 @@ struct HelpSheet: View {
         }
     }
 
-    private static var appVersion: String {
-        let info = Bundle.main.infoDictionary
-        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = info?["CFBundleVersion"] as? String ?? "?"
-        return "\(version) (\(build))"
-    }
+    private static var appVersion: String { FoodrunVersion.text }
 }
 
 /// Apple's mail composer, inside the app.
@@ -416,5 +412,15 @@ struct SupportMailComposer: UIViewControllerRepresentable {
                                    didFinishWith result: MFMailComposeResult, error: Error?) {
             onFinish()
         }
+    }
+}
+
+/// "1.0 (9)": the version and build number, for the Me footer and support mails.
+enum FoodrunVersion {
+    static var text: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 }

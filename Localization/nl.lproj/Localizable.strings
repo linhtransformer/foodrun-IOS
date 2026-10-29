@@ -142,7 +142,6 @@
 "help.mail.subject"       = "Foodrun-app: hulp";
 "help.copied"             = "Geen mail-app ingesteld — het e-mailadres is gekopieerd.";
 "profile.logout"          = "Uitloggen";
-"profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
 
 // MARK: Ruilverzoek
 "swap.title"          = "Ruilverzoek";

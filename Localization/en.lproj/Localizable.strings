@@ -142,7 +142,6 @@
 "help.mail.subject"       = "Foodrun app: help";
 "help.copied"             = "No mail app set up — the email address has been copied.";
 "profile.logout"          = "Log out";
-"profile.version"         = "Foodrun 1.0 · nl.foodrun.app";
 
 // MARK: Swap sheet
 "swap.title"          = "Request a swap";
