@@ -34,7 +34,6 @@ struct SubmitHoursCard: View {
         let rejected = hours.row(activityId: shift.activity.id, day: shift.day)
         let payable = payableHours
         VStack(alignment: .leading, spacing: 10) {
-            if let tapWindow, tapWindow.clockOut != nil { tapCard(tapWindow) }
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     Circle().fill(Color.foodrunData(hex: shift.activity.color)).frame(width: 8, height: 8)
@@ -147,35 +146,6 @@ struct SubmitHoursCard: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// Read-only: the times the NFC tag recorded. Kept apart from the editable
-    /// tiles so it's clear these come from the clock, not from the worker.
-    private func tapCard(_ window: TapWindow) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: "wave.3.right")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.foodrun.backgroundInverseInk)
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.foodrun.foreground))
-            VStack(alignment: .leading, spacing: 3) {
-                Text("hours.tap.title").frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                Text(verbatim: "\(clockTime(window.clockIn)) – \(window.clockOut.map(clockTime) ?? "…")")
-                    .font(.system(size: 20, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(Color.foodrun.foreground)
-                Text(window.clockOut == nil ? "hours.tap.stillIn" : "hours.tap.locked")
-                    .frText(FRType.rowSubtitle)
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "lock.fill")
-                .font(.system(size: 13))
-                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-        }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
-        .frNeu(.raised)
-        .accessibilityElement(children: .combine)
-    }
-
     private func timeTile(_ label: LocalizedStringKey, value: String, field: TimeField) -> some View {
         let selected = editingField == field
         return Button {
@@ -280,8 +250,31 @@ struct SubmitHoursCard: View {
             noClockEvents = true
             return
         }
+        applyClockTimes(events)
         let clockOut = events.last { $0.kind == .out && $0.event_at > clockIn.event_at }
         tapWindow = TapWindow(clockIn: clockIn.event_at, clockOut: clockOut?.event_at)
+    }
+
+    /// Clocked in and out more than once on one shift (a break, a wrong scan): the first
+    /// clock-in is the start, the last clock-out the end, and the time between an out and the
+    /// next in counts as pauze. Fills the tiles once, while nothing was sent yet.
+    private func applyClockTimes(_ events: [DBShiftClockEvent]) {
+        guard hours.row(activityId: shift.activity.id, day: shift.day) == nil else { return }
+        let sorted = events.sorted { $0.event_at < $1.event_at }
+        guard let firstIn = sorted.first(where: { $0.kind == .`in` }),
+              let lastOut = sorted.last(where: { $0.kind == .out && $0.event_at > firstIn.event_at }) else { return }
+        var gap: TimeInterval = 0
+        var outAt: Date?
+        for e in sorted where e.event_at >= firstIn.event_at && e.event_at <= lastOut.event_at {
+            switch e.kind {
+            case .out, .break_start: outAt = e.event_at
+            case .`in`, .break_end:
+                if let o = outAt { gap += e.event_at.timeIntervalSince(o); outAt = nil }
+            }
+        }
+        editStart = clockTime(firstIn.event_at)
+        editEnd = clockTime(lastOut.event_at)
+        editBreak = max(editBreak, Int((gap / 60).rounded()))
     }
 
     private func clockTime(_ date: Date) -> String {
