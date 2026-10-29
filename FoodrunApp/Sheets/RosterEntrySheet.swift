@@ -21,15 +21,7 @@ struct RosterEntrySheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: employee.fullName).font(.system(size: 22, weight: .bold))
-                HStack(spacing: 6) {
-                    Circle().fill(Color.foodrunData(hex: activity.color)).frame(width: 8, height: 8)
-                    Text(verbatim: "\(activity.name) · \(dayLabel)")
-                        .frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                }
-            }
+            CrewSheetHeader(title: employee.fullName, subtitle: "\(activity.name) · \(dayLabel)") { dismiss() }
 
             HStack(spacing: 10) {
                 timeField("addShift.field.start", $start)
@@ -55,6 +47,16 @@ struct RosterEntrySheet: View {
             }
             .buttonStyle(.plain)
             .disabled(saving)
+            // On the button itself: iOS 26 points the dialog at the view it hangs on.
+            .confirmationDialog(
+                Text(verbatim: String(format: FRLanguage.string("roster.edit.removeConfirm %@ %@"), employee.fullName, dayLabel)),
+                isPresented: $confirmRemove,
+                titleVisibility: .visible
+            ) {
+                Button("roster.edit.remove", role: .destructive) {
+                    Task { await remove() }
+                }
+            }
 
             Spacer(minLength: 0)
         }
@@ -64,15 +66,6 @@ struct RosterEntrySheet: View {
         .presentationDetents([.height(340)])
         .presentationDragIndicator(.visible)
         .onAppear(perform: prefill)
-        .confirmationDialog(
-            Text(verbatim: String(format: FRLanguage.string("roster.edit.removeConfirm %@ %@"), employee.fullName, dayLabel)),
-            isPresented: $confirmRemove,
-            titleVisibility: .visible
-        ) {
-            Button("roster.edit.remove", role: .destructive) {
-                Task { await remove() }
-            }
-        }
     }
 
     private func timeField(_ label: LocalizedStringKey, _ value: Binding<Date>) -> some View {
