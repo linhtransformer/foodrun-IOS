@@ -107,7 +107,7 @@ right place, with the right person and time; the HQ check column of `ios-did.md`
 |---|---|---|
 | Uren: a clock-in already under "Nog ingeklokt" still stood under "Nu aan het werk" a day later with a 23 h timer, and the two lists named her differently ("Sanne" / "Sanne Tester") | bug → fixed `2258bcc` | minor |
 | Uren: the per-event approve button took the event name's first word: "Keur [iOS goed (2)" | bug → fixed `2258bcc` ("Keur alles goed (2)") | minor |
-| Late clock-in (A1 / C2) shows next to the planned start only after hours are sent; before that, no place in HQ shows "2 u 12 min te laat" | gap (could go in the live strip / "Nog ingeklokt": "gepland 09:00") | minor |
-| Weekday abbreviations differ: Ruilverzoeken, Weekdoelen, Prep-checklist and Crew-app write "zat 31 okt.", "vri", "don", "woe"; Uren and the Rooster write "za", "vr", "do", "wo" | open (wording) | minor |
-| Draaiboek editor: opening it and switching to the Setup tab, with no edits, asked "leave this page?" on the way out (seen once) | open | minor |
-| Activity page (Stadsfestival) scrolls sideways at ~930 px wide; the tab row and cards are cut on the left | open (looks) | minor |
+| Late clock-in (A1 / C2) shows next to the planned start only after hours are sent; before that, no place in HQ shows "2 u 12 min te laat" | gap → built `20a01ea`: the "Nu aan het werk" card says "Ingeklokt 2 u 12 min na geplande start (09:00)" | minor |
+| Weekday abbreviations differ: Ruilverzoeken, Weekdoelen, Prep-checklist and Crew-app write "zat 31 okt.", "vri", "don", "woe"; Uren and the Rooster write "za", "vr", "do", "wo" | fixed `2b78cbf` (41 Dutch formats, English screens keep "Sat") | minor |
+| Draaiboek editor: opening it and switching to the Setup tab, with no edits, asked "leave this page?" on the way out (seen once) | fixed `018b46a`: the sections load a render after the script and that counted as an edit | minor |
+| Activity page (Stadsfestival) scrolls sideways at ~930 px wide; the tab row and cards are cut on the left | fixed `1841b0f`: the tab row scrolls by itself | minor |
