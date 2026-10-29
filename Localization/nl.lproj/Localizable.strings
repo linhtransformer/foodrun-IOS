@@ -358,6 +358,8 @@
 "crew.prep.readOnly" = "Vinkjes komen uit de prep-portal — hier zie je wat er is ingepakt.";
 "crew.stock.none" = "Geen voorraad gepland voor dit event.";
 "crew.stock.planned %@" = "Gepland: %@";
+"crew.stock.checkHigh %@ %@"   = "%1$@ is veel meer dan gepland (%2$@). Klopt dat?";
+"crew.stock.confirmHigh"       = "Ja, opslaan";
 "crew.stock.count" = "Tellen";
 "crew.stock.prompt %@" = "Hoeveel is er nog over op %@?";
 "crew.stock.footnote" = "Je telling gaat naar je manager. De voorraad zelf verandert er niet door.";

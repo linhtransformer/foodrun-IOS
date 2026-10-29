@@ -14,7 +14,12 @@ enum CrewFormat {
 
     static func quantity(_ value: Double, _ unit: String?) -> String {
         guard let unit, !unit.isEmpty else { return number(value) }
-        return "\(number(value)) \(unit)"
+        // 12000 g reads as 12 kg, 1500 ml as 1,5 l (display only; amounts are stored as entered).
+        switch unit.lowercased() {
+        case "g", "gr", "gram" where value >= 1000: return "\(number(value / 1000)) kg"
+        case "ml" where value >= 1000: return "\(number(value / 1000)) l"
+        default: return "\(number(value)) \(unit)"
+        }
     }
 
     /// "wo 8 okt" / "Wed 8 Oct".
@@ -757,6 +762,8 @@ struct CrewCountSheet: View {
     let onSave: (_ quantity: Double, _ unitLevel: Int, _ note: String?) async -> Bool
     /// nil when there is no count yet.
     let onClear: (() async -> Bool)?
+    /// What was planned, in units[0]: a count far above it asks once more before saving.
+    var plannedQuantity: Double? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var amount = ""
@@ -764,9 +771,18 @@ struct CrewCountSheet: View {
     @State private var note = ""
     @State private var working = false
     @FocusState private var amountFocused: Bool
+    /// Shown once the amount looks too high; the second tap saves.
+    @State private var confirmHigh = false
 
     private var parsed: Double? { CrewFormat.parse(amount) }
     private var canSave: Bool { parsed.map { $0 >= 0 && $0 < 1_000_000 } ?? false }
+
+    /// More than double the plan (and at least 5 more), in the plan's own unit: likely a typo
+    /// like "22" for "2".
+    private var looksTooHigh: Bool {
+        guard unitLevel == 0, let planned = plannedQuantity, planned > 0, let parsed else { return false }
+        return parsed > planned * 2 && parsed - planned >= 5
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -802,8 +818,23 @@ struct CrewCountSheet: View {
                     .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
             }
 
+            if confirmHigh, let planned = plannedQuantity, let parsed {
+                Label {
+                    Text(verbatim: String(format: FRLanguage.string("crew.stock.checkHigh %@ %@"),
+                                          CrewFormat.quantity(parsed, units.first),
+                                          CrewFormat.quantity(planned, units.first)))
+                } icon: { Image(systemName: "exclamationmark.circle") }
+                .frText(FRType.rowSubtitle)
+                .foregroundStyle(Color.foodrun.subject.warning)
+            }
+
             Button {
                 guard let parsed else { return }
+                if looksTooHigh && !confirmHigh {
+                    withAnimation(FRAnimation.subtle) { confirmHigh = true }
+                    FRHaptic.warning.fire()
+                    return
+                }
                 Task {
                     working = true
                     let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -813,7 +844,11 @@ struct CrewCountSheet: View {
                 }
             } label: {
                 ZStack {
-                    if working { ProgressView().tint(Color.foodrun.backgroundInverseInk) } else { Text("crew.answer.save") }
+                    if working {
+                        ProgressView().tint(Color.foodrun.backgroundInverseInk)
+                    } else {
+                        Text(confirmHigh ? "crew.stock.confirmHigh" : "crew.answer.save")
+                    }
                 }
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color.foodrun.backgroundInverseInk)
@@ -823,6 +858,8 @@ struct CrewCountSheet: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSave || working)
+            .onChange(of: amount) { _, _ in confirmHigh = false }
+            .onChange(of: unitLevel) { _, _ in confirmHigh = false }
 
             if let onClear {
                 Button {

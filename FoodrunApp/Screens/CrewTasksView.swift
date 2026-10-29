@@ -1,8 +1,8 @@
 import SwiftUI
 
 // Tasks tab: what this crew member has to do, per day, across their events —
-// the prep checklist and stock count of each event (as list cards that open
-// the shift on Taken) and the operator's tasks (HQ → Activity → Crew-app).
+// the prep checklist and stock count of each event (list cards that open the
+// list itself, right here) and the operator's tasks (HQ → Activity → Crew-app).
 // Ticks and values go straight back to HQ; tapping the event name opens the
 // shift.
 
@@ -13,6 +13,8 @@ public struct CrewTasksView: View {
     @State private var openDish: CrewDish?
     @State private var answering: CrewTaskOccurrence?
     @State private var answeringGoal: CrewWeekGoal?
+    /// The prep list or stock count opened from its card.
+    @State private var openList: CrewListEntry?
 
     public init() {}
 
@@ -53,10 +55,7 @@ public struct CrewTasksView: View {
                                 detail: listDetail(entry),
                                 done: entry.done,
                                 total: entry.total,
-                                action: {
-                                    router.tasksPath.append(.event(activityId: entry.activity.id,
-                                                                   date: SchemaDates.date(entry.date) ?? Date()))
-                                }
+                                action: { openList = entry }
                             )
                         }
                         ForEach(CrewTaskGroup.build(group.items, task: { $0.task })) { checklist in
@@ -100,6 +99,10 @@ public struct CrewTasksView: View {
         .sheet(item: $openDish) { dish in CrewDishSheet(dish: dish) }
         .sheet(item: $answering) { occ in answerSheet(for: occ) }
         .sheet(item: $answeringGoal) { goal in goalSheet(for: goal) }
+        // Back on the list: refresh so the card shows the new progress.
+        .sheet(item: $openList, onDismiss: { Task { await store.load() } }) { entry in
+            CrewListLoaderSheet(entry: entry)
+        }
     }
 
     /// Goals for this week, not tied to a shift (HQ → Taken → Weekdoelen).
@@ -215,5 +218,41 @@ public struct CrewTasksView: View {
         if key == today { return FRLanguage.string("crew.tasksTab.today") }
         if key == tomorrow { return FRLanguage.string("crew.tasksTab.tomorrow") }
         return CrewFormat.day(key)
+    }
+}
+
+/// Loads the event behind a prep / stock card, then shows the same list as the shift's
+/// Taken tab — without taking the crew member to the shift first.
+private struct CrewListLoaderSheet: View {
+    let entry: CrewListEntry
+    @Environment(\.dismiss) private var dismiss
+    @State private var event: EventStore
+
+    init(entry: CrewListEntry) {
+        self.entry = entry
+        _event = State(initialValue: EventStore(activityId: entry.activity.id))
+    }
+
+    var body: some View {
+        Group {
+            if event.event != nil {
+                if entry.kind == "prep" {
+                    CrewPrepListSheet(store: event)
+                } else {
+                    CrewStockListSheet(store: event, day: entry.date)
+                }
+            } else if let error = event.lastError {
+                VStack(alignment: .leading, spacing: 14) {
+                    CrewSheetHeader(title: FRLanguage.string(entry.kind == "prep" ? "tasks.prep.title" : "tasks.stock.title")) { dismiss() }
+                    Text(verbatim: error).frText(FRType.rowSubtitle).foregroundStyle(Color.foodrun.subject.destructive)
+                    Spacer(minLength: 0)
+                }
+                .padding(20)
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .background(Color.foodrun.background.ignoresSafeArea())
+        .task { await event.load() }
     }
 }

@@ -358,6 +358,8 @@
 "crew.prep.readOnly" = "Ticks come from the prep portal — this list shows what is packed.";
 "crew.stock.none" = "No stock planned for this event.";
 "crew.stock.planned %@" = "Planned: %@";
+"crew.stock.checkHigh %@ %@"   = "%1$@ is a lot more than planned (%2$@). Is that right?";
+"crew.stock.confirmHigh"       = "Yes, save";
 "crew.stock.count" = "Count";
 "crew.stock.prompt %@" = "How much is left on %@?";
 "crew.stock.footnote" = "Your count goes to your manager. It does not change the stock by itself.";

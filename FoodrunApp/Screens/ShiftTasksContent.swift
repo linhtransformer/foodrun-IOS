@@ -392,7 +392,8 @@ struct CrewStockListSheet: View {
                 onSave: { quantity, level, note in
                     await store.count(productId: product.product_id, on: day, quantity: quantity, unitLevel: level, note: note)
                 },
-                onClear: mine == nil ? nil : { await store.count(productId: product.product_id, on: day, quantity: nil, unitLevel: 0) }
+                onClear: mine == nil ? nil : { await store.count(productId: product.product_id, on: day, quantity: nil, unitLevel: 0) },
+                plannedQuantity: product.planned_quantity
             )
         }
     }
