@@ -12,5 +12,10 @@ Written by the iOS session, **Wed 28 Oct 2026**, Europe/Amsterdam. Account: **Sa
 | A4 | — | Still clocked in since **10:04** (seeded) — nothing sent yet (C3) | [iOS test] Klok: gisteren, niet uitgeklokt, 27 Oct | Does HQ show this as an **open clock-in** / "still clocked in"? | |
 | A5 | 11:35 | **Availability week 45**: Wed 4 Nov **not available** 06:00–23:00, reason "Tentamen" (first tried without a reason: the app asked for one); wanted shifts this week 4 | 4 Nov | HQ → Aanwezigheid: 4 Nov red with the reason; week 45 wanted 4 | |
 | A6 | 12:34 | Opened HQ's clock messages from the inbox ("Je inklok is aangepast 22-10: 11:00 → 11:05", added / removed clock-out) — each opens the Braderie 22 Oct shift and shows old → new time | Braderie, 22 Oct | — (C7 / C8 seen in the app) | |
+| A7 | 29 Oct 10:09 | Week goal **"Truck dieptereinigen"** ticked, then unticked again (undo) | Weekdoelen keuken, week 44 | No response left for it (undo worked) | |
+| A8 | 29 Oct 10:11 | Week goal **"Kapotte of ontbrekende spullen gemeld"** answered (text) "Gasfles bijna leegGasf" (simulator typing doubled part of it) | Weekdoelen keuken, week 44 | The text answer by Sanne | |
+| A9 | 29 Oct 10:11 | **Prep**: Havermelk ticked | [iOS test] Stadsfestival, 29 Oct | Prep portal / HQ: Havermelk checked | |
+| A10 | 29 Oct 10:12 | **Stock count** Havermelk **22 doos**, corrected to **2 doos** a minute later | Stadsfestival, 29 Oct | One count of 2 doos (the latest) | |
+| A11 | 29 Oct 10:13 | **Took over the owner's offer**: Havenfestival **Sat 31 Oct** 11:00-19:00 ("Overnemen") | Havenfestival | Rooster -> Ruilverzoeken: accepted, waiting for the planner (M1 fix holds: no `already_on_shift`) | |
 
 More lines follow as the audit goes on.
