@@ -209,11 +209,33 @@ struct ProfileAccountSection: View {
                 Button { showHelp = true } label: {
                     row("questionmark.circle", "profile.help", trailing: "chevron.right")
                 }
+                // Each confirmation hangs on its own button: on iOS 26 the dialog points at the view
+                // it is attached to, and on the whole section it popped up by the "Account" heading.
                 Button { confirmLogout = true } label: {
                     row("rectangle.portrait.and.arrow.right", "profile.logout", trailing: nil)
                 }
+                .confirmationDialog("profile.logout.confirm", isPresented: $confirmLogout, titleVisibility: .visible) {
+                    Button("profile.logout", role: .destructive) {
+                        FRHaptic.warning.fire()
+                        Task { await auth.signOut() }
+                    }
+                }
                 Button { confirmDelete = true } label: {
                     row("trash", "profile.deleteAccount", trailing: nil, destructive: true)
+                }
+                .confirmationDialog("profile.deleteAccount.title", isPresented: $confirmDelete, titleVisibility: .visible) {
+                    Button("profile.deleteAccount.confirm", role: .destructive) {
+                        Task {
+                            if await auth.deleteAccount() {
+                                FRHaptic.success.fire()
+                            } else {
+                                FRHaptic.error.fire()
+                                deleteFailed = true
+                            }
+                        }
+                    }
+                } message: {
+                    Text("profile.deleteAccount.body")
                 }
             }
             .buttonStyle(.plain)
@@ -237,26 +259,6 @@ struct ProfileAccountSection: View {
             languageSheet
                 .presentationDetents([.height(320)])
                 .presentationDragIndicator(.visible)
-        }
-        .confirmationDialog("profile.logout.confirm", isPresented: $confirmLogout, titleVisibility: .visible) {
-            Button("profile.logout", role: .destructive) {
-                FRHaptic.warning.fire()
-                Task { await auth.signOut() }
-            }
-        }
-        .confirmationDialog("profile.deleteAccount.title", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("profile.deleteAccount.confirm", role: .destructive) {
-                Task {
-                    if await auth.deleteAccount() {
-                        FRHaptic.success.fire()
-                    } else {
-                        FRHaptic.error.fire()
-                        deleteFailed = true
-                    }
-                }
-            }
-        } message: {
-            Text("profile.deleteAccount.body")
         }
         .alert("profile.deleteAccount.failed", isPresented: $deleteFailed) {
             Button("action.ok", role: .cancel) {}
