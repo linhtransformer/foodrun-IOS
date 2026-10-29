@@ -33,7 +33,7 @@ public struct FRRosterRow: View {
                             .background(Capsule().fill(Color.foodrun.foreground))
                     }
                 }
-                Text("\(role) · \(truckName)")
+                Text(verbatim: [role, truckName].filter { !$0.isEmpty }.joined(separator: " · "))
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
