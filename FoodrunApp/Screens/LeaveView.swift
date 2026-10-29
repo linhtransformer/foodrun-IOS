@@ -75,7 +75,7 @@ public struct LeaveView: View {
                 Text(verbatim: r.start_date == r.end_date ? PeopleFormat.day(r.start_date) : "\(PeopleFormat.day(r.start_date)) – \(PeopleFormat.day(r.end_date))")
                     .frText(FRType.rowTitle)
                 Spacer()
-                Text(LocalizedStringKey("leave.status.\(r.status)"))
+                Text(verbatim: FRLanguage.string("leave.status." + r.status))
                     .frText(FRType.fieldLabel)
                     .foregroundStyle(color(r.status))
             }
@@ -123,7 +123,7 @@ struct LeaveRequestSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("leave.ask").frText(FRType.sectionHeader)
+            CrewSheetHeader(title: FRLanguage.string("leave.ask")) { dismiss() }
             if schedule.employees.count > 1 {
                 Picker(selection: $employeeId) {
                     ForEach(schedule.employees) { e in

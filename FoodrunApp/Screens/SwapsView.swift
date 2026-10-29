@@ -229,7 +229,7 @@ public struct SwapsView: View {
                     Text(verbatim: historyLine(r))
                         .frText(FRType.rowSubtitle)
                     Spacer()
-                    Text(LocalizedStringKey("swaps.status.\(r.status)"))
+                    Text(verbatim: FRLanguage.string("swaps.status." + r.status))
                         .frText(FRType.fieldLabel)
                         .foregroundStyle(statusColor(r.status))
                 }
