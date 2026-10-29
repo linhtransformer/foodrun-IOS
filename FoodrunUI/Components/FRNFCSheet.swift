@@ -70,12 +70,16 @@ public struct NFCResultSheet: View {
                     .frCTAShadow()
             }
             .buttonStyle(.plain)
-            Button(action: onDismissUndo) {
-                Text(secondaryCopy)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            // A second "close" only when the black button does something else (open the
+            // checklist, review hours); next to "Klaar" it was the same action twice.
+            if result != .clockedIn || checklistsEnabled {
+                Button(action: onDismissUndo) {
+                    Text(secondaryCopy)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding(20)
         .background(
@@ -87,16 +91,24 @@ public struct NFCResultSheet: View {
         .shadow(color: .black.opacity(0.2), radius: 40, y: -10)
     }
 
+    /// Black circle with a white check (in) or flag (out), like the app's black pills; a thin
+    /// green ring says "on the clock" after a clock-in.
     private var badge: some View {
         let clockingIn = result == .clockedIn
-        return RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(clockingIn ? Color.foodrun.subject.positive : Color.foodrun.foreground)
+        return Circle()
+            .fill(Color.foodrun.foreground)
             .frame(width: 64, height: 64)
             .overlay(
-                Image(systemName: clockingIn ? "checkmark" : "flag.fill")
-                    .font(.system(size: 26, weight: .bold))
+                Image(systemName: clockingIn ? "checkmark" : "flag.checkered")
+                    .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(Color.foodrun.backgroundInverseInk)
             )
+            .padding(5)
+            .overlay(
+                Circle().strokeBorder(clockingIn ? Color.foodrun.subject.onTheClockGreen : Color.foodrun.border,
+                                      lineWidth: 2)
+            )
+            .accessibilityHidden(true)
     }
 
     private var titleLabel: some View {
@@ -128,20 +140,18 @@ public struct NFCResultSheet: View {
         .frNeu(.pressed)
     }
 
+    /// What happens next, as a small black pill with a white outline (was a blue note). Sized to
+    /// its text so it reads as a label, not as a second button next to the black CTA.
     private var agentNote: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
-            Text(result == .clockedIn ? "nfc.agent.clockedIn" : "nfc.agent.clockedOut")
-                .font(.system(size: 12.5))
-                .foregroundStyle(Color.foodrun.foreground)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.foodrun.agentNoteField)
-        )
+        Text(result == .clockedIn ? "nfc.agent.clockedIn" : "nfc.agent.clockedOut")
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(Color.foodrun.backgroundInverseInk)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .background(Capsule().fill(Color.foodrun.foreground))
+            .overlay(Capsule().strokeBorder(Color.foodrun.backgroundInverseInk, lineWidth: 1).padding(2))
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 320)
     }
 
     private var primaryCTA: LocalizedStringKey {
