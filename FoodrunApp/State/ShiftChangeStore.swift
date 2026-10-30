@@ -120,7 +120,15 @@ public final class ShiftChangeStore {
         _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
     }
 
+    /// Ik → Instellingen → Meldingen: phone notifications for roster changes (on by default).
+    /// Off = the changes still show in Berichten, only the phone stays quiet.
+    public static let notificationsKey = "shiftChangeNotifications"
+    public static var notificationsOn: Bool {
+        UserDefaults.standard.object(forKey: notificationsKey) as? Bool ?? true
+    }
+
     private static func postNotification(for found: [ShiftChange]) {
+        guard notificationsOn else { return }
         let content = UNMutableNotificationContent()
         if found.count == 1, let change = found.first {
             content.title = title(change)

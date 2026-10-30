@@ -24,7 +24,7 @@ public struct ProfileView: View {
                 if !schedule.employees.isEmpty { stats }
                 if !schedule.employees.isEmpty { workSection }
                 if !organizations.isEmpty { organizationsSection }
-                ProfileAccountSection()
+                ProfileAccountSection(onOpenSettings: { router.mePath.append(.settings) })
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, FRSpacing.screenTop.value)
@@ -179,6 +179,9 @@ struct ProfileAccountSection: View {
     @Environment(ScheduleStore.self) private var schedule
     /// The waiting screen has its own big "ask an organization" button.
     var showsJoinRow = true
+    /// Ik: opens Instellingen (language, appearance, notifications, delete account). The
+    /// waiting screen has no settings page, so it keeps language and delete here.
+    var onOpenSettings: (() -> Void)? = nil
     @State private var showJoin = false
     @State private var confirmLogout = false
     @State private var confirmDelete = false
@@ -198,8 +201,14 @@ struct ProfileAccountSection: View {
                         row("building.2", "profile.joinAnother", trailing: "chevron.right")
                     }
                 }
-                Button { showLanguage = true } label: {
-                    row("globe", "profile.language", value: FRLanguage.current.displayName, trailing: "chevron.right")
+                if let onOpenSettings {
+                    Button(action: onOpenSettings) {
+                        row("gearshape", "settings.title", trailing: "chevron.right")
+                    }
+                } else {
+                    Button { showLanguage = true } label: {
+                        row("globe", "profile.language", value: FRLanguage.current.displayName, trailing: "chevron.right")
+                    }
                 }
                 // Both open inside the app: privacy in an in-app Safari sheet,
                 // help as a sheet with an in-app mail composer.
@@ -230,14 +239,17 @@ struct ProfileAccountSection: View {
                 .padding(.top, 6)
             // Far from "Uitloggen" on purpose, and only a small link: deleting opens its own page
             // where the word VERWIJDEREN has to be typed (one mis-tap removed a test account).
-            Button { confirmDelete = true } label: {
-                Text("profile.deleteAccount")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.foodrun.subject.destructive)
-                    .frame(maxWidth: .infinity, minHeight: 44)
+            // On Ik this lives in Instellingen.
+            if onOpenSettings == nil {
+                Button { confirmDelete = true } label: {
+                    Text("profile.deleteAccount")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.foodrun.subject.destructive)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 18)
             }
-            .buttonStyle(.plain)
-            .padding(.top, 18)
         }
         .sheet(isPresented: $confirmDelete) {
             DeleteAccountSheet {

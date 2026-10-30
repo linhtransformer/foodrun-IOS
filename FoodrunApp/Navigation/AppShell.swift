@@ -227,6 +227,8 @@ public struct AppShell: View {
             SwapsView()
         case .leave:
             LeaveView()
+        case .settings:
+            SettingsView()
         }
     }
 

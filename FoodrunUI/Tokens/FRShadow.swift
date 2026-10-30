@@ -43,14 +43,14 @@ public extension View {
             return AnyView(
                 self
                     .compositingGroup()
-                    .shadow(color: .white.opacity(0.9), radius: 6, x: -3, y: -3)
+                    .shadow(color: Color.foodrun.neuHighlight, radius: 6, x: -3, y: -3)
                     .shadow(color: .black.opacity(0.06), radius: 8, x: 4, y: 5)
             )
         case .raisedLg:
             return AnyView(
                 self
                     .compositingGroup()
-                    .shadow(color: .white.opacity(0.9), radius: 10, x: -6, y: -6)
+                    .shadow(color: Color.foodrun.neuHighlight, radius: 10, x: -6, y: -6)
                     .shadow(color: .black.opacity(0.08), radius: 14, x: 6, y: 8)
             )
         case .pressed:
@@ -58,7 +58,7 @@ public extension View {
                 self
                     .compositingGroup()
                     .shadow(color: .black.opacity(0.05), radius: 3, x: 2, y: 2)
-                    .shadow(color: .white.opacity(0.7), radius: 3, x: -2, y: -2)
+                    .shadow(color: Color.foodrun.neuHighlight.opacity(0.8), radius: 3, x: -2, y: -2)
             )
         case .inset:
             return AnyView(self.overlay(

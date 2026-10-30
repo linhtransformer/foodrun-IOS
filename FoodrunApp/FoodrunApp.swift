@@ -14,7 +14,6 @@ struct FoodrunApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(auth)
-                .preferredColorScheme(.light) // v1: light-mode only. Dark mode: v2.
                 .task {
                     await auth.bootstrap()
                 }
@@ -59,6 +58,7 @@ final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
 struct RootView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @AppStorage(FRLanguage.storageKey) private var language = FRLanguage.system.rawValue
+    @AppStorage(FRAppearance.storageKey) private var appearance = FRAppearance.system.rawValue
     /// Lives above the shell so the open tab survives the rebuild on a language switch.
     @State private var router = TabRouter()
 
@@ -90,5 +90,6 @@ struct RootView: View {
                 .environmentObject(auth)
         }
         .environment(\.locale, FRLanguage.locale)
+        .preferredColorScheme((FRAppearance(rawValue: appearance) ?? .system).colorScheme)
     }
 }

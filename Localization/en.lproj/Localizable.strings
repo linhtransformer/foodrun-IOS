@@ -667,3 +667,16 @@
 "swaps.asked %@"                = "%@ wants to take over this shift";
 "swaps.give"                    = "Give it";
 "swaps.keep"                    = "Keep it";
+
+/* Instellingen */
+"settings.title"                    = "Settings";
+"settings.appearance"               = "Appearance";
+"settings.appearance.system"        = "Automatic";
+"settings.appearance.light"         = "Light";
+"settings.appearance.dark"          = "Dark";
+"settings.notifications"            = "Notifications";
+"settings.notifications.roster"     = "Roster changes";
+"settings.notifications.roster.body" = "A notification when a shift is added, moved or cancelled. Off: you still see it under Messages.";
+"settings.notifications.blocked"    = "Notifications for Foodrun are off in your iPhone’s settings. Tap to turn them on.";
+"settings.about"                    = "About";
+"settings.version"                  = "Version";

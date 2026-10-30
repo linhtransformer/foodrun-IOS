@@ -53,7 +53,7 @@ public struct FRTabBar: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: FRRadius.tabBar.value, style: .continuous)
-                .fill(Color.foodrun.foreground)
+                .fill(Color.foodrun.chrome)
         )
         .padding(.horizontal, 12)
         .compositingGroup()
@@ -68,24 +68,24 @@ public struct FRTabBar: View {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: tab.symbol)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(active ? Color.foodrun.foreground : Color.foodrun.backgroundInverseInk.opacity(0.55))
+                    .foregroundStyle(active ? Color.foodrun.chrome : Color.foodrun.chromeInk.opacity(0.55))
                 if !active && badgedTabs.contains(tab) {
                     Circle()
                         .fill(Color.foodrun.subject.warning)
                         .frame(width: 7, height: 7)
-                        .overlay(Circle().stroke(Color.foodrun.foreground, lineWidth: 1.5))
+                        .overlay(Circle().stroke(Color.foodrun.chrome, lineWidth: 1.5))
                         .offset(x: 6, y: -4)
                 }
             }
             Text(tab.label)
                 .frText(FRType.tab)
-                .foregroundStyle(active ? Color.foodrun.foreground : Color.foodrun.backgroundInverseInk.opacity(0.55))
+                .foregroundStyle(active ? Color.foodrun.chrome : Color.foodrun.chromeInk.opacity(0.55))
         }
         .frame(maxWidth: .infinity, minHeight: 44)
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(active ? Color.foodrun.backgroundInverseInk : .clear)
+                .fill(active ? Color.foodrun.chromeInk : .clear)
         )
         .accessibilityLabel(Text(tab.label))
         .accessibilityAddTraits(active ? [.isSelected, .isButton] : .isButton)

@@ -27,6 +27,8 @@ public final class TabRouter {
         case swaps
         /// Verlof: ask for days off, see decisions.
         case leave
+        /// Ik → Instellingen.
+        case settings
     }
 
     public func pushOnShifts(_ route: Route) { shiftsPath.append(route) }

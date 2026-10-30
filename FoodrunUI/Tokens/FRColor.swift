@@ -1,10 +1,11 @@
 import SwiftUI
+import UIKit
 
 // Foodrun color tokens. Bridges BRAND.md + the design-handoff bundle to SwiftUI.
 //
-// Light-mode only in v1. Dark-mode wiring is a token-file edit here, not a
-// source-wide sweep — every value below has a `dark:` companion recorded in a
-// comment so v2 flips it on.
+// Light and dark (Ik → Instellingen → Weergave): the neutral tokens below carry both
+// values and follow the screen's color scheme. Black pills turn light in the dark —
+// `foreground` / `backgroundInverseInk` swap together. Truck and semantic colours stay.
 //
 // Rules:
 //  * Anchor palette: #F8F7F5 (canvas) / #1A1A1A (ink) / #FFFFFF (surface).
@@ -15,25 +16,36 @@ import SwiftUI
 public extension Color {
     struct Foodrun {
         // Anchor palette (bundle §Token reconciliation).
-        public let background = Color(hex: 0xF8F7F5)          // warm canvas (was #F3F1EF)
-        public let foreground = Color(hex: 0x1A1A1A)
-        public let surface = Color(hex: 0xFFFFFF)             // floating white cards
-        public let card = Color(hex: 0xFFFFFF)                // was #F4F5F0
-        public let border = Color(hex: 0xE0DDD9)              // was #E7E7E1
+        public let background = Color(light: 0xF8F7F5, dark: 0x111110)          // warm canvas (was #F3F1EF)
+        public let foreground = Color(light: 0x1A1A1A, dark: 0xF2F1EE)
+        public let surface = Color(light: 0xFFFFFF, dark: 0x1C1C1B)             // floating white cards
+        public let card = Color(light: 0xFFFFFF, dark: 0x1E1E1D)                // was #F4F5F0
+        public let border = Color(light: 0xE0DDD9, dark: 0x34332F)              // was #E7E7E1
+
+        /// The black tab bar: stays dark in dark mode too (a lighter black, so it still lifts
+        /// off the canvas), with its own light ink. Today's shift card inverts instead (light).
+        public let chrome = Color(light: 0x1A1A1A, dark: 0x2A2A28)
+        public let chromeInk = Color(light: 0xF4F5F0, dark: 0xF2F1EE)
+        /// A switch that is on: black on the light canvas, green in the dark (a light track
+        /// with a white knob can't be seen).
+        public let toggleOn = Color(light: 0x1A1A1A, dark: 0x16A34A)
 
         // Ink on the black hero (retired old card value — kept for that one purpose).
-        public let backgroundInverseInk = Color(hex: 0xF4F5F0)
+        public let backgroundInverseInk = Color(light: 0xF4F5F0, dark: 0x161615)
 
         // Secondary / tertiary label ink (bundle §Token reconciliation).
-        public let mutedForeground = Color(hex: 0x6B6B6B)
-        public let mutedForegroundSoft = Color(hex: 0x8A8A8A) // row subtitles, footers
-        public let bodySoft = Color(hex: 0x5C5C5C)            // tertiary body
-        public let disabledInk = Color(hex: 0xC9C4BE)
+        public let mutedForeground = Color(light: 0x6B6B6B, dark: 0xA8A8A6)
+        public let mutedForegroundSoft = Color(light: 0x8A8A8A, dark: 0x8F8F8C) // row subtitles, footers
+        public let bodySoft = Color(light: 0x5C5C5C, dark: 0xB8B8B5)            // tertiary body
+        public let disabledInk = Color(light: 0xC9C4BE, dark: 0x4A4844)
 
         // Neumorphic surfaces.
-        public let neuTrack = Color(hex: 0xE8E5E0)            // recessed segmented track
-        public let neuPill = Color(hex: 0xFBFAF7)             // raised active pill
-        public let neuShadowDark = Color(hex: 0xD1CECA)
+        public let neuTrack = Color(light: 0xE8E5E0, dark: 0x272725)            // recessed segmented track
+        public let neuPill = Color(light: 0xFBFAF7, dark: 0x2E2E2C)             // raised active pill
+        /// The light edge of the soft-UI shadow: white on the off-white ground, barely there in
+        /// the dark (a white glow on a dark card looks like a smudge).
+        public let neuHighlight = Color(lightRGBA: (1, 1, 1, 0.9), darkRGBA: (1, 1, 1, 0.03))
+        public let neuShadowDark = Color(light: 0xD1CECA, dark: 0x000000)
 
         // Semantic (subject) colors.
         public let subject = Subject()
@@ -93,6 +105,20 @@ public extension Color {
 
 // Hex initializer restricted to this file.
 extension Color {
+    /// A token that follows light / dark mode.
+    init(light: UInt32, dark: UInt32) {
+        self.init(UIColor { trait in
+            UIColor(Color(hex: trait.userInterfaceStyle == .dark ? dark : light))
+        })
+    }
+
+    init(lightRGBA: (Double, Double, Double, Double), darkRGBA: (Double, Double, Double, Double)) {
+        self.init(UIColor { trait in
+            let c = trait.userInterfaceStyle == .dark ? darkRGBA : lightRGBA
+            return UIColor(red: c.0, green: c.1, blue: c.2, alpha: c.3)
+        })
+    }
+
     init(hex: UInt32, opacity: Double = 1.0) {
         let r = Double((hex >> 16) & 0xff) / 255
         let g = Double((hex >> 8) & 0xff) / 255
