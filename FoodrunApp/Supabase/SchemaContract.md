@@ -489,3 +489,17 @@ HQ migrations `20261028140000_clock_corrections` and `20261028150000_one_message
   of the same shift a late scan still clocks out. Same arguments and answer.
 - `get_open_clock_ins` (HQ only) has new columns `work_date`, `via_tag`, `hours_end_time`, `hours_status`.
 - `clock_in_shift(activity, employee, in_at)`: internal helper, not callable by the app.
+
+### Rate limits (server live 2026-10-30, HQ migration `20261030120000`)
+
+Asked in `docs/testing/handoff/ios-needs.md` N6–N8. All refusals are `P0001` with the code as `message`.
+
+| Call | Limit | Refusal |
+|---|---|---|
+| `clock_with_tag(p_token)` | per account 30 calls an hour (all calls count); after 10 `invalid_tag` in a row a 15-minute pause, then one try per 15 minutes until a known tag | `too_many_attempts` |
+| `request_shift_swap`, `request_shift_takeover`, `request_open_shift` | per account 20 new requests per Amsterdam day, counted together (withdrawn ones too); answering and withdrawing are free | `too_many_requests` |
+| `send_availability_reminder` (HQ only) | once per 7 days per employer | `reminder_already_sent` |
+
+`clock_with_tag` answers its own refusals (`invalid_tag`, `not_linked`, `no_shift_here_today`) with HTTP 400 and the
+same body a raised error gives (`{ code, message, details, hint }`), so the attempt log is kept; `PostgrestError` decodes it
+as before. `too_many_attempts` and `not_authenticated` are raised as usual.
