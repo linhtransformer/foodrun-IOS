@@ -267,6 +267,8 @@
 "profile.deleteAccount.title" = "Je account verwijderen?";
 "profile.deleteAccount.body" = "Je login en je koppeling met elke werkgever worden definitief verwijderd. Dit kan niet ongedaan worden gemaakt.";
 "profile.deleteAccount.confirm" = "Account definitief verwijderen";
+"profile.deleteAccount.word"     = "VERWIJDEREN";
+"profile.deleteAccount.typeWord %@" = "Typ %@ om te bevestigen";
 "profile.deleteAccount.failed" = "Account verwijderen lukte niet";
 "nfc.cta.done" = "Klaar";
 "nfc.cta.close" = "Sluiten";

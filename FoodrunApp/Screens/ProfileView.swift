@@ -220,23 +220,6 @@ struct ProfileAccountSection: View {
                         Task { await auth.signOut() }
                     }
                 }
-                Button { confirmDelete = true } label: {
-                    row("trash", "profile.deleteAccount", trailing: nil, destructive: true)
-                }
-                .confirmationDialog("profile.deleteAccount.title", isPresented: $confirmDelete, titleVisibility: .visible) {
-                    Button("profile.deleteAccount.confirm", role: .destructive) {
-                        Task {
-                            if await auth.deleteAccount() {
-                                FRHaptic.success.fire()
-                            } else {
-                                FRHaptic.error.fire()
-                                deleteFailed = true
-                            }
-                        }
-                    }
-                } message: {
-                    Text("profile.deleteAccount.body")
-                }
             }
             .buttonStyle(.plain)
             // The real version and build ("Foodrun 1.0 (9)"), so it's clear which build a phone runs.
@@ -245,6 +228,27 @@ struct ProfileAccountSection: View {
                 .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 6)
+            // Far from "Uitloggen" on purpose, and only a small link: deleting opens its own page
+            // where the word VERWIJDEREN has to be typed (one mis-tap removed a test account).
+            Button { confirmDelete = true } label: {
+                Text("profile.deleteAccount")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.foodrun.subject.destructive)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 18)
+        }
+        .sheet(isPresented: $confirmDelete) {
+            DeleteAccountSheet {
+                if await auth.deleteAccount() {
+                    FRHaptic.success.fire()
+                    return true
+                }
+                FRHaptic.error.fire()
+                deleteFailed = true
+                return false
+            }
         }
         .sheet(isPresented: $showJoin) {
             JoinRequestView { await schedule.load() }
@@ -424,5 +428,61 @@ enum FoodrunVersion {
         let version = info?["CFBundleShortVersionString"] as? String ?? "?"
         let build = info?["CFBundleVersion"] as? String ?? "?"
         return "\(version) (\(build))"
+    }
+}
+
+/// Deleting an account: what it removes, and the word VERWIJDEREN / DELETE to type before the
+/// red button works. Cancel is the big, easy choice.
+struct DeleteAccountSheet: View {
+    let onDelete: () async -> Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var typed = ""
+    @State private var working = false
+
+    private var word: String { FRLanguage.string("profile.deleteAccount.word") }
+    private var matches: Bool {
+        typed.trimmingCharacters(in: .whitespaces).uppercased() == word.uppercased()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            CrewSheetHeader(title: FRLanguage.string("profile.deleteAccount.title")) { dismiss() }
+            Text("profile.deleteAccount.body")
+                .frText(FRType.rowSubtitle)
+                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            Text(verbatim: String(format: FRLanguage.string("profile.deleteAccount.typeWord %@"), word))
+                .frText(FRType.rowTitle)
+            TextField(text: $typed, prompt: Text(verbatim: word)) { Text(verbatim: word) }
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .font(.system(size: 16, weight: .semibold))
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+            AuthPrimaryButton(title: "action.cancel", working: false) { dismiss() }
+            Button {
+                Task {
+                    working = true
+                    if await onDelete() { dismiss() }
+                    working = false
+                }
+            } label: {
+                ZStack {
+                    if working { ProgressView() } else { Text("profile.deleteAccount.confirm") }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.foodrun.subject.destructive)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .overlay(Capsule().stroke(Color.foodrun.subject.destructive, lineWidth: 1))
+                .opacity(matches ? 1 : 0.35)
+            }
+            .buttonStyle(.plain)
+            .disabled(!matches || working)
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .background(Color.foodrun.background.ignoresSafeArea())
+        .presentationDetents([.large])
+        .interactiveDismissDisabled(working)
     }
 }

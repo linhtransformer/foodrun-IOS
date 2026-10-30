@@ -267,6 +267,8 @@
 "profile.deleteAccount.title" = "Delete your account?";
 "profile.deleteAccount.body" = "Your login and your link to every employer are removed for good. This can’t be undone.";
 "profile.deleteAccount.confirm" = "Delete account permanently";
+"profile.deleteAccount.word"     = "DELETE";
+"profile.deleteAccount.typeWord %@" = "Type %@ to confirm";
 "profile.deleteAccount.failed" = "Couldn’t delete your account";
 "nfc.cta.done" = "Done";
 "nfc.cta.close" = "Close";
