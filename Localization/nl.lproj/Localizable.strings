@@ -541,6 +541,7 @@
 "clock.tag.notFoodrun"      = "Dit is geen Foodrun-kloktag.";
 "clock.tag.required"        = "Je werkgever wil dat je met de tag klokt. Houd je telefoon ertegen.";
 "clock.tag.failed"          = "Klokken lukte niet. Check je verbinding en probeer het opnieuw.";
+"clock.tag.tooMany"          = "Te veel scans in korte tijd. Wacht een paar minuten en probeer het opnieuw.";
 "clock.nfc.unreadable"      = "Deze tag is niet leesbaar — probeer het opnieuw.";
 "clock.nfc.unsupported"     = "Deze iPhone kan geen NFC-tags lezen.";
 "clock.noNFC.useButton"      = "Deze iPhone kan geen tags lezen. Je werkgever laat je ook zonder tag klokken.";
@@ -601,6 +602,7 @@
 "swap.error.notOnShift"         = "Je staat niet op deze dienst.";
 "swap.error.unknownColleague"   = "Die collega hoort niet bij dit team.";
 "swap.error.shiftChanged"       = "De dienst is intussen veranderd.";
+"swap.error.tooMany"          = "Je hebt vandaag al veel verzoeken gestuurd. Probeer het morgen weer, of vraag het je planner.";
 "swaps.title"                   = "Ruilen";
 "swaps.subtitle"                = "Bied een dienst aan, neem er een over of pak een open dienst op.";
 "swaps.section.offered"         = "Aangeboden aan jou";

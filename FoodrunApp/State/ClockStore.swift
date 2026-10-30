@@ -186,6 +186,7 @@ public final class ClockStore {
             ("no_shift_here_today", "clock.tag.noShift"),
             ("no_shift_today", "clock.tag.noShift"),
             ("not_rostered_today", "clock.tag.noShift"),
+            ("too_many_attempts", "clock.tag.tooMany"),
             ("not_authenticated", "clock.tag.signIn"),
             ("permission denied", "clock.tag.signIn"),   // 42501: no session
         ] where raw.contains(code) {

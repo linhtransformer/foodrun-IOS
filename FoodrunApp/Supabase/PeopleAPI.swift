@@ -310,6 +310,7 @@ enum PeopleAPI {
             ("not_on_shift", "swap.error.notOnShift"),
             ("unknown_colleague", "swap.error.unknownColleague"),
             ("shift_changed", "swap.error.shiftChanged"),
+            ("too_many_requests", "swap.error.tooMany"),
         ] where raw.contains(code) {
             return FRLanguage.string(key)
         }

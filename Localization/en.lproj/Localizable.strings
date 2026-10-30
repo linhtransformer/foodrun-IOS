@@ -541,6 +541,7 @@
 "clock.tag.notFoodrun"      = "That isn’t a Foodrun clock tag.";
 "clock.tag.required"        = "Your employer wants you to clock with the tag. Hold your phone to it.";
 "clock.tag.failed"          = "Clocking didn’t work. Check your connection and try again.";
+"clock.tag.tooMany"          = "Too many scans in a short time. Wait a few minutes and try again.";
 "clock.nfc.unreadable"      = "That tag isn’t readable — try again.";
 "clock.nfc.unsupported"     = "This iPhone can’t read NFC tags.";
 "clock.noNFC.useButton"      = "This iPhone can’t read tags. Your employer lets you clock without one.";
@@ -601,6 +602,7 @@
 "swap.error.notOnShift"         = "You're not on this shift.";
 "swap.error.unknownColleague"   = "That colleague isn't on this team.";
 "swap.error.shiftChanged"       = "The shift changed meanwhile.";
+"swap.error.tooMany"          = "You’ve sent a lot of requests today. Try again tomorrow, or ask your planner.";
 "swaps.title"                   = "Swaps";
 "swaps.subtitle"                = "Offer a shift, take one over or pick up an open shift.";
 "swaps.section.offered"         = "Offered to you";
