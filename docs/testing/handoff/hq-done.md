@@ -73,6 +73,13 @@ No re-seed: every other date in this file stays as it is.
 | N2 | Testtruck 2 with its own tag | Unchanged and active (own tag since 26 Oct; the user has the link). Sanne has no shift on Testtruck 2 on 29 or 30 Oct |
 | N3 | A day tomorrow with a tag (C4) | **[iOS test] Stadsfestival** `5ec682c2-5419-4c8c-b0a3-124a9dc24a63` **Fri 30 Oct 10:00–18:00 on Testtruck** stays, with Sanne rostered. Nothing new made |
 
+**N1 again — moved to tonight (Fri 30 Oct 12:26).** The night shift of 29 Oct was not used (no clock events), so the same
+**[iOS test] Klok: nachtdienst** `077a6208` is now **Fri 30 Oct 22:00 – Sat 31 Oct 02:00 on Testtruck**, Sanne only; no message was
+sent. Checked as Sanne: her feed has it today next to Stadsfestival 10:00–18:00 (Testtruck) and Havenfestival (no truck), and the
+clock rules answer for it. Sanne's row `909021d9` is still `approved` and linked (M9); the phone has not signed in since the restore,
+so sign in again first. For C6: clock out of Stadsfestival before scanning for the night shift, because an open Stadsfestival
+clock-in counts as open until 22:00 (planned end + 4 h), and a scan before then clocks her out there. Same Testtruck tag.
+
 ## ios-needs N4–N5 — built Thu 29 Oct 13:05 (HQ `ac67de0`, migration `20261029120000_clock_forgot_out`, live)
 
 No app change, no new messages to the worker or the manager.
