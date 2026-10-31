@@ -676,7 +676,7 @@
 "settings.appearance.light"         = "Light";
 "settings.appearance.dark"          = "Dark";
 "settings.notifications"            = "Notifications";
-"settings.notifications.roster"     = "Roster changes";
+"settings.notifications.roster"     = "Notifications";
 "settings.notifications.roster.body" = "A notification when a shift is added, moved or cancelled. Off: you still see it under Messages.";
 "settings.notifications.blocked"    = "Notifications for Foodrun are off in your iPhone’s settings. Tap to turn them on.";
 "settings.about"                    = "About";

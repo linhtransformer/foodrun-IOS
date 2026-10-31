@@ -676,7 +676,7 @@
 "settings.appearance.light"         = "Licht";
 "settings.appearance.dark"          = "Donker";
 "settings.notifications"            = "Meldingen";
-"settings.notifications.roster"     = "Roosterwijzigingen";
+"settings.notifications.roster"     = "Notificaties";
 "settings.notifications.roster.body" = "Een melding als een dienst erbij komt, verschuift of vervalt. Uit: je ziet het nog wel bij Berichten.";
 "settings.notifications.blocked"    = "Meldingen voor Foodrun staan uit in de instellingen van je iPhone. Tik om ze aan te zetten.";
 "settings.about"                    = "Over de app";
