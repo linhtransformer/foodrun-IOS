@@ -1,8 +1,8 @@
 import SwiftUI
 import UserNotifications
 
-// Ik → Instellingen: how the app looks and behaves on this phone, and deleting the account.
-// Everything here is stored on the phone, except deleting (edge fn delete-my-account).
+// Ik → Instellingen: one list like the iPhone's own settings — icon, label, and a switch or
+// value on the right. Stored on the phone, except deleting the account (delete-my-account).
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -10,7 +10,7 @@ struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var auth: AuthViewModel
 
-    @AppStorage(FRAppearance.storageKey) private var appearance = FRAppearance.system.rawValue
+    @AppStorage(FRAppearance.storageKey) private var appearance = FRAppearance.light.rawValue
     @AppStorage(ShiftChangeStore.notificationsKey) private var shiftNotifications = true
     @AppStorage(FRLanguage.storageKey) private var language = FRLanguage.system.rawValue
     /// What iOS allows: nil while unknown.
@@ -22,68 +22,57 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 header
-                section("settings.appearance") {
-                    FRSegmentedPills(FRAppearance.allCases, selection: Binding(
-                        get: { FRAppearance(rawValue: appearance) ?? .system },
-                        set: { appearance = $0.rawValue }
-                    )) { $0.labelKey }
+                group {
+                    toggleRow("moon.fill", "settings.darkMode", isOn: Binding(
+                        get: { appearance == FRAppearance.dark.rawValue },
+                        set: { appearance = ($0 ? FRAppearance.dark : .light).rawValue; FRHaptic.light.fire() }
+                    ))
+                    divider
+                    toggleRow("bell.fill", "settings.notifications.roster", isOn: $shiftNotifications)
+                    divider
+                    languageRow
                 }
-                section("settings.notifications") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Toggle(isOn: $shiftNotifications) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("settings.notifications.roster").frText(FRType.rowTitle)
-                                Text("settings.notifications.roster.body")
-                                    .frText(FRType.rowSubtitle)
-                                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                            }
-                        }
-                        .tint(Color.foodrun.toggleOn)
-                        .padding(14)
-                        .background(card)
-                        .frNeu(.raised)
-                        if systemAllowed == false {
-                            // iOS blocks Foodrun: the switch above can't help until that is allowed.
-                            Button {
-                                if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
-                            } label: {
-                                Label("settings.notifications.blocked", systemImage: "exclamationmark.circle")
-                                    .frText(FRType.rowSubtitle)
-                                    .foregroundStyle(Color.foodrun.subject.warning)
-                                    .multilineTextAlignment(.leading)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                if systemAllowed == false {
+                    // iOS blocks Foodrun: the switch above can't help until that is allowed.
+                    Button {
+                        if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
+                    } label: {
+                        Label("settings.notifications.blocked", systemImage: "exclamationmark.circle")
+                            .frText(FRType.rowSubtitle)
+                            .foregroundStyle(Color.foodrun.subject.warning)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 4)
                     }
+                    .buttonStyle(.plain)
+                    .padding(.top, -12)
                 }
-                section("profile.language") {
-                    FRSegmentedPills(FRLanguage.allCases, selection: Binding(
-                        get: { FRLanguage(rawValue: language) ?? .system },
-                        set: { FRLanguage.set($0); language = $0.rawValue }
-                    )) { LocalizedStringKey(stringLiteral: $0.displayName) }
-                }
-                section("settings.about") {
-                    HStack {
+                group {
+                    HStack(spacing: 12) {
+                        icon("info.circle.fill")
                         Text("settings.version").frText(FRType.rowTitle)
                         Spacer()
                         Text(verbatim: FoodrunVersion.text)
                             .frText(FRType.rowSubtitle)
                             .foregroundStyle(Color.foodrun.mutedForegroundSoft)
                     }
-                    .padding(14)
-                    .background(card)
-                    .frNeu(.raised)
+                    .padding(.horizontal, 14).frame(minHeight: 52)
                 }
-                // Last, small and red: deleting needs the word typed on its own page.
-                Button { confirmDelete = true } label: {
-                    Text("profile.deleteAccount")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.foodrun.subject.destructive)
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                // Last, on its own and red: deleting needs the word typed on its own page.
+                group {
+                    Button { confirmDelete = true } label: {
+                        HStack(spacing: 12) {
+                            icon("trash.fill", tint: Color.foodrun.subject.destructive)
+                            Text("profile.deleteAccount")
+                                .frText(FRType.rowTitle)
+                                .foregroundStyle(Color.foodrun.subject.destructive)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 14).frame(minHeight: 52)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-                .padding(.top, 12)
             }
             .padding(.horizontal, FRSpacing.screenH.value)
             .padding(.top, FRSpacing.screenTop.value)
@@ -107,6 +96,8 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Rows
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button { dismiss() } label: {
@@ -123,14 +114,64 @@ struct SettingsView: View {
         }
     }
 
-    private var card: some View {
-        RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card)
+    /// One white card holding rows, like an iOS settings group.
+    private func group<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(spacing: 0) { content() }
+            .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
+            .frNeu(.raised)
     }
 
-    private func section<Content: View>(_ title: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).frText(FRType.sectionHeader)
-            content()
+    private var divider: some View {
+        Rectangle().fill(Color.foodrun.border).frame(height: 1).padding(.leading, 58)
+    }
+
+    private func icon(_ symbol: String, tint: Color = Color.foodrun.foreground) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: 32, height: 32)
+            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.foodrun.neuTrack))
+    }
+
+    private func toggleRow(_ symbol: String, _ label: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            HStack(spacing: 12) {
+                icon(symbol)
+                Text(label).frText(FRType.rowTitle)
+            }
+        }
+        .tint(Color.foodrun.toggleOn)
+        .padding(.horizontal, 14).frame(minHeight: 52)
+    }
+
+    private var languageRow: some View {
+        Menu {
+            ForEach(FRLanguage.allCases) { option in
+                Button {
+                    FRLanguage.set(option)
+                    language = option.rawValue
+                } label: {
+                    if option.rawValue == language {
+                        Label(option.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(verbatim: option.displayName)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                icon("globe")
+                Text("profile.language").frText(FRType.rowTitle).foregroundStyle(Color.foodrun.foreground)
+                Spacer()
+                Text(verbatim: (FRLanguage(rawValue: language) ?? .system).displayName)
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+            .padding(.horizontal, 14).frame(minHeight: 52)
+            .contentShape(Rectangle())
         }
     }
 

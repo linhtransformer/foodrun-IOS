@@ -1,7 +1,8 @@
 import SwiftUI
 
-// Ik → Instellingen → Weergave: follow the phone, or always light / dark.
-// Stored on the phone; RootView applies it with `.preferredColorScheme`.
+// Ik → Instellingen → Donkere modus (a switch: on = dark, off = light, the default).
+// Stored on the phone; RootView applies it with `.preferredColorScheme`. `.system` stays
+// for older stored values and follows the phone.
 
 public enum FRAppearance: String, CaseIterable, Identifiable {
     case system, light, dark

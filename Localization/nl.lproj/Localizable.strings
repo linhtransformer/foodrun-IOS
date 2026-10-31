@@ -671,6 +671,7 @@
 /* Instellingen */
 "settings.title"                    = "Instellingen";
 "settings.appearance"               = "Weergave";
+"settings.darkMode"                 = "Donkere modus";
 "settings.appearance.system"        = "Automatisch";
 "settings.appearance.light"         = "Licht";
 "settings.appearance.dark"          = "Donker";
