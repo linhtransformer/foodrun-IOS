@@ -28,7 +28,13 @@ struct SettingsView: View {
                         set: { appearance = ($0 ? FRAppearance.dark : .light).rawValue; FRHaptic.light.fire() }
                     ))
                     divider
-                    toggleRow("bell.fill", "settings.notifications.roster", isOn: $shiftNotifications)
+                    toggleRow("bell.fill", "settings.notifications.roster", isOn: Binding(
+                        get: { shiftNotifications && systemAllowed != false },
+                        set: { on in
+                            shiftNotifications = on
+                            if on { Task { await askIOS() } }
+                        }
+                    ))
                     divider
                     languageRow
                 }
@@ -173,6 +179,22 @@ struct SettingsView: View {
             .padding(.horizontal, 14).frame(minHeight: 52)
             .contentShape(Rectangle())
         }
+    }
+
+    /// Turning notifications on: the first time iOS shows its own "Allow notifications?"
+    /// dialog; once refused, iOS won't ask again, so open Foodrun's page in the iPhone's
+    /// settings instead.
+    private func askIOS() async {
+        let center = UNUserNotificationCenter.current()
+        switch await center.notificationSettings().authorizationStatus {
+        case .notDetermined:
+            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        case .denied:
+            if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
+        default:
+            break
+        }
+        await checkSystem()
     }
 
     private func checkSystem() async {
