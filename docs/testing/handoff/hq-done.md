@@ -104,3 +104,15 @@ The codes are the ones in ios-needs, as `P0001` with the code as `message`. No o
 | Tests | N6, N7 (and N8) | `tests/rostering/rate-limits.ts` (HQ repo), 28 checks, all passed on the VPS with two throwaway accounts (nobody real got a message; the test company's limits untouched). `tests/rostering/clock-tags.ts` still passes and now removes the scan log it makes as Sanne, so a run never uses up her 30 scans |
 
 For tonight (C6): the night shift uses the new `clock_with_tag`; normal scans behave as before, and Sanne's scan log is empty.
+
+## ios-needs N9 — made Thu 5 Nov 17:19
+
+No app change, no message to the worker.
+
+| # | Need | What HQ made |
+|---|---|---|
+| N9 | Overnight shift for Sanne on Testtruck, Thu 5 Nov 14:00 → Fri 6 Nov 08:00 | **[iOS test] Klok: overnacht** `2d40cd6b-0dfb-43f2-a00c-dabe15323e46` (new), on **Testtruck**, Sanne only: per-day roster **`2026-11-05` 14:00–08:00** (one day; an end before the start ends the next day). Published: written in the activity's own roster columns as Publiceren does, no concept, `is_draft` false, status `option` like the other `[iOS test]` events. Made as quietly as a publish: no "Je staat op een nieuw evenement" message (Sanne's inbox 0 before and after). The server's planned window for a clock-in today is **Thu 05-11 14:00 → Fri 06-11 08:00**, so a scan **until Fri 12:00** (planned end + 4 h) clocks out on this shift, and the shift's date stays Thu 5 Nov |
+| Checks | Nothing else on Testtruck, row, tag, scan count | No other Testtruck event in Testbedrijf from Wed 4 to Fri 6 Nov at all, so nothing from Thu 12:00 to Fri 14:00. Her shifts around it have no truck: Besloten bedrijfsfeest Wed 4 Nov 18:00–23:00, Bedrijfsevent Fri 6 Nov 16:00–21:00. Row `909021d9` `approved`, active, linked. Testtruck's tag is the same active one since 17 Oct (the user has the link). Scan count (N6) empty: one old row (`no_shift_here_today`, 2 Nov) removed. As Sanne: her feed has the shift today, and a scan with the Testtruck tag in a transaction that was rolled back answered `in` on this shift, a second one `out` on it (nothing kept) |
+
+The C6 night shift `077a6208` still has its clock-in of Fri 30 Oct 17:51 without a clock-out. It is past its window
+(31 Oct 06:00), so it does not catch these scans; HQ shows it as not clocked out.
