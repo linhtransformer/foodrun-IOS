@@ -38,21 +38,6 @@ struct SettingsView: View {
                     divider
                     languageRow
                 }
-                if systemAllowed == false {
-                    // iOS blocks Foodrun: the switch above can't help until that is allowed.
-                    Button {
-                        if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
-                    } label: {
-                        Label("settings.notifications.blocked", systemImage: "exclamationmark.circle")
-                            .frText(FRType.rowSubtitle)
-                            .foregroundStyle(Color.foodrun.subject.warning)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 4)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, -12)
-                }
                 group {
                     HStack(spacing: 12) {
                         icon("info.circle.fill")
