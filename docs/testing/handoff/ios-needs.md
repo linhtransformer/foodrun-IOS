@@ -32,3 +32,9 @@ Keep the messages as `P0001` with the code as `message`, like the existing `too_
 Not needed: the invite `peek` (32-character token, can't be guessed) and the invite link itself (already 7 days, single use, replaced by a newer invite).
 Please add a test for N6 and N7 and write the migration name in `hq-done.md`.
 
+## Overnight clock-out test (asked by the user, Thu 5 Nov)
+
+| # | Need | Detail |
+|---|---|---|
+| N9 | **An overnight shift for Sanne** (`ios.worker@test.foodrun.nl`, employee `909021d9`) on **Testtruck**: **Thu 5 Nov 14:00 → Fri 6 Nov 08:00**, published, `[iOS test]` event | The user clocks in with the Testtruck tag this afternoon and clocks out with the same tag **tomorrow morning**. With N5 the clock-out still lands on this shift until **planned end + 4 h = Fri 12:00**. Make sure Sanne has **no other Testtruck shift** from Thu 12:00 to Fri 14:00 (the scan picks the open / nearest shift), that her row is **approved**, the Testtruck tag is active, and her scan count (N6) is empty. Write the event name / id in `hq-done.md`. Afterwards: check in HQ that both clock events sit on this one shift, on **Thu 5 Nov** (the shift's date), and that Uren shows one line with the overnight hours. |
+
