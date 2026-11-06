@@ -38,3 +38,16 @@ Please add a test for N6 and N7 and write the migration name in `hq-done.md`.
 |---|---|---|
 | N9 | **An overnight shift for Sanne** (`ios.worker@test.foodrun.nl`, employee `909021d9`) on **Testtruck**: **Thu 5 Nov 14:00 → Fri 6 Nov 08:00**, published, `[iOS test]` event | The user clocks in with the Testtruck tag this afternoon and clocks out with the same tag **tomorrow morning**. With N5 the clock-out still lands on this shift until **planned end + 4 h = Fri 12:00**. Make sure Sanne has **no other Testtruck shift** from Thu 12:00 to Fri 14:00 (the scan picks the open / nearest shift), that her row is **approved**, the Testtruck tag is active, and her scan count (N6) is empty. Write the event name / id in `hq-done.md`. Afterwards: check in HQ that both clock events sit on this one shift, on **Thu 5 Nov** (the shift's date), and that Uren shows one line with the overnight hours. |
 
+## Tell the employer about odd clock times (asked by the user, Fri 6 Nov)
+
+Only the **employer / planner** is told; the worker gets nothing extra. One message per shift and case,
+never repeated for the same shift. Nothing changes in the app.
+
+| # | Need | Detail |
+|---|---|---|
+| N10 | **Not clocked out with the NFC tag** | When a shift has a clock-in but **no clock-out by its planned end + 4 h** (the N5 window has closed), the employer gets **one** notification: "Sanne Tester is niet uitgeklokt met NFC · [event], do 5 nov (gepland tot 08:00)". It links to that line in Uren, which already carries the N4 note "Niet uitgeklokt met NFC". Also when the worker later clocks out with the **button** instead of the tag: the line says "Uitgeklokt met de knop" so the employer sees the tag was skipped. |
+| N11 | **Hours far from the planned shift** | When hours are **sent** (or a shift is clocked in + out) and the worked time differs **3 hours or more** from the planned shift (longer or shorter), the employer gets **one** notification: "Sanne Tester: 18 u 32 min gewerkt, gepland 18 u (do 5 nov, [event]) · 3 u 55 min later uitgeklokt". The Uren line gets a flag "Wijkt 3+ uur af van het rooster". Make the 3 hours a setting per employer in HQ (default 3). |
+
+Where the employer sees it: HQ's own notifications / inbox (and the operator's phone if the owner uses the app,
+as a `worker_notifications` type the app can show in Berichten). Write the new type names in the contract.
+
