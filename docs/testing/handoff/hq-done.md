@@ -116,3 +116,18 @@ No app change, no message to the worker.
 
 The C6 night shift `077a6208` still has its clock-in of Fri 30 Oct 17:51 without a clock-out. It is past its window
 (31 Oct 06:00), so it does not catch these scans; HQ shows it as not clocked out.
+
+## ios-needs N10–N11 — built Fri 6 Nov 12:49 (HQ `cd8decc`, migration `20261106140000_employer_clock_alerts`, live)
+
+No app change. Only the employer side is told, once per shift and case; the worker gets nothing.
+
+| # | Need | What HQ changed |
+|---|---|---|
+| N10 | Not clocked out with the NFC tag | A clock-in with **no clock-out by its planned end + 4 h** (no planned times: 18 h after the clock-in, the same window as `clock_with_tag`) gives **one** notification: **"Sanne Tester is niet uitgeklokt met NFC"** · "[event], do 5 nov (gepland tot 08:00)" ("… is niet uitgeklokt" when the clock-in was not by tag). A server job looks every 10 minutes; it only announces windows that closed in the last day, so old forgotten clock-ins were not announced at go-live. In HQ it shows in **Uren → Meldingen** (new strip above "Nog ingeklokt"): "Bekijk week" opens Uren at that week, "Gelezen" takes it off. In with the tag and out with the **button** (not an HQ correction): the Uren line says **"Uitgeklokt met de knop"** (Per activiteit, Per medewerker, Tabel → Ingeklokt, and the hours dialog under "Geklokt (app)") |
+| N11 | Hours far from the planned shift | When the worker **sends hours** or **clocks out** (tag or button), and the **worked time, or the start, or the end** is N hours or more off the planned shift: **one** notification, e.g. **"Sanne Tester: 18 u 32 min gewerkt, gepland 18 u (do 5 nov, [event])"** · **"3 u 55 min later uitgeklokt"**. The text after the dot names the largest difference: "… later / eerder uitgeklokt", "… later / eerder ingeklokt", "einde / begin … dan gepland" for times the worker typed, or "… langer / korter dan gepland" when only the length is off. **The start and end count too, not only the length**: in the example the length is only 32 min off, but the clock-out is 3 h 55 min late. Worked = the sent hours when there are any, else clock-out − clock-in − breaks; start and end = the clock times when both exist, else the sent times. The Uren line gets **"Wijkt 3+ uur af van het rooster"** (status Afwijking). **Setting per employer:** HQ → Stakeholders → Instellingen → Inklokken → "Melding bij afwijking van het rooster vanaf 1 uur / 2 / 3 / 4 / 6" (`roster_settings.off_roster_alert_hours`, 1–12, default 3). Hours a planner adds in HQ do not alert |
+| Who | Employer only | The event's owner, the organisation's owner and members who may edit its employees: in HQ (`operator_notifications`, Uren → Meldingen) and in the app's Berichten (`worker_notifications`, two new types, see SchemaContract "Employer clock alerts"). Once per shift and case (`clock_alerts`) |
+| Tests | N10, N11 | `tests/rostering/clock-alerts.ts` (HQ repo): 15 checks, all passed on the VPS with throwaway accounts: the example's exact text, sent hours, once only, a 5-hour setting stays quiet, N10 once, the worker gets nothing and cannot read the alerts, the employer can. `tests/unit/roster-gap.spec.ts` for Uren's flag. Checked in the browser as the test operator on a seeded line (removed afterwards; nothing reached a phone) |
+
+**To see N11 live:** Sanne's overnight shift of Thu 5 Nov ([iOS test] Klok: overnacht) has her tag scans at 17:23 and 11:51 and no hours yet.
+When she sends hours for it in the app, ios.operator gets "Sanne Tester: … gewerkt, gepland 18 u (do 5 nov, [iOS test] Klok: overnacht) ·
+3 u 51 min later uitgeklokt" in HQ (Uren → Meldingen) and in Berichten. That clock-out happened before go-live, so it gave no alert by itself.

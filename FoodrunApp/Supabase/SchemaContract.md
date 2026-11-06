@@ -503,3 +503,18 @@ Asked in `docs/testing/handoff/ios-needs.md` N6–N8. All refusals are `P0001` w
 `clock_with_tag` answers its own refusals (`invalid_tag`, `not_linked`, `no_shift_here_today`) with HTTP 400 and the
 same body a raised error gives (`{ code, message, details, hint }`), so the attempt log is kept; `PostgrestError` decodes it
 as before. `too_many_attempts` and `not_authenticated` are raised as usual.
+
+### Employer clock alerts (server live 2026-11-06, HQ migration `20261106140000`)
+
+Asked in `docs/testing/handoff/ios-needs.md` N10–N11. Two new `worker_notifications.type` values. They are written for the
+**employer's** account (the event's owner, the organisation's owner, members who may edit its employees), never for the
+worker. `url` is null, `activity_id` is the event, `operator_name` is null. One per shift and case. The app decodes
+them as `.other` today (title + body), which is enough.
+
+| `type` | When | Title · body |
+|---|---|---|
+| `clock_out_missing` | A clock-in with no clock-out by planned end + 4 h (18 h after the clock-in without planned times) | "Sanne Tester is niet uitgeklokt met NFC" · "[event], do 5 nov (gepland tot 08:00)" |
+| `hours_off_roster` | The worker sends hours or clocks out, and the worked time, start or end is N+ hours off the planned shift (N = `roster_settings.off_roster_alert_hours`, default 3) | "Sanne Tester: 18 u 32 min gewerkt, gepland 18 u (do 5 nov, [event])" · "3 u 55 min later uitgeklokt" |
+
+New column `roster_settings.off_roster_alert_hours` (int 1–12, default 3), set by the employer in HQ. The same two values are
+the `kind` of the matching `operator_notifications` rows in HQ.
