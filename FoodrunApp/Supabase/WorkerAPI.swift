@@ -161,8 +161,12 @@ enum WorkerAPI {
     /// Phone-tap clock events for one shift day, oldest first. The window runs to
     /// 06:00 the next morning so a late close still counts, without reaching the
     /// next day's shift of a multi-day activity.
-    static func fetchClockEvents(employeeId: UUID, activityId: UUID, day: String) async throws -> [DBShiftClockEvent] {
+    static func fetchClockEvents(employeeId: UUID, activityId: UUID, day: String,
+                                 plannedEnd: Date? = nil) async throws -> [DBShiftClockEvent] {
         guard let start = SchemaDates.date(day) else { return [] }
+        // Up to 06:00 the next morning, or 6 h past the planned end when the shift runs later
+        // (an overnight shift ending 08:00 can be clocked out until 12:00 — server rule N5).
+        let until = max(start.addingTimeInterval(30 * 3600), plannedEnd?.addingTimeInterval(6 * 3600) ?? .distantPast)
         let iso = ISO8601DateFormatter()
         return try await client
             .from("shift_clock_events")
@@ -170,7 +174,7 @@ enum WorkerAPI {
             .eq("employee_id", value: employeeId.uuidString)
             .eq("activity_id", value: activityId.uuidString)
             .gte("event_at", value: iso.string(from: start))
-            .lt("event_at", value: iso.string(from: start.addingTimeInterval(30 * 3600)))
+            .lt("event_at", value: iso.string(from: until))
             .order("event_at", ascending: true)
             .execute()
             .value

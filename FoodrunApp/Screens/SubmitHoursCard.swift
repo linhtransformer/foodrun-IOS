@@ -270,7 +270,7 @@ struct SubmitHoursCard: View {
         tapWindow = nil
         noClockEvents = false
         guard let events = try? await WorkerAPI.fetchClockEvents(
-            employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day
+            employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day, plannedEnd: shift.endsAt
         ) else { return }   // couldn't look: say nothing rather than something wrong
         guard let clockIn = events.first(where: { $0.kind == .`in` }) else {
             noClockEvents = true
