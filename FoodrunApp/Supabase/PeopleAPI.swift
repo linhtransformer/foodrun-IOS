@@ -162,11 +162,9 @@ public struct DBLeaveRequest: Decodable, Identifiable, Hashable {
 
 public struct MyAvailabilityRules: Decodable, Hashable {
     public struct Deadline: Decodable, Hashable {
-        /// Day of the week as the server sends it: Wednesday arrives as 3 (JavaScript's
-        /// 0 = Sunday, or ISO's 1 = Monday — both give 3). `daysAfterMonday` handles either.
+        /// 0 = Monday … 6 = Sunday, as the server's availability guard counts (M7: 3 is
+        /// Thursday). Don't convert: that showed the deadline a day early.
         public let weekday: Int
-        /// 0 = Monday … 6 = Sunday.
-        public var daysAfterMonday: Int { (weekday + 6) % 7 }
         public let time: String          // "HH:mm"
         public let weeks_before: Int
     }
@@ -183,7 +181,7 @@ public struct MyAvailabilityRules: Decodable, Hashable {
         guard let deadline else { return nil }
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
-        guard let day = cal.date(byAdding: .day, value: deadline.daysAfterMonday - 7 * deadline.weeks_before,
+        guard let day = cal.date(byAdding: .day, value: deadline.weekday - 7 * deadline.weeks_before,
                                  to: cal.startOfDay(for: monday)) else { return nil }
         let parts = deadline.time.split(separator: ":").compactMap { Int($0) }
         return cal.date(bySettingHour: parts.first ?? 18, minute: parts.count > 1 ? parts[1] : 0, second: 0, of: day)
