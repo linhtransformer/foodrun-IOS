@@ -131,3 +131,21 @@ No app change. Only the employer side is told, once per shift and case; the work
 **To see N11 live:** Sanne's overnight shift of Thu 5 Nov ([iOS test] Klok: overnacht) has her tag scans at 17:23 and 11:51 and no hours yet.
 When she sends hours for it in the app, ios.operator gets "Sanne Tester: … gewerkt, gepland 18 u (do 5 nov, [iOS test] Klok: overnacht) ·
 3 u 51 min later uitgeklokt" in HQ (Uren → Meldingen) and in Berichten. That clock-out happened before go-live, so it gave no alert by itself.
+
+## ios-needs N12–N16 — made Sat 7 Nov 14:44 (data only, no HQ change)
+
+All for **Sanne** (`ios.worker@test.foodrun.nl`, employee `909021d9`) in **Foodrun Testbedrijf**. Seeded directly in the
+database as the employer would (no employer clock alerts were made). Her inbox had 0 messages before; now 1 (N14).
+
+| # | Stage | What HQ made |
+|---|---|---|
+| N12 | Worked, no hours yet | Two new events, published, Sanne only, no truck: **[iOS test] Uren: markt woensdag** `d68eac8a` **Wed 4 Nov 10:00–16:00**, clocked **09:58 → 16:04**; **[iOS test] Uren: ochtend donderdag** `40cea8ed` **Thu 5 Nov 08:00–13:00**, clocked **08:03 → 13:07** (08:00–13:00 instead of 12:00–20:00 so it doesn't overlap her overnight shift from 14:00 that day). No hours rows. Checked as Sanne: both are in her feed, and the app's clock query returns their four clock events |
+| N13 | Sent, waiting | **[iOS test] Havenfestival (3 dagen)** **Fri 30 Oct**: hours **pending**, 11:00–19:30, 30 min pauze = **8:00**, note **"Iets later gestopt, kassa telde niet"**, sent 31 Oct 09:12. Clocked 10:57 → 19:34 (so HQ shows planned 11:00–19:00 vs clocked vs sent) |
+| N14 | Approved | **October:** 22 Oct Braderie **5:30** (11:00–17:00, 30 min pauze), 23 Oct Kerstmarkt Leiden **7:30** (12:00–20:00, 30 min pauze), 25 Oct Afgelopen markt **8:00** (11:00–19:00) — the two that were still pending from earlier tests (22, 25 Oct) are now approved, dated 2 days after the shift, without a message. **November:** 1 Nov Proeverij (open plek) **5:00** (17:00–22:00), approved 3 Nov, no message; **3 Nov Foodtruck Weekend 9:30** (12:00–22:00, 30 min pauze), sent Fri 6 Nov 21:05 and **approved today 14:44** → her one new message **hours_approved "[iOS test] Foodtruck Weekend — 9.5 hrs"** |
+| N15 | Rejected | **[iOS test] Proefdag keuken Mon 26 Oct** (the existing rejected line, 10:00–17:30, her note "Langer gebleven om op te ruimen"): reason now **"Je eindtijd klopt niet met de klok, pas aan"**; clocked 10:01 → 16:02 added so the reason fits. No new message (the rejection itself is from before) |
+| N16 | Your own send, live | HQ watches for a new pending line from Sanne and approves it within a few minutes of it arriving; the time goes in `hq-did.md` |
+
+Also under "Wachtend op jou": Sanne's other finished test shifts from 27 Oct – 6 Nov have no hours either (the clock tests,
+Stadsfestival, Havenfestival 29 Oct / 1 Nov, nachtdienst, Foodtruck Weekend 2 Nov, Besloten bedrijfsfeest, the overnight
+shift of 5 Nov, Bedrijfsevent). The app lists every finished shift without hours, so they show there too; say if HQ should
+give them hours to keep the list short.
