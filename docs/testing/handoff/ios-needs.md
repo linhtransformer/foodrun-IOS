@@ -51,3 +51,18 @@ never repeated for the same shift. Nothing changes in the app.
 Where the employer sees it: HQ's own notifications / inbox (and the operator's phone if the owner uses the app,
 as a `worker_notifications` type the app can show in Berichten). Write the new type names in the contract.
 
+## The hours flow from start to end (asked by the user, Sat 7 Nov)
+
+The user wants to see in the app, as **Sanne** (`ios.worker@test.foodrun.nl`), every stage of hours. Make this in
+**Foodrun Testbedrijf**, `[iOS test]` events, dates relative to today (Sat 7 Nov). Write names / dates in `hq-done.md`.
+
+| # | Stage | Make |
+|---|---|---|
+| N12 | **Worked, no hours yet** | Two finished shifts this week (e.g. Wed 4 Nov 10:00–16:00 and Thu 5 Nov 12:00–20:00) with a clock-in and clock-out, **no** `employee_hours` row. They show under Uren → "Wachtend op jou" with the clock times filled in. The user sends one of them from the phone. |
+| N13 | **Sent, waiting** | One shift last week with hours `pending` and a note ("Iets later gestopt, kassa telde niet"). Shows in the month list as "In behandeling". |
+| N14 | **Approved** | Three shifts in October and two in November with hours `approved` (different lengths, one with a 30 min break). They show in the month list as "Goedgekeurd", count in the "Goedgekeurd" total, and on the approved-hours page. One of them approved **today**, so its `hours_approved` message is new in Berichten. |
+| N15 | **Rejected** | One shift with hours `rejected` and a reason ("Je eindtijd klopt niet met de klok, pas aan"). It comes back under "Wachtend op jou" with the reason, ready to correct and send again. |
+| N16 | **The user's own send, live** | When the user sends the overnight shift (Thu 5 Nov, 17:23 → 11:55) or one of N12 from the phone: **approve it in HQ within a few minutes** (Uren → the line → Goedkeuren), so the user sees it go from "In behandeling" to "Goedgekeurd" and gets the message. Write the time you approved it in `hq-did.md`. |
+
+Also check in HQ that every sent line shows the note, planned vs clocked vs sent, and (for the overnight one) the N11 flag.
+
