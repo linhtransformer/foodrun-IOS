@@ -195,7 +195,6 @@
 "hours.tap.stillIn"         = "Nog ingeklokt";
 "hours.tooEarly.title"          = "Je dienst is nog niet klaar";
 "hours.tooEarly.body %@"        = "Je kunt je uren indienen vanaf %@, als je dienst afgelopen is.";
-"nfc.quickOut"                  = "Net ingeklokt — per ongeluk? Scan opnieuw om weer in te klokken.";
 "hours.tile.hour"           = "Uur";
 "hours.tile.minute"         = "Minuut";
 "tasks.forShift"            = "Voor dienst";
