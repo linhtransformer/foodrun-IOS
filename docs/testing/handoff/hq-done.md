@@ -149,3 +149,34 @@ Also under "Wachtend op jou": Sanne's other finished test shifts from 27 Oct –
 Stadsfestival, Havenfestival 29 Oct / 1 Nov, nachtdienst, Foodtruck Weekend 2 Nov, Besloten bedrijfsfeest, the overnight
 shift of 5 Nov, Bedrijfsevent). The app lists every finished shift without hours, so they show there too; say if HQ should
 give them hours to keep the list short.
+
+## Sanne's other finished shifts — approved hours (Sat 7 Nov 15:12, data only, no HQ change)
+
+Asked by the user after N16: give Sanne's other finished test shifts of 27 Oct – 6 Nov approved hours that match their
+clock times, so "Wachtend op jou" only keeps what is still being tested; no messages. Written as the planner adds hours
+in HQ (approved on insert, approved by ios.operator, dated the morning after the shift): **no worker message** (her inbox
+is still at 1, the N14 one), no employer clock alert, `people_log` "added". Rule: **clock-in → clock-out**; no clock-out →
+the **planned end**; no clock events → that day's **planned times**.
+
+| Shift | Date | Hours | From |
+|---|---|---|---|
+| [iOS test] Klok: gisteren, niet uitgeklokt | Tue 27 Oct | **10:04–18:00** (7:56) | clock-in 10:04, no clock-out → planned end |
+| [iOS test] Klok: begon 2 uur geleden | Wed 28 Oct | **11:12–17:00** (5:48) | clock-in 11:12, no clock-out → planned end |
+| [iOS test] Stadsfestival | Wed 28 Oct | **12:00–22:00** (10:00) | planned (no clock events) |
+| [iOS test] Stadsfestival | Thu 29 Oct | **11:14–11:54** (0:40) | the C5 test scans: first in 11:14, last out 11:54 — short on purpose, it is what the clock says |
+| [iOS test] Stadsfestival | Fri 30 Oct | **12:00–20:00** (8:00) | planned |
+| [iOS test] Havenfestival (3 dagen) | Thu 29 Oct (opbouw) | **19:00–22:00** (3:00) | planned (the opbouw shift of D4) |
+| [iOS test] Havenfestival (3 dagen) | Sun 1 Nov | **11:00–19:00** (8:00) | planned |
+| [iOS test] Klok: nachtdienst | Fri 30 Oct | **17:51–02:00** (8:09) | tag clock-in 17:51 (C6), no clock-out → planned end 02:00 |
+| [iOS test] Foodtruck Weekend | Mon 2 Nov | **12:00–22:00**, 30 min pauze (9:30) | planned, like the approved 3 Nov |
+| [iOS test] Besloten bedrijfsfeest | Wed 4 Nov | **18:00–23:00** (5:00) | planned |
+| [iOS test] Klok: overnacht | Thu 5 Nov | **17:23–11:51** (18:28) | the tag scans of N9 (17:23 → Fri 11:51) |
+| [iOS test] Bedrijfsevent | Fri 6 Nov | **16:00–21:00** (5:00) | planned |
+
+**Still under "Wachtend op jou", on purpose:** N12 **Uren: markt woensdag** (Wed 4 Nov) and **Uren: ochtend donderdag**
+(Thu 5 Nov), worked with no hours; N15 **Proefdag keuken** (rejected). N13 **Havenfestival Fri 30 Oct** stays pending
+("In behandeling"). Everything else Sanne worked from 22 Oct to 6 Nov is now approved.
+
+**N16:** no new pending line from Sanne has reached the server since Foodtruck Weekend (sent Fri 6 Nov 21:05, approved
+Sat 14:44), so nothing was approved from the phone today. The overnight shift of 5 Nov now carries the approved row
+above; if the phone still holds an unsent send for it, say so and HQ will sort out the double.
