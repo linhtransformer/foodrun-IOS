@@ -20,9 +20,13 @@ struct SubmitHoursCard: View {
     @State private var prefilled = false
     @State private var editingField: TimeField?
     @FocusState private var noteFocused: Bool
-    @State private var tooEarly = false
+    @Environment(ClockStore.self) private var clock
+    /// The worker's latest clock event on this shift is a clock-out (a short shift ends early).
+    @State private var clockedOut = false
 
-    private var stillRunning: Bool { opensAt.map { $0 > Date() } ?? false }
+    /// Sending waits for the planned end, or for the clock-out when the worker leaves early.
+    /// The button just stays grey meanwhile; clocking out itself is never blocked.
+    private var stillRunning: Bool { !clockedOut && (opensAt.map { $0 > Date() } ?? false) }
 
     private enum TimeField { case start, end, brk }
 
@@ -83,11 +87,6 @@ struct SubmitHoursCard: View {
                     Text(err).font(.system(size: 12)).foregroundStyle(Color.foodrun.subject.destructive)
                 }
                 Button {
-                    if stillRunning {
-                        tooEarly = true
-                        FRHaptic.warning.fire()
-                        return
-                    }
                     Task {
                         if await hours.submit(shift: shift, hours: payable, breakMinutes: editBreak, comment: trimmedNote,
                                               start: editStart, end: editEnd) {
@@ -108,19 +107,17 @@ struct SubmitHoursCard: View {
                         .frCTAShadow()
                 }
                 .buttonStyle(.plain)
-                .disabled(hours.isSubmitting || payable <= 0)
+                .disabled(hours.isSubmitting || payable <= 0 || stillRunning)
             }
             .padding(16)
             .background(RoundedRectangle(cornerRadius: FRRadius.container.value, style: .continuous).fill(Color.foodrun.card))
             .frNeu(.raised)
         }
-        .alert(Text("hours.tooEarly.title"), isPresented: $tooEarly) {
-            Button("action.ok", role: .cancel) {}
-        } message: {
-            Text(verbatim: String(format: FRLanguage.string("hours.tooEarly.body %@"), opensAt.map(clockTime) ?? ""))
-        }
         .onAppear(perform: prefill)
-        .task(id: shift.id) { await loadClockTimes() }
+        // Again after every clock-in / clock-out, so a clock-out unlocks the card at once.
+        .task(id: "\(shift.id)|\(clock.latestEventKind.map { "\($0)" } ?? "")|\(clock.clockOutAt?.timeIntervalSince1970 ?? 0)") {
+            await loadClockTimes()
+        }
     }
 
     private func timeTile(_ label: LocalizedStringKey, value: String, field: TimeField) -> some View {
@@ -221,6 +218,7 @@ struct SubmitHoursCard: View {
         guard let events = try? await WorkerAPI.fetchClockEvents(
             employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day, plannedEnd: shift.endsAt
         ) else { return }
+        clockedOut = events.sorted { $0.event_at < $1.event_at }.last?.kind == .out
         applyClockTimes(events)
     }
 

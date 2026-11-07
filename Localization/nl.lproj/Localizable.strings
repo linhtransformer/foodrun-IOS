@@ -193,8 +193,6 @@
 "hours.tap.title"           = "Telefoon-tik";
 "hours.tap.locked"          = "Via de tag op je truck · alleen-lezen";
 "hours.tap.stillIn"         = "Nog ingeklokt";
-"hours.tooEarly.title"          = "Je dienst is nog niet klaar";
-"hours.tooEarly.body %@"        = "Je kunt je uren indienen vanaf %@, als je dienst afgelopen is.";
 "hours.tile.hour"           = "Uur";
 "hours.tile.minute"         = "Minuut";
 "tasks.forShift"            = "Voor dienst";

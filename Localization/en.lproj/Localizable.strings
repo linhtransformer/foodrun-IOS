@@ -193,8 +193,6 @@
 "hours.tap.title"           = "Phone tap";
 "hours.tap.locked"          = "From the tag on your truck · read-only";
 "hours.tap.stillIn"         = "Still clocked in";
-"hours.tooEarly.title"          = "Your shift isn’t over yet";
-"hours.tooEarly.body %@"        = "You can send your hours from %@, when your shift ends.";
 "hours.tile.hour"           = "Hour";
 "hours.tile.minute"         = "Minute";
 "tasks.forShift"            = "For shift";
