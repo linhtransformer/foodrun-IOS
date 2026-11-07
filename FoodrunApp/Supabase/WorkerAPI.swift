@@ -236,6 +236,8 @@ enum WorkerAPI {
             .from("worker_notifications")
             .select("id, user_id, activity_id, type, title, body, url, is_read, operator_name, created_at")
             .eq("user_id", value: uid.uuidString)
+            // The employer's clock alerts (N10 / N11) belong in HQ on the desktop, not in the app.
+            .not("type", operator: .in, value: "(clock_out_missing,hours_off_roster)")
             .order("created_at", ascending: false)
             .limit(100)
             .execute()

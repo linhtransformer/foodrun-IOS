@@ -195,13 +195,7 @@
 "hours.tap.stillIn"         = "Nog ingeklokt";
 "hours.tooEarly.title"          = "Je dienst is nog niet klaar";
 "hours.tooEarly.body %@"        = "Je kunt je uren indienen vanaf %@, als je dienst afgelopen is.";
-"hours.overtime %@ %@"          = "%1$@ na je geplande eindtijd (%2$@) — telt als overuren";
 "nfc.quickOut"                  = "Net ingeklokt — per ongeluk? Scan opnieuw om weer in te klokken.";
-"hours.noClock.title"            = "Je hebt niet ingeklokt voor deze dienst";
-"hours.noClock.body"             = "De tijden hieronder komen uit het rooster. Pas ze aan naar wat je echt gewerkt hebt.";
-"hours.noClock.notePlaceholder"  = "Wat ging er mis? Bv. vergeten in te klokken, begon om 11:15";
-"hours.noClockOut.title %@"      = "Ingeklokt om %@, nooit uitgeklokt";
-"hours.noClockOut.body"          = "Zet de eindtijd hieronder op wanneer je echt gestopt bent.";
 "hours.tile.hour"           = "Uur";
 "hours.tile.minute"         = "Minuut";
 "tasks.forShift"            = "Voor dienst";

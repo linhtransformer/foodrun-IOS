@@ -19,21 +19,12 @@ struct SubmitHoursCard: View {
     @State private var note = ""
     @State private var prefilled = false
     @State private var editingField: TimeField?
-    @State private var tapWindow: TapWindow?
-    /// The clock events were looked up and there were none: the worker forgot to clock (C1).
-    @State private var noClockEvents = false
     @FocusState private var noteFocused: Bool
     @State private var tooEarly = false
 
     private var stillRunning: Bool { opensAt.map { $0 > Date() } ?? false }
 
     private enum TimeField { case start, end, brk }
-
-    /// First phone-tap clock-in and the clock-out after it, for this shift.
-    private struct TapWindow: Equatable {
-        let clockIn: Date
-        let clockOut: Date?
-    }
 
     var body: some View {
         let rejected = hours.row(activityId: shift.activity.id, day: shift.day)
@@ -51,18 +42,6 @@ struct SubmitHoursCard: View {
                 Text([shift.activity.name, shift.activity.location].compactMap { $0 }.joined(separator: " · "))
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-
-                if stillRunning {
-                    // Nothing to warn about yet: the worker may not have clocked (in or out) so far.
-                    EmptyView()
-                } else if noClockEvents {
-                    warning("hours.noClock.title", "hours.noClock.body")
-                } else if let tapWindow, tapWindow.clockOut == nil {
-                    // Clocked in, never out: the shift has ended, so the worker forgot (C3).
-                    warning(LocalizedStringKey(String(format: FRLanguage.string("hours.noClockOut.title %@"),
-                                                      clockTime(tapWindow.clockIn))),
-                            "hours.noClockOut.body")
-                }
 
                 if let rejected, rejected.status == .rejected {
                     Text("hours.rejected \(rejected.rejected_reason ?? "")")
@@ -82,13 +61,7 @@ struct SubmitHoursCard: View {
                     wheel(for: editingField)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                if let overtime = overtimeLabel {
-                    Label { Text(verbatim: overtime) } icon: { Image(systemName: "clock.badge.exclamationmark") }
-                        .frText(FRType.rowSubtitle)
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                }
-                TextField(!stillRunning && (noClockEvents || tapWindow?.clockOut == nil && tapWindow != nil)
-                          ? "hours.noClock.notePlaceholder" : "hours.note.placeholder",
+                TextField("hours.note.placeholder",
                           text: $note, axis: .vertical)
                     .lineLimit(1...4)
                     .focused($noteFocused)
@@ -147,29 +120,7 @@ struct SubmitHoursCard: View {
             Text(verbatim: String(format: FRLanguage.string("hours.tooEarly.body %@"), opensAt.map(clockTime) ?? ""))
         }
         .onAppear(perform: prefill)
-        .task(id: shift.id) { await loadTapWindow() }
-    }
-
-    /// No clock-in on this shift: say so before the worker sends roster times, so the manager
-    /// isn't surprised and the note explains what happened.
-    private func warning(_ title: LocalizedStringKey, _ body: LocalizedStringKey) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "exclamationmark.circle")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.foodrun.subject.warning)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title).frText(FRType.rowTitle)
-                Text(body)
-                    .frText(FRType.rowSubtitle)
-                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color.foodrun.subject.warning.opacity(0.12)))
-        .accessibilityElement(children: .combine)
+        .task(id: shift.id) { await loadClockTimes() }
     }
 
     private func timeTile(_ label: LocalizedStringKey, value: String, field: TimeField) -> some View {
@@ -266,19 +217,11 @@ struct SubmitHoursCard: View {
         note = existing?.comment ?? ""
     }
 
-    private func loadTapWindow() async {
-        tapWindow = nil
-        noClockEvents = false
+    private func loadClockTimes() async {
         guard let events = try? await WorkerAPI.fetchClockEvents(
             employeeId: shift.employee.id, activityId: shift.activity.id, day: shift.day, plannedEnd: shift.endsAt
-        ) else { return }   // couldn't look: say nothing rather than something wrong
-        guard let clockIn = events.first(where: { $0.kind == .`in` }) else {
-            noClockEvents = true
-            return
-        }
+        ) else { return }
         applyClockTimes(events)
-        let clockOut = events.last { $0.kind == .out && $0.event_at > clockIn.event_at }
-        tapWindow = TapWindow(clockIn: clockIn.event_at, clockOut: clockOut?.event_at)
     }
 
     /// Clocked in and out more than once on one shift (a break, a wrong scan): the first
@@ -301,19 +244,6 @@ struct SubmitHoursCard: View {
         editStart = clockTime(firstIn.event_at)
         editEnd = clockTime(lastOut.event_at)
         editBreak = max(editBreak, Int((gap / 60).rounded()))
-    }
-
-    /// "1 u 30 min na je geplande eindtijd (18:00) — telt als overuren": the end is later than
-    /// the roster's end (clocked out late, or set by hand).
-    private var overtimeLabel: String? {
-        guard let planned = shift.end?.prefix(5) else { return nil }
-        func m(_ t: Substring) -> Int { (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.suffix(2)) ?? 0) }
-        var extra = m(Substring(editEnd)) - m(planned)
-        if extra < -12 * 60 { extra += 1440 }   // past midnight
-        guard extra >= 5, extra < 12 * 60 else { return nil }
-        let h = extra / 60, mins = extra % 60
-        let amount = h == 0 ? "\(mins) min" : (mins == 0 ? "\(h) u" : "\(h) u \(mins) min")
-        return String(format: FRLanguage.string("hours.overtime %@ %@"), amount, String(planned))
     }
 
     private func clockTime(_ date: Date) -> String {
