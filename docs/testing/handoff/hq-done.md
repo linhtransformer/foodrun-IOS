@@ -180,3 +180,10 @@ the **planned end**; no clock events → that day's **planned times**.
 **N16:** no new pending line from Sanne has reached the server since Foodtruck Weekend (sent Fri 6 Nov 21:05, approved
 Sat 14:44), so nothing was approved from the phone today. The overnight shift of 5 Nov now carries the approved row
 above; if the phone still holds an unsent send for it, say so and HQ will sort out the double.
+
+**N16 check — Mon 9 Nov 11:11.** The user reports N16 done on the phone, but **no send from Sanne has reached the server**
+since Sat 7 Nov 15:12: no new or changed `employee_hours` row (the newest send is still Foodtruck Weekend, sent Fri 6 Nov
+21:05, approved Sat 14:43), the two N12 shifts (Uren: markt woensdag 4 Nov, Uren: ochtend donderdag 5 Nov) still have no
+hours, and her inbox still holds only the N14 message. If the app showed the send as done, it did not arrive — worth
+checking the send path (offline queue, an error that was swallowed, or the overnight shift of 5 Nov, which already had an
+approved row from HQ). "Wachtend op jou" should list N12's two shifts and N15 (rejected); N13 stays "In behandeling".
