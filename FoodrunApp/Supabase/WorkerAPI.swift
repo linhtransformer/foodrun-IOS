@@ -158,6 +158,19 @@ enum WorkerAPI {
             .value
     }
 
+    /// Every published event of the companies where I am admin (HQ 20261109120000,
+    /// get_my_admin_events). Same columns as get_my_worker_activities plus organization_id;
+    /// the roster fields hold only my own lines. Empty for a non-admin.
+    static func fetchAdminEvents() async throws -> [DBActivity] {
+        let cal = Calendar(identifier: .gregorian)
+        let from = SchemaDates.string(cal.date(byAdding: .day, value: -60, to: Date()) ?? Date())
+        let to = SchemaDates.string(cal.date(byAdding: .day, value: 120, to: Date()) ?? Date())
+        return try await client
+            .rpc("get_my_admin_events", params: ["p_from": from, "p_to": to])
+            .execute()
+            .value
+    }
+
     /// Phone-tap clock events for one shift day, oldest first. The window runs to
     /// 06:00 the next morning so a late close still counts, without reaching the
     /// next day's shift of a multi-day activity.

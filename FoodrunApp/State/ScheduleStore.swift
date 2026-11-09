@@ -117,6 +117,10 @@ public final class ScheduleStore {
     public func organizationName(for employeeId: UUID) -> String? {
         organizations.first { $0.employee_id == employeeId }?.name
     }
+    /// Admin in the app at one or more employers (set by the owner in HQ).
+    public var isAdmin: Bool { organizations.contains { $0.is_admin == true } }
+    /// Every published event of the companies where this account is admin.
+    public var adminActivities: [DBActivity] = []
     public var operatorEmployees: [DBEmployee] = []
     public var operatorActivities: [DBActivity] = []
     /// "Today" for all date logic. Real clock in the app; pinned in previews so
@@ -163,6 +167,7 @@ public final class ScheduleStore {
             lastError = nil
             rosterLoaded = true
             organizations = await WorkerAPI.fetchMyOrganizations()
+            adminActivities = isAdmin ? ((try? await WorkerAPI.fetchAdminEvents()) ?? adminActivities) : []
         } catch {
             lastError = error.localizedDescription
             rosterLoaded = false
@@ -202,6 +207,19 @@ public final class ScheduleStore {
                   day >= a.start_date, day <= a.end_date else { return false }
             return a.daily_times?[day]?.active != false
         }
+    }
+
+    /// Admin: the company's events running on `day`, by start time.
+    public func adminEvents(on day: String) -> [DBActivity] {
+        adminActivities.filter { a in
+            day >= a.start_date && day <= a.end_date && a.daily_times?[day]?.active != false
+        }
+        .sorted { ($0.daily_times?[day]?.startTime ?? $0.start_time ?? "", $0.name) < ($1.daily_times?[day]?.startTime ?? $1.start_time ?? "", $1.name) }
+    }
+
+    /// Opened as admin: an event of the admin's companies the account isn't rostered on that day.
+    public func isAdminOnly(activityId: UUID, day: String) -> Bool {
+        shift(activityId: activityId, day: day) == nil && adminActivities.contains { $0.id == activityId }
     }
 
     /// Every rostered shift, oldest first.

@@ -671,3 +671,9 @@
 "settings.notifications.roster.body" = "Een melding als een dienst erbij komt, verschuift of vervalt. Uit: je ziet het nog wel bij Berichten.";
 "settings.about"                    = "Over de app";
 "settings.version"                  = "Versie";
+
+// Admins in the app (HQ 20261109120000)
+"roster.events.title"        = "Events";
+"roster.events.crew %lld"    = "%lld ingeroosterd";
+"roster.events.hint"         = "Open het draaiboek van dit event";
+"detail.admin.viewing"       = "Je bekijkt dit event als admin";

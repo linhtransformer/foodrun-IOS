@@ -47,10 +47,16 @@ public struct ShiftDetailView: View {
 
     /// The rostered shift this screen shows (activity × day), from ScheduleStore.
     private var shift: WorkerShift? { schedule.shift(activityId: activityId, day: SchemaDates.string(date)) }
-    private var activity: DBActivity? { shift?.activity ?? schedule.activities.first { $0.id == activityId } }
+    private var activity: DBActivity? {
+        shift?.activity ?? schedule.activities.first { $0.id == activityId }
+            ?? schedule.adminActivities.first { $0.id == activityId }
+    }
     /// The day the worker left this employer, if they did: the shift is history
     /// then — no clocking, no swap (the server refuses both).
     private var leftOn: String? { activity?.left_on }
+    /// Opened as admin on an event the account isn't rostered on: the script and crew
+    /// work, no shift card, clocking or swap.
+    private var adminOnly: Bool { schedule.isAdminOnly(activityId: activityId, day: SchemaDates.string(date)) }
 
     /// Summary card starts folded (like the Shifts hero) so the tabs sit high.
     @State private var summaryExpanded = false
@@ -63,7 +69,7 @@ public struct ShiftDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header
-                summaryCard
+                if adminOnly { adminLine } else { summaryCard }
                 if AppConfig.Features.crewTasks {
                     crewContent
                 } else {
@@ -650,7 +656,9 @@ public struct ShiftDetailView: View {
     /// clocking out.
     @ViewBuilder
     private var nfcStrip: some View {
-        if let leftOn {
+        if adminOnly {
+            EmptyView()
+        } else if let leftOn {
             // A former employer: nothing to clock, only to look back on.
             HStack(spacing: 8) {
                 Image(systemName: "clock.arrow.circlepath")
@@ -747,6 +755,20 @@ public struct ShiftDetailView: View {
                 FRHaptic.error.fire()
             }
         }
+    }
+
+    /// "Je bekijkt dit event als admin" in place of the shift card.
+    private var adminLine: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "person.badge.key")
+            Text("detail.admin.viewing")
+        }
+        .font(.system(size: 13, weight: .semibold))
+        .foregroundStyle(Color.foodrun.foreground)
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.foodrun.card))
+        .frNeu(.raised)
     }
 
     /// My coming shift as the swap board has it (past shifts can't be swapped).

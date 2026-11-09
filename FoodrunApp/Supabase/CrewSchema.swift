@@ -22,6 +22,8 @@ public struct CrewEvent: Decodable {
     public let prep: CrewPrep?
     public let stock: CrewStock?
     public let tasks: [CrewTask]
+    /// Here as an admin of the company (also when rostered); nil on an older server.
+    public var is_admin: Bool? = nil
 
     public func has(_ section: CrewEventSection) -> Bool {
         section == .tasks || sections.contains(section.rawValue)

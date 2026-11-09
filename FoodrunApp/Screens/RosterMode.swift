@@ -144,6 +144,12 @@ struct RosterMode: View {
             } else {
                 operatorList
             }
+            if !adminToday.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("roster.events.title").frText(FRType.sectionHeader).padding(.top, 6)
+                    ForEach(adminToday) { adminEventRow($0) }
+                }
+            }
             if !openToday.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("swaps.section.open").frText(FRType.sectionHeader).padding(.top, 6)
@@ -238,6 +244,53 @@ struct RosterMode: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
         .frNeu(.raised)
+    }
+
+    // MARK: - Admin: the company's events on this day
+
+    /// Admin (set by the owner): every event running on the day, rostered or not.
+    private var adminToday: [DBActivity] { schedule.adminEvents(on: dayKey) }
+
+    private func adminEventRow(_ a: DBActivity) -> some View {
+        let times = a.daily_times?[dayKey]
+        let start = String((times?.startTime ?? a.start_time ?? "").prefix(5))
+        let end = String((times?.endTime ?? a.end_time ?? "").prefix(5))
+        let crew = a.crew_counts?[dayKey] ?? 0
+        return Button {
+            if let date = SchemaDates.date(dayKey) {
+                router.pushOnShifts(.shiftDetail(activityId: a.id, date: date))
+                FRHaptic.light.fire()
+            }
+        } label: {
+            HStack(alignment: .center, spacing: 10) {
+                Circle().fill(Color.foodrunData(hex: a.color)).frame(width: 10, height: 10)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: a.name).frText(FRType.rowTitle).lineLimit(1)
+                    let sub = [start.isEmpty ? nil : "\(start) – \(end)", a.food_truck, a.location]
+                        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+                    if !sub.isEmpty {
+                        Text(verbatim: sub)
+                            .frText(FRType.rowSubtitle)
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                            .lineLimit(1)
+                    }
+                    Text("roster.events.crew \(crew)")
+                        .frText(FRType.rowSubtitle)
+                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous).fill(Color.foodrun.card))
+            .frNeu(.raised)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("roster.events.hint"))
     }
 
     private var emptyBox: some View {

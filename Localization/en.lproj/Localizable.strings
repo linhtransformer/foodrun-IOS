@@ -671,3 +671,9 @@
 "settings.notifications.roster.body" = "A notification when a shift is added, moved or cancelled. Off: you still see it under Messages.";
 "settings.about"                    = "About";
 "settings.version"                  = "Version";
+
+// Admins in the app (HQ 20261109120000)
+"roster.events.title"        = "Events";
+"roster.events.crew %lld"    = "%lld on shift";
+"roster.events.hint"         = "Open this event's script";
+"detail.admin.viewing"       = "You're viewing this event as admin";

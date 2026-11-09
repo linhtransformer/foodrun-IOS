@@ -375,6 +375,10 @@ public struct MyOrganization: Decodable, Identifiable, Hashable {
     /// 20261021140000_employee_archive). Nil for a current employer, for a row
     /// the worker disconnected themselves, and on an older server.
     public var left_on: String? = nil
+    /// The owner made this account an admin in the app here (`employees.app_admin`, HQ
+    /// 20261109120000): every published event of the company, its script and crew work.
+    /// Nil on an older server.
+    public var is_admin: Bool? = nil
 
     /// Working there, or asked to and waiting.
     public var isCurrent: Bool { approval_status == "approved" || approval_status == "pending" }
