@@ -12,8 +12,10 @@ struct SubmitHoursCard: View {
     /// A shift still running: the card shows, but sending waits until this moment (its end).
     var opensAt: Date? = nil
 
-    @State private var editStart = "09:00"
-    @State private var editEnd = "17:00"
+    /// "HH:mm" from the worker's own clock-in / clock-out; empty when there is none, and the
+    /// worker fills it in (the roster's times are a plan, not when they worked).
+    @State private var editStart = ""
+    @State private var editEnd = ""
     @State private var editBreak = 0
     /// Optional note for the manager (employee_hours.comment).
     @State private var note = ""
@@ -123,14 +125,17 @@ struct SubmitHoursCard: View {
     private func timeTile(_ label: LocalizedStringKey, value: String, field: TimeField) -> some View {
         let selected = editingField == field
         return Button {
+            // No clock time to start from: the wheel opens on the roster time.
+            if field == .start, editStart.isEmpty { editStart = String((shift.start ?? "09:00").prefix(5)) }
+            if field == .end, editEnd.isEmpty { editEnd = String((shift.end ?? "17:00").prefix(5)) }
             withAnimation(FRAnimation.subtle) { editingField = selected ? nil : field }
             FRHaptic.light.fire()
         } label: {
             VStack(alignment: .leading, spacing: 6) {
                 Text(label).frText(FRType.fieldLabel).foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                Text(value)
+                Text(verbatim: value.isEmpty ? "--:--" : value)
                     .font(.system(size: 20, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(Color.foodrun.foreground)
+                    .foregroundStyle(value.isEmpty ? Color.foodrun.mutedForegroundSoft : Color.foodrun.foreground)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -193,6 +198,7 @@ struct SubmitHoursCard: View {
 
     private var payableHours: Double {
         func m(_ t: String) -> Int { (Int(t.prefix(2)) ?? 0) * 60 + (Int(t.suffix(2)) ?? 0) }
+        guard !editStart.isEmpty, !editEnd.isEmpty else { return 0 }
         var mins = m(editEnd) - m(editStart)
         if mins < 0 { mins += 1440 }
         return Double(max(0, mins - editBreak)) / 60
@@ -206,8 +212,6 @@ struct SubmitHoursCard: View {
     private func prefill() {
         guard !prefilled else { return }
         prefilled = true
-        editStart = String((shift.start ?? "09:00").prefix(5))
-        editEnd = String((shift.end ?? "17:00").prefix(5))
         let existing = hours.row(activityId: shift.activity.id, day: shift.day)
         // The planner's pauze for this shift until the worker submitted their own.
         editBreak = existing?.break_minutes ?? shift.breakMinutes ?? 0
@@ -222,9 +226,9 @@ struct SubmitHoursCard: View {
         applyClockTimes(events)
     }
 
-    /// The worker's own clock times always win over the roster: the first clock-in is the
-    /// start and the last clock-out the end, each on its own — a forgotten clock-in or
-    /// clock-out leaves only that one tile on the roster time. Clocked out and in again
+    /// The tiles are the worker's own clock times: the first clock-in is the start and the
+    /// last clock-out the end, each on its own — a forgotten clock-in or clock-out leaves
+    /// that tile empty for the worker to fill in. Clocked out and in again
     /// (a break, a wrong scan): the time between counts as pauze. Fills the tiles while
     /// nothing was sent yet, and again after a rejection.
     private func applyClockTimes(_ events: [DBShiftClockEvent]) {
