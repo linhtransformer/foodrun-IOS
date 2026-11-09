@@ -222,15 +222,19 @@ struct SubmitHoursCard: View {
         applyClockTimes(events)
     }
 
-    /// Clocked in and out more than once on one shift (a break, a wrong scan): the first
-    /// clock-in is the start, the last clock-out the end, and the time between an out and the
-    /// next in counts as pauze. Fills the tiles while nothing was sent yet, and again after a
-    /// rejection: the worker resends from their own clock times, never the roster's.
+    /// The worker's own clock times always win over the roster: the first clock-in is the
+    /// start and the last clock-out the end, each on its own — a forgotten clock-in or
+    /// clock-out leaves only that one tile on the roster time. Clocked out and in again
+    /// (a break, a wrong scan): the time between counts as pauze. Fills the tiles while
+    /// nothing was sent yet, and again after a rejection.
     private func applyClockTimes(_ events: [DBShiftClockEvent]) {
         if let row = hours.row(activityId: shift.activity.id, day: shift.day), row.status != .rejected { return }
         let sorted = events.sorted { $0.event_at < $1.event_at }
-        guard let firstIn = sorted.first(where: { $0.kind == .`in` }),
-              let lastOut = sorted.last(where: { $0.kind == .out && $0.event_at > firstIn.event_at }) else { return }
+        let firstIn = sorted.first(where: { $0.kind == .`in` })
+        let lastOut = sorted.last(where: { $0.kind == .out && $0.event_at > (firstIn?.event_at ?? .distantPast) })
+        if let firstIn { editStart = clockTime(firstIn.event_at) }
+        if let lastOut { editEnd = clockTime(lastOut.event_at) }
+        guard let firstIn, let lastOut else { return }
         var gap: TimeInterval = 0
         var outAt: Date?
         for e in sorted where e.event_at >= firstIn.event_at && e.event_at <= lastOut.event_at {
@@ -240,8 +244,6 @@ struct SubmitHoursCard: View {
                 if let o = outAt { gap += e.event_at.timeIntervalSince(o); outAt = nil }
             }
         }
-        editStart = clockTime(firstIn.event_at)
-        editEnd = clockTime(lastOut.event_at)
         editBreak = max(editBreak, Int((gap / 60).rounded()))
     }
 
