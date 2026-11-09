@@ -518,3 +518,58 @@ them as `.other` today (title + body), which is enough.
 
 New column `roster_settings.off_roster_alert_hours` (int 1–12, default 3), set by the employer in HQ. The same two values are
 the `kind` of the matching `operator_notifications` rows in HQ.
+
+### Admins in the app (server live 2026-11-09, HQ migration `20261109120000`)
+
+Asked in `docs/testing/handoff/ios-needs.md` N17–N19. An admin keeps the normal worker app and also gets every
+**published** event of that company, and may do the crew work on any of them without being rostered. No roster or
+hours rights. The server decides; the app only shows what it gets.
+
+**The flag (N17).** New column `employees.app_admin boolean not null default false`. No existing role fitted
+(`organization_members` is a dashboard login, `employees.roles` are job roles). Only the company's **owner**
+(`organizations.owner_id`) changes it: HQ → Stakeholders → Medewerkers → column **App-admin**, which calls
+`set_employee_app_admin(p_employee_id uuid, p_admin boolean) → { employee_id, app_admin }`. Anyone else gets
+`42501 app_admin_owner_only` (also on a direct write); the worker cannot write it on their own row
+(`employees_protected_field`). The app does not call this RPC.
+
+**Where am I admin.** `get_my_organizations()` has one more column: `is_admin boolean` (true only for an approved,
+not-archived row with the flag). Rows: `{ organization_id, name, approval_status, employee_id, left_on, is_admin }`.
+
+**The admin's events (N18).** `get_my_admin_events(p_from date default today − 60, p_to date default today + 120)`,
+authenticated only. One row per published event (not draft, not cancelled) of every company where the caller is admin;
+empty for a non-admin, no error. The columns of `get_my_worker_activities`, in the same order, plus `organization_id`:
+
+| Column | Note |
+|---|---|
+| `id`, `user_id` | the event and its operator account |
+| `employee_id` | the caller's own employee row at that company |
+| `name`, `location`, `food_truck` | "Festival" / null / null when `hide_name_from_workers`, as for workers |
+| `hide_name_from_workers`, `availability_visible` | as stored |
+| `start_date`, `end_date`, `start_time`, `end_time`, `color`, `daily_times` | as for workers |
+| `daily_employee_times`, `daily_employees`, `employees` | **the caller's own roster lines only**: `{}` / `{}` / `[]` when not rostered |
+| `crew_counts` | head count per day, `{ "2026-11-11": 1 }` |
+| `left_on` | always null |
+| `organization_id` | the company |
+
+Events the admin **is** rostered on are in both feeds (same `id`); merge on `id`. The date range includes opbouw /
+afbouw days, as the worker feed does.
+
+**Script and crew work (N19).** `get_my_event(p_activity_id)` answers for an admin of the event's company, also when
+not rostered, and has one more key:
+
+- `is_admin: true` when the caller is here as admin (false for a normal crew member; an admin who is also rostered gets true);
+- `my_days` = every day of the event for an admin: its days, the opbouw / afbouw day, and any day with a roster;
+- `sections` = every section the operator turned on for crew on this event (the union of what any crew member got),
+  `["briefing"]` when the operator set nothing. A section that is off stays off: its write answers `section_not_enabled`;
+- `employee_id` = the admin's own employee row; everything is stored under it, as now.
+
+The crew writes need no change in the app: `set_my_prep_item`, `submit_my_task_response`, `submit_my_stock_count`,
+`submit_my_location_pin` and `delete_my_location_pin` accept an admin the same way, with the same arguments, answers
+and refusals (`activity_closed`, `not_rostered_that_day` for a date outside the event, `not_assigned`, …). Per-person
+assignment still applies: a prep row or task given to named people stays theirs, and `get_my_event` lists the tasks for
+everyone plus the admin's own. Uploads follow: pin photos (`location-pins/crew/<activity>/<employee>/…`), task photos
+(`crew-task-photos/<activity>/<task>/<employee>/…`) and reading the briefing files. Drafts and cancelled events stay
+`not_found`; an event of another company stays `not_on_crew`.
+
+Not for admins (unchanged, rostered only): `get_my_crew_tasks`, `get_my_crew_lists`, `get_my_swap_board`, clocking,
+hours. Verified by `tests/rostering/app-admins.ts` in the HQ repo (38 checks on the VPS, throwaway accounts).

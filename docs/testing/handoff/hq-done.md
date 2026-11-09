@@ -187,3 +187,25 @@ since Sat 7 Nov 15:12: no new or changed `employee_hours` row (the newest send i
 hours, and her inbox still holds only the N14 message. If the app showed the send as done, it did not arrive — worth
 checking the send path (offline queue, an error that was swallowed, or the overnight shift of 5 Nov, which already had an
 approved row from HQ). "Wachtend op jou" should list N12's two shifts and N15 (rejected); N13 stays "In behandeling".
+
+## ios-needs N17–N20 — admins in the app, built Mon 9 Nov 12:03 (HQ `299bc5c`, migration `20261109120000_app_admins`, live)
+
+The names and shapes are in `FoodrunApp/Supabase/SchemaContract.md` → "Admins in the app". No message to anyone.
+
+| # | Need | What HQ built |
+|---|---|---|
+| N17 | An admin flag per employee, set by the owner | New column **`employees.app_admin`** (no existing role fitted: `organization_members` is a dashboard login that shares all data, `employees.roles` are job roles). HQ → Stakeholders → Medewerkers has a checkbox column **App-admin**, enabled for the **owner** only (greyed for other dashboard users). It calls `set_employee_app_admin(p_employee_id, p_admin)`. The server refuses everyone but the owner with `app_admin_owner_only`, also on a direct write; a worker cannot set it on their own row. `get_my_organizations()` now also returns **`is_admin`** per organisation |
+| N18 | The admin's events | **`get_my_admin_events(p_from date, p_to date)`** (defaults today − 60 … today + 120): every published event of each company where I am admin, the same columns as `get_my_worker_activities` plus **`organization_id`**. Not drafts, not cancelled. Hidden names stay "Festival". My own roster lines only (`daily_employees` `{}` and `employees` `[]` when I am not on it); `crew_counts` is the head count per day. Empty for non-admins, no error. Events I am rostered on are in both feeds: merge on `id` |
+| N19 | Script and crew work for admins | `get_my_event` returns the full event for an admin of its company, rostered or not: **`is_admin: true`**, `my_days` = all days (event days, opbouw / afbouw, any day with a roster), `sections` = every section the operator turned on for crew on that event (`["briefing"]` when none). `set_my_prep_item`, `submit_my_task_response`, `submit_my_stock_count`, `submit_my_location_pin` and `delete_my_location_pin` accept an admin with the same arguments and answers, stored under the admin's own employee row and name. Pin and task photo uploads and the briefing files follow. A section that is off stays off (`section_not_enabled`); a prep row or task assigned to named people stays theirs |
+| Tests | N17–N19 | `tests/rostering/app-admins.ts` (HQ repo): 38 checks, all passed on the VPS with throwaway accounts (owner, a dashboard member, the admin, a colleague): who may set the flag, the feed (drafts, cancelled, hidden name, range, own roster lines), get_my_event and each write as a not-rostered admin, the rostered colleague unchanged, and everything closed again when the flag goes. `tests/operator/app-admin-switch.spec.ts` for the checkbox |
+| N20 | Test data | **Sanne** (`909021d9`) is **admin** in Foodrun Testbedrijf (`get_my_organizations` → Foodrun Testbedrijf `is_admin: true`; her row at the former employer stays false). New event she is **not** rostered on: **[iOS test] Admin: wijkmarkt** `43815b01-68d3-4e0d-baca-36b3f3273baa`, **Wed 11 – Thu 12 Nov 12:00–20:00**, Wijkplein Utrecht, Testtruck, published. Crew: Invite Tester only (no account, so nobody got a message). All four sections on for crew. A copy of Stadsfestival's content: 1 dish, 3 stock products, **4 prep items** (Havermelk, Rijstnoedels, Runderreepjes and a truck item), **8 tasks** for everyone (check, count, number, photo), 3 pins, and its draaiboek |
+
+**What Sanne gets now** (checked as her, server-side): `get_my_admin_events` returns 21 events in the default range;
+this week two she is not on: **[iOS test] Open oproep: Zomerfeest** (9–10 Nov, briefing only, no crew) and
+**[iOS test] Admin: wijkmarkt** (11–12 Nov). `get_my_event` on wijkmarkt: `is_admin: true`, `my_days`
+`["2026-11-11","2026-11-12"]`, sections briefing + dishes + prep + stock, 4 prep items, 8 tasks, 1 dish, 3 stock products.
+She has no shift on Testtruck those days, so a tag scan there still answers `no_shift_here_today`: admins do the crew
+work, they do not clock on events they are not rostered on.
+
+To see the difference: untick App-admin for Sanne in HQ (as ios.operator) and the admin feed is empty again and
+wijkmarkt answers `not_on_crew`.
