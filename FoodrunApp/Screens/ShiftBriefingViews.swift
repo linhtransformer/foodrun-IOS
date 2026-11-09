@@ -102,7 +102,7 @@ struct ShiftBriefingContent: View {
                 if !tickets.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(tickets) { ticket in
-                            CrewFileRow(file: ticket.file, icon: "ticket", subtitle: FRLanguage.string("briefing.ticket")) { open(ticket.file) }
+                            CrewFileRow(file: ticket.file, icon: "ticket", subtitle: FRLanguage.string("briefing.ticket")) { await open(ticket.file) }
                         }
                     }
                 }
@@ -232,12 +232,12 @@ struct ShiftBriefingContent: View {
             }
             ForEach(heading.images ?? []) { image in
                 CrewRemoteImage(url: CrewAPI.publicURL(image))
-                    .onTapGesture { open(image) }
+                    .onTapGesture { Task { await open(image) } }
             }
             if let attachments = heading.attachments, !attachments.isEmpty {
                 VStack(spacing: 0) {
                     ForEach(attachments) { file in
-                        CrewFileRow(file: file, icon: "doc.richtext", subtitle: nil) { open(file) }
+                        CrewFileRow(file: file, icon: "doc.richtext", subtitle: nil) { await open(file) }
                     }
                 }
             }
@@ -285,16 +285,16 @@ struct ShiftBriefingContent: View {
             CrewBriefingCard(icon: "ticket", title: "briefing.tickets") {
                 VStack(spacing: 0) {
                     ForEach(myTickets) { ticket in
-                        CrewFileRow(file: ticket.file, icon: "ticket", subtitle: ticketSubtitle(ticket)) { open(ticket.file) }
+                        CrewFileRow(file: ticket.file, icon: "ticket", subtitle: ticketSubtitle(ticket)) { await open(ticket.file) }
                     }
                     ForEach(myFiles) { file in
-                        CrewFileRow(file: file, icon: "person.text.rectangle", subtitle: FRLanguage.string("briefing.myFile")) { open(file) }
+                        CrewFileRow(file: file, icon: "person.text.rectangle", subtitle: FRLanguage.string("briefing.myFile")) { await open(file) }
                     }
                     ForEach(files) { file in
-                        CrewFileRow(file: file, icon: "doc", subtitle: FRLanguage.string("briefing.eventFile")) { open(file) }
+                        CrewFileRow(file: file, icon: "doc", subtitle: FRLanguage.string("briefing.eventFile")) { await open(file) }
                     }
                     ForEach(unnamed) { file in
-                        CrewFileRow(file: file, icon: "ticket", subtitle: FRLanguage.string("briefing.unnamedTicket")) { open(file) }
+                        CrewFileRow(file: file, icon: "ticket", subtitle: FRLanguage.string("briefing.unnamedTicket")) { await open(file) }
                     }
                 }
             }
@@ -318,15 +318,14 @@ struct ShiftBriefingContent: View {
 
     // MARK: Opening files
 
-    private func open(_ file: CrewFile) {
-        Task {
-            do {
-                opening = CrewOpenedURL(url: try await CrewAPI.fileURL(file))
-                openError = nil
-            } catch {
-                openError = FRLanguage.string("briefing.fileError")
-                FRHaptic.error.fire()
-            }
+    /// Signs the file's link first (a second or so), while its row shows a spinner.
+    private func open(_ file: CrewFile) async {
+        do {
+            opening = CrewOpenedURL(url: try await CrewAPI.fileURL(file))
+            openError = nil
+        } catch {
+            openError = FRLanguage.string("briefing.fileError")
+            FRHaptic.error.fire()
         }
     }
 }
@@ -747,10 +746,15 @@ struct CrewFileRow: View {
     let file: CrewFile
     let icon: String
     let subtitle: String?
-    let action: () -> Void
+    let action: () async -> Void
+    @State private var busy = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            guard !busy else { return }
+            busy = true
+            Task { await action(); busy = false }
+        } label: {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 15, weight: .medium))
@@ -764,7 +768,11 @@ struct CrewFileRow: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                if busy {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                }
             }
             .padding(.vertical, 8)
             .contentShape(Rectangle())

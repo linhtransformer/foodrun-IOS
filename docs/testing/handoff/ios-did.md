@@ -22,5 +22,6 @@ Written by the iOS session, **Wed 28 Oct 2026**, Europe/Amsterdam. Account: **Sa
 | A14 | 29 Oct 13:43 | As **ios.operator@**: rostered **Invite Tester** on [iOS test] Stadsfestival **29 + 30 Oct 12:00–20:00**, then removed both days (13:44, 13:45) | Stadsfestival | Rooster: nothing left of it; no messages (Invite Tester has no account) | |
 | A15 | 30 Oct | **Invite by email** (sent from HQ by the user) opened the **Foodrun app** from the mail on the phone (build 11) | Foodrun Testbedrijf | The invite `used`; the new account under Medewerkers, approved | |
 | A16 | 9 Nov 13:07 | As **Sanne, admin** (not rostered): opened **[iOS test] Admin: wijkmarkt** from Rooster → Wed 11 Nov → Events, Taken → Prep checklist → ticked **Havermelk** (1 of 4 packed) | Admin: wijkmarkt, 11 Nov | Prep portal / HQ: Havermelk ticked by **Sanne Tester**, though she is not on the crew | |
+| A17 | 9 Nov 14:38 | As **Sanne, admin** (not rostered): opened **opstelling-wijkmarkt.png** and **plattegrond-wijkplein.pdf** from Briefing → Tickets & files; both open. Prep list shows "Ticked by Sanne Tester · 9 Nov 13:07" (Havermelk) and 13:18 (Rijstnoedels, Gasbrander) — N21 | Admin: wijkmarkt | — app only, nothing to show in HQ | — |
 
 More lines follow as the audit goes on.
