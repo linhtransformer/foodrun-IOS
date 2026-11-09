@@ -233,6 +233,9 @@ struct CrewPrepListSheet: View {
         }
         .background(Color.foodrun.background.ignoresSafeArea())
         .presentationDragIndicator(.visible)
+        // Others may have ticked meanwhile: fresh on opening, and pull down to refresh.
+        .task { await store.load() }
+        .refreshable { await store.load() }
         .sheet(item: $editingPrep) { item in
             CrewPrepSheet(item: item) { quantity, unitLevel, clearQuantity, comment in
                 await store.detailPrep(item, quantity: quantity, unitLevel: unitLevel,
@@ -270,23 +273,29 @@ struct CrewPrepListSheet: View {
                                 .font(.system(size: 12.5, weight: .medium))
                                 .foregroundStyle(Color.foodrun.foreground)
                         }
-                        if let packed = item.packed {
-                            Text(verbatim: String(format: FRLanguage.string("crew.prep.packedLine %@"),
-                                                  CrewFormat.quantity(packed, item.unitNames[safe: item.packed_level ?? 0] ?? item.unit)))
-                                .frText(FRType.rowSubtitle).monospacedDigit()
-                                .foregroundStyle(Color.foodrun.subject.positive)
-                        }
                         if let comment = item.comment {
                             Text(verbatim: comment)
                                 .frText(FRType.rowSubtitle)
-                                .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
+                                .foregroundStyle(Color.foodrun.foreground)
                         }
                     }
                     Spacer(minLength: 8)
-                    Text(verbatim: CrewFormat.quantity(item.quantity, item.unit))
-                        .frText(FRType.rowSubtitle).monospacedDigit()
-                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
-                        .padding(.top, 2)
+                    // The packed amount sits on the right, next to the edit button, as big as
+                    // the name; the planned amount stays small underneath.
+                    VStack(alignment: .trailing, spacing: 2) {
+                        if let packed = item.packed {
+                            Text(verbatim: String(format: FRLanguage.string("crew.prep.packedLine %@"),
+                                                  CrewFormat.quantity(packed, item.unitNames[safe: item.packed_level ?? 0] ?? item.unit)))
+                                .frText(FRType.rowTitle).monospacedDigit()
+                                .foregroundStyle(Color.foodrun.subject.positive)
+                                .lineLimit(1)
+                        }
+                        Text(verbatim: CrewFormat.quantity(item.quantity, item.unit))
+                            .frText(FRType.rowSubtitle).monospacedDigit()
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                    }
+                    .padding(.top, 2)
+                    .fixedSize()
                 }
                 .contentShape(Rectangle())
             }
@@ -299,7 +308,7 @@ struct CrewPrepListSheet: View {
             Button { editingPrep = item } label: {
                 Image(systemName: hasDetail ? "pencil.circle.fill" : "square.and.pencil")
                     .font(.system(size: 17))
-                    .foregroundStyle(hasDetail ? Color.foodrun.subject.agentNoteBlue : Color.foodrun.mutedForegroundSoft)
+                    .foregroundStyle(hasDetail ? Color.foodrun.foreground : Color.foodrun.mutedForegroundSoft)
                     .frame(width: 30, height: 30)
             }
             .buttonStyle(.plain)
@@ -343,7 +352,7 @@ struct CrewStockListSheet: View {
                                 if let note = mine?.note {
                                     Text(verbatim: note)
                                         .frText(FRType.rowSubtitle)
-                                        .foregroundStyle(Color.foodrun.subject.agentNoteBlue)
+                                        .foregroundStyle(Color.foodrun.foreground)
                                 }
                             }
                             Spacer()
