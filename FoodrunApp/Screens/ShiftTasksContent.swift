@@ -177,8 +177,19 @@ struct CrewPrepListSheet: View {
     let store: EventStore
     @Environment(\.dismiss) private var dismiss
     @State private var editingPrep: CrewPrepItem?
+    /// Groups folded away (comma-separated, e.g. "equipment,rentals"); remembered on this phone.
+    @AppStorage("crew.prep.collapsed") private var collapsedRaw = ""
 
     private var closed: Bool { store.event?.activity.is_closed ?? false }
+
+    private var collapsed: Set<String> { Set(collapsedRaw.split(separator: ",").map(String.init)) }
+
+    private func toggle(_ group: String) {
+        var groups = collapsed
+        if groups.contains(group) { groups.remove(group) } else { groups.insert(group) }
+        withAnimation(FRAnimation.subtle) { collapsedRaw = groups.sorted().joined(separator: ",") }
+        FRHaptic.light.fire()
+    }
 
     var body: some View {
         let items = store.event?.prep?.items ?? []
@@ -201,14 +212,26 @@ struct CrewPrepListSheet: View {
                 ForEach(order, id: \.self) { group in
                     let rows = items.filter { $0.section == group }
                     if !rows.isEmpty {
+                        let folded = collapsed.contains(group)
                         VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(verbatim: FRLanguage.string("crew.prep.group.\(group)")).frText(FRType.sectionHeader)
-                                Spacer()
-                                Text(verbatim: "\(rows.filter(\.checked).count)/\(rows.count)")
-                                    .frText(FRType.rowSubtitle).monospacedDigit()
-                                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                            // Tap the header to fold the group away (long lists scroll less).
+                            Button { toggle(group) } label: {
+                                HStack(spacing: 8) {
+                                    Text(verbatim: FRLanguage.string("crew.prep.group.\(group)")).frText(FRType.sectionHeader)
+                                    Spacer()
+                                    Text(verbatim: "\(rows.filter(\.checked).count)/\(rows.count)")
+                                        .frText(FRType.rowSubtitle).monospacedDigit()
+                                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                                        .rotationEffect(.degrees(folded ? -90 : 0))
+                                }
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityValue(Text(folded ? "a11y.collapsed" : "a11y.expanded"))
+                            if !folded {
                             VStack(spacing: 0) {
                                 ForEach(rows) { item in
                                     prepRow(item)
@@ -220,6 +243,8 @@ struct CrewPrepListSheet: View {
                             .padding(.horizontal, 14)
                             .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
                             .frNeu(.raised)
+                            .transition(.opacity)
+                            }
                         }
                     }
                 }

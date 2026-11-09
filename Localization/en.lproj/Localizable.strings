@@ -393,6 +393,8 @@
 "crew.photo.added" = "Photo added";
 "crew.prep.progress %lld %lld" = "%lld of %lld packed";
 "crew.prep.shared" = "Same list as the prep portal — ticks and amounts show up there and here.";
+"a11y.collapsed" = "Collapsed";
+"a11y.expanded" = "Expanded";
 "crew.prep.note" = "Add a note";
 "crew.prep.notePrompt" = "For example: “2 boxes in the cool box”.";
 "crew.prep.packed" = "Packed";

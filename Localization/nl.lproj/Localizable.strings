@@ -393,6 +393,8 @@
 "crew.photo.added" = "Foto toegevoegd";
 "crew.prep.progress %lld %lld" = "%lld van %lld ingepakt";
 "crew.prep.shared" = "Dezelfde lijst als de prep-portal — vinkjes en aantallen zie je daar én hier.";
+"a11y.collapsed" = "Ingeklapt";
+"a11y.expanded" = "Uitgeklapt";
 "crew.prep.note" = "Notitie toevoegen";
 "crew.prep.notePrompt" = "Bijvoorbeeld: “2 dozen in de koelbox”.";
 "crew.prep.packed" = "Ingepakt";
