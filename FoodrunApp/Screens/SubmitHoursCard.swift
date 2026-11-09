@@ -224,9 +224,10 @@ struct SubmitHoursCard: View {
 
     /// Clocked in and out more than once on one shift (a break, a wrong scan): the first
     /// clock-in is the start, the last clock-out the end, and the time between an out and the
-    /// next in counts as pauze. Fills the tiles once, while nothing was sent yet.
+    /// next in counts as pauze. Fills the tiles while nothing was sent yet, and again after a
+    /// rejection: the worker resends from their own clock times, never the roster's.
     private func applyClockTimes(_ events: [DBShiftClockEvent]) {
-        guard hours.row(activityId: shift.activity.id, day: shift.day) == nil else { return }
+        if let row = hours.row(activityId: shift.activity.id, day: shift.day), row.status != .rejected { return }
         let sorted = events.sorted { $0.event_at < $1.event_at }
         guard let firstIn = sorted.first(where: { $0.kind == .`in` }),
               let lastOut = sorted.last(where: { $0.kind == .out && $0.event_at > firstIn.event_at }) else { return }
