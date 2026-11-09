@@ -66,3 +66,19 @@ The user wants to see in the app, as **Sanne** (`ios.worker@test.foodrun.nl`), e
 
 Also check in HQ that every sent line shows the note, planned vs clocked vs sent, and (for the overnight one) the N11 flag.
 
+
+## Admins in the app (asked by the user, Mon 9 Nov)
+
+The owner can make **certain employees admin**. An admin keeps their normal worker app, and also sees **every event
+of that company** in the roster. They can open any event's script (draaiboek) and do the crew work there: prep checklist,
+tasks, stock count, setup pins — as if they were on the shift. They do **not** edit the roster or hours (that stays the
+owner's). The app only shows what the server allows; nothing in the app decides who is admin.
+
+| # | Need | Detail |
+|---|---|---|
+| N17 | **An admin flag per employee, set by the owner** | In HQ → Medewerkers, a switch "Admin in de app" on an employee (owner only). If HQ already has a role that fits (team lead / planner / org member role), reuse it instead of a new column, and tell us its name. Write it in the contract. |
+| N18 | **The admin's events** | One RPC the app calls on load, e.g. `get_my_admin_events(p_from date, p_to date)`: for each organization where I am admin, its **published** events in that range, the same shape as `get_my_worker_activities` rows (id, name, location, food_truck, color, dates, daily times), plus `organization_id`. Empty for non-admins (no error). Hidden names stay hidden as for workers. |
+| N19 | **Script and crew work for admins** | `get_my_event` returns the full event for an admin of its organization, also when they are not rostered (all sections the operator turned on for crew, all days). The crew writes accept an admin the same way: `set_my_prep_item`, `submit_my_task_response`, `submit_my_stock_count`, `submit_my_location_pin` / `delete_my_location_pin`. Each write is stored under the admin's own name, as now. |
+| N20 | **Test data** | In Foodrun Testbedrijf: make **Sanne** (`ios.worker@test.foodrun.nl`) admin, and make sure there is at least one published `[iOS test]` event this week she is **not** rostered on, with a draaiboek and a prep checklist. Write its name in `hq-done.md`. |
+
+The app side (roster shows the admin's events, opening one opens its script) follows once N17–N19 are in the contract.

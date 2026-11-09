@@ -228,7 +228,7 @@ struct SubmitHoursCard: View {
 
     /// The tiles are the worker's own clock times: the first clock-in is the start and the
     /// last clock-out the end, each on its own — a forgotten clock-in or clock-out leaves
-    /// that tile empty for the worker to fill in. Clocked out and in again
+    /// that tile empty for the worker to fill in; no clock at all → the roster's times. Clocked out and in again
     /// (a break, a wrong scan): the time between counts as pauze. Fills the tiles while
     /// nothing was sent yet, and again after a rejection.
     private func applyClockTimes(_ events: [DBShiftClockEvent]) {
@@ -238,6 +238,11 @@ struct SubmitHoursCard: View {
         let lastOut = sorted.last(where: { $0.kind == .out && $0.event_at > (firstIn?.event_at ?? .distantPast) })
         if let firstIn { editStart = clockTime(firstIn.event_at) }
         if let lastOut { editEnd = clockTime(lastOut.event_at) }
+        // Never clocked at all: the roster's times, for the worker to adjust.
+        if firstIn == nil, lastOut == nil {
+            if editStart.isEmpty { editStart = String((shift.start ?? "09:00").prefix(5)) }
+            if editEnd.isEmpty { editEnd = String((shift.end ?? "17:00").prefix(5)) }
+        }
         guard let firstIn, let lastOut else { return }
         var gap: TimeInterval = 0
         var outAt: Date?
