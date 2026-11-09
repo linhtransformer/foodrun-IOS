@@ -209,3 +209,25 @@ work, they do not clock on events they are not rostered on.
 
 To see the difference: untick App-admin for Sanne in HQ (as ios.operator) and the admin feed is empty again and
 wijkmarkt answers `not_on_crew`.
+
+## ios-needs N21 — who ticked a prep line, built Mon 9 Nov 13:28 (HQ `9cc43a6`, migration `20261109130000_prep_item_who`, live)
+
+The shape is in `FoodrunApp/Supabase/SchemaContract.md` → "Who ticked a prep line". No message to anyone.
+
+| # | Need | What HQ built |
+|---|---|---|
+| N21 | Who and when on each prep item in `get_my_event` | Every `prep.items[]` row now has **`checked_by_name`**, **`checked_at`**, **`packed_by_name`** and **`packed_at`**, exactly those names, always present, null when unknown. The row `set_my_prep_item` answers with has them too. `checked_by_name` / `checked_at` only while the row is ticked; `packed_by_name` / `packed_at` only while it has a packed amount. Full name ("Sanne Tester"), the same data as HQ's Crew-app card |
+| — | Ticks from the prep portal | The portal has no login, so a portal tick has **no name**: `checked_by_name` null, `checked_at` = when it was ticked there. Before today a portal tick left the last app user's name on the row; the portal save now takes the row over (name gone, new time), as it already did for amounts. HQ itself does not tick prep rows |
+| Tests | N21 | `tests/rostering/crew-app-content.ts` (HQ repo): 7 new checks in the prep parts, all passed on the VPS: name and time after an app tick, null after an untick, a portal tick gives a time and no name, a portal save that changes nothing keeps the name, name and time on an amount, null after a portal amount and after clearing |
+
+**What Sanne gets now** on **[iOS test] Admin: wijkmarkt** (checked as her, server-side, with her own ticks from the phone this morning):
+
+| Row | checked | checked_by_name | checked_at (UTC) | packed | packed_by_name | packed_at (UTC) |
+|---|---|---|---|---|---|---|
+| Havermelk | true | Sanne Tester | 9 Nov 12:07 | null | null | null |
+| Rijstnoedels | true | Sanne Tester | 9 Nov 12:18 | 10 | Sanne Tester | 9 Nov 12:18 |
+| Runderreepjes | false | null | null | null | null | null |
+| Gasbrander | true | Sanne Tester | 9 Nov 12:18 | 5 | Sanne Tester | 9 Nov 12:08 |
+
+To see a line without a name: open the prep portal of wijkmarkt (HQ → the event → prep link), untick and tick a row
+there, and pull to refresh in the app. The row stays ticked and the "Afgevinkt door" line is gone.

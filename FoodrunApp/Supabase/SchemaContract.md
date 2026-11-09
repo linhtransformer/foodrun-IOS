@@ -573,3 +573,28 @@ everyone plus the admin's own. Uploads follow: pin photos (`location-pins/crew/<
 
 Not for admins (unchanged, rostered only): `get_my_crew_tasks`, `get_my_crew_lists`, `get_my_swap_board`, clocking,
 hours. Verified by `tests/rostering/app-admins.ts` in the HQ repo (38 checks on the VPS, throwaway accounts).
+
+### Who ticked a prep line (server live 2026-11-09, HQ migration `20261109130000`)
+
+Asked in `docs/testing/handoff/ios-needs.md` N21. Every `prep.items[]` row of `get_my_event` has four more keys, and
+so has the row `set_my_prep_item` answers with (it is the same row). Always present, `null` when unknown:
+
+| Key | Type | Filled when |
+|---|---|---|
+| `checked_by_name` | text | the row is ticked **and** the last tick came from the app: the full name ("Sanne Tester") of the crew member or admin who ticked it |
+| `checked_at` | timestamptz | the row is ticked and the server knows when: the moment of that tick, also for a tick from the prep portal |
+| `packed_by_name` | text | the row has a packed amount (`packed` not null) that was last set from the app: the full name of who set it |
+| `packed_at` | timestamptz | the row has a packed amount last set from the app: when |
+
+Rules the app can rely on:
+
+- An unticked row has `checked_by_name` and `checked_at` null. A row without an amount has `packed_by_name` and `packed_at` null.
+- **The prep portal has no login**, so a tick from the portal has **no name**: `checked: true`, `checked_by_name: null`,
+  `checked_at` = when the portal ticked it. A portal tick or untick takes the row over: the name of whoever ticked it
+  before in the app is gone. The same for an amount the portal changes: `packed_by_name` and `packed_at` go null.
+- HQ does not tick prep rows (it only shows them), so there is nothing else to count.
+- Rows ticked in the portal before 9 Nov 2026 have `checked_at` null too (the time was not kept then).
+- The names are the person's own employee row at that company, first + last name, as on HQ's Crew-app card.
+- `ticked_by`, `ticked_at` and `packed_by` are still in the row for HQ; the app should read the four keys above.
+
+Verified by `tests/rostering/crew-app-content.ts` in the HQ repo (sections 6, 9 and 10).
