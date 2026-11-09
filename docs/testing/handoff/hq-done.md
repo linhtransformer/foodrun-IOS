@@ -231,3 +231,20 @@ The shape is in `FoodrunApp/Supabase/SchemaContract.md` → "Who ticked a prep l
 
 To see a line without a name: open the prep portal of wijkmarkt (HQ → the event → prep link), untick and tick a row
 there, and pull to refresh in the app. The row stays ticked and the "Afgevinkt door" line is gone.
+
+## Briefing files on [iOS test] Admin: wijkmarkt, added Mon 9 Nov 13:33 (test data only, no code change)
+
+Asked by the user: one PDF and one picture on the draaiboek of the event Sanne is **not** rostered on, visible to
+everyone, to check that an admin can open briefing files in the app. No message to anyone.
+
+Stored the way HQ's own upload does it: bucket `activity-files`, path `<operator uid>/<ms>_<name>`, the path added
+to `activities.files`. "Files" is not hidden on this draaiboek, so they are for the whole crew and for admins.
+
+| File | `briefing.files[]` row | What is in it |
+|---|---|---|
+| **plattegrond-wijkplein.pdf** | `{ bucket: "activity-files", path: "5ca9fec2-0a70-47c1-b2ed-315347f98932/1794227555328_plattegrond-wijkplein.pdf", name: "plattegrond-wijkplein.pdf" }` | One A4 page, heading "Wijkmarkt Utrecht - opstelling en afspraken" and four lines of text (952 bytes) |
+| **opstelling-wijkmarkt.png** | `{ bucket: "activity-files", path: "5ca9fec2-0a70-47c1-b2ed-315347f98932/1794227555328_opstelling-wijkmarkt.png", name: "opstelling-wijkmarkt.png" }` | 1200 × 800 drawing from above: a black truck between a blue and a pink tent on a square, a road below (11,867 bytes) |
+
+Checked signed in as Sanne (`get_my_event` on wijkmarkt: `is_admin: true`, no shift of her own): `briefing.files`
+lists both (picture first, the list is sorted by path), she can download each one and get a signed link for each one.
+Not signed in, both downloads are refused. So if a file does not open in the app, it is on the app side.
