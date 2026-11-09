@@ -255,7 +255,26 @@ public struct CrewPrepItem: Decodable, Hashable, Identifiable {
     public let checked: Bool
     public let comment: String?          // crew/packer note on the row
     public let instruction: String?      // operator instruction (HQ → Crew-app → Prep-checklist)
+    /// Who ticked the row and when (ios-needs N21); nil until the server sends them.
+    public var checked_by_name: String? = nil
+    public var checked_at: String? = nil
+    /// Who last set the packed amount and when.
+    public var packed_by_name: String? = nil
+    public var packed_at: String? = nil
     public var id: String { key }
+
+    /// "Afgevinkt door Sanne Tester · 11 nov 13:07" — or who set the amount when not ticked.
+    public var byLine: String? {
+        if checked, let name = checked_by_name {
+            return String(format: FRLanguage.string("crew.prep.checkedBy %@"), name)
+                + (checked_at.flatMap(CrewFormat.timestamp).map { " · \($0)" } ?? "")
+        }
+        if packed != nil, let name = packed_by_name {
+            return String(format: FRLanguage.string("crew.prep.packedBy %@"), name)
+                + (packed_at.flatMap(CrewFormat.timestamp).map { " · \($0)" } ?? "")
+        }
+        return nil
+    }
 
     /// Units an amount can be entered in (falls back to the row's own unit).
     public var unitNames: [String] {

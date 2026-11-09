@@ -677,3 +677,5 @@
 "roster.events.crew %lld"    = "%lld ingeroosterd";
 "roster.events.hint"         = "Open het draaiboek van dit event";
 "detail.admin.viewing"       = "Je bekijkt dit event als admin";
+"crew.prep.checkedBy %@"     = "Afgevinkt door %@";
+"crew.prep.packedBy %@"      = "Klaargezet door %@";

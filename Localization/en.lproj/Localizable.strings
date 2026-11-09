@@ -677,3 +677,5 @@
 "roster.events.crew %lld"    = "%lld on shift";
 "roster.events.hint"         = "Open this event's script";
 "detail.admin.viewing"       = "You're viewing this event as admin";
+"crew.prep.checkedBy %@"     = "Ticked by %@";
+"crew.prep.packedBy %@"      = "Packed by %@";

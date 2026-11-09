@@ -278,6 +278,11 @@ struct CrewPrepListSheet: View {
                                 .frText(FRType.rowSubtitle)
                                 .foregroundStyle(Color.foodrun.foreground)
                         }
+                        if let by = item.byLine {
+                            Text(verbatim: by)
+                                .frText(FRType.rowSubtitle)
+                                .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        }
                     }
                     Spacer(minLength: 8)
                     // The packed amount sits on the right, next to the edit button, as big as

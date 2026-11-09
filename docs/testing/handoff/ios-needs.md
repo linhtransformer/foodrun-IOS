@@ -82,3 +82,12 @@ owner's). The app only shows what the server allows; nothing in the app decides 
 | N20 | **Test data** | In Foodrun Testbedrijf: make **Sanne** (`ios.worker@test.foodrun.nl`) admin, and make sure there is at least one published `[iOS test]` event this week she is **not** rostered on, with a draaiboek and a prep checklist. Write its name in `hq-done.md`. |
 
 The app side (roster shows the admin's events, opening one opens its script) follows once N17–N19 are in the contract.
+
+## Who ticked a prep line (asked by the user, Mon 9 Nov)
+
+Several people (crew, admins, the prep portal) work on one prep list. The app should show under each line who ticked
+it, as HQ's prep portal already does ("Afgevinkt door Sanne Tester · don 10:11").
+
+| # | Need | Detail |
+|---|---|---|
+| N21 | **Who and when on each prep item in `get_my_event`** | Four more keys on every `prep.items[]` row, null when unknown: **`checked_by_name`** (full name of who ticked it, only while `checked` is true), **`checked_at`** (timestamptz), **`packed_by_name`** and **`packed_at`** (who last set the packed amount). The same data the prep portal shows; ticks from the portal and from HQ count too. Use exactly these key names: the app (build 19) already reads them and shows nothing while they are missing. Write it in the contract. |
