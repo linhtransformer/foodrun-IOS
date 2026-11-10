@@ -263,3 +263,22 @@ The shape is in `FoodrunApp/Supabase/SchemaContract.md` → "Realtime prep check
 
 **To try on the phone:** open wijkmarkt's prep in the app, then tick a row in the prep portal of wijkmarkt (HQ → the
 event → prep link) or in HQ; the app should get `prep_changed` with that key within a second and re-read.
+
+## Server reliability — why supabase.foodrun.nl did not answer for ~10 s (looked into Tue 10 Nov, 14:00–14:20)
+
+Cause found, not in our software: **the VPS itself freezes.** The host (Hetzner shared-vCPU box, 2 vCPU, Falkenstein)
+is not running the VM most of the time today. Measured over 20 s at 14:12: the VM got **23 %** of its CPU time; the
+rest it was simply not scheduled. The system log shows the whole machine standing still for **20–55 s** at a time
+("time jump detected, slept 35s"): once on 7 Nov, 24 times on 9 Nov (from 06:00 onwards), **26 times today up to
+14:05**, roughly every 5–15 minutes between 12:00 and 15:00. While the VM is frozen nothing answers — Kong, Postgres,
+Realtime, nginx — so the app sees a request that never returns, then everything comes back at once.
+
+Not the cause: memory (1.4 GB available, no OOM, swap quiet), disk (no I/O wait), any one container (all together use
+less than one vCPU), our migrations of 9–10 Nov (the freezes started before them and also hit the unrelated stacks on
+the same box).
+
+Done now: removed 1,170 zombie processes (timed-out healthchecks of the stopped Studio's helper, a symptom that made
+every fork slower). Proposed to the owner: fewer healthchecks and unused helpers on the box, and a word with Hetzner
+or a move to a dedicated-vCPU server. **For the app:** give every request a timeout (10–15 s) and show "Geen
+verbinding, opnieuw proberen" instead of a spinner; a retry after a few seconds succeeds, because the box comes back
+by itself. That is worth having regardless of the host.
