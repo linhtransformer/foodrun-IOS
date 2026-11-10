@@ -16,7 +16,7 @@ enum CrewFormat {
         guard let unit, !unit.isEmpty else { return number(value) }
         // 12000 g reads as 12 kg, 1500 ml as 1,5 l (display only; amounts are stored as entered).
         switch unit.lowercased() {
-        case "g", "gr", "gram" where value >= 1000: return "\(number(value / 1000)) kg"
+        case let u where ["g", "gr", "gram"].contains(u) && value >= 1000: return "\(number(value / 1000)) kg"
         case "ml" where value >= 1000: return "\(number(value / 1000)) l"
         default: return "\(number(value)) \(unit)"
         }
