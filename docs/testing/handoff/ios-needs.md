@@ -91,3 +91,13 @@ it, as HQ's prep portal already does ("Afgevinkt door Sanne Tester · don 10:11"
 | # | Need | Detail |
 |---|---|---|
 | N21 | **Who and when on each prep item in `get_my_event`** | Four more keys on every `prep.items[]` row, null when unknown: **`checked_by_name`** (full name of who ticked it, only while `checked` is true), **`checked_at`** (timestamptz), **`packed_by_name`** and **`packed_at`** (who last set the packed amount). The same data the prep portal shows; ticks from the portal and from HQ count too. Use exactly these key names: the app (build 19) already reads them and shows nothing while they are missing. Write it in the contract. |
+
+## Realtime prep checklist (asked by the user, Tue 10 Nov)
+
+When several people work on one prep list, each phone should see the others' ticks and amounts within a second or so,
+without pulling down. Until this exists the app (build 21) reloads an open prep list every 15 s, only while it is on
+screen; that stays as the fallback once realtime works.
+
+| # | Need | Detail |
+|---|---|---|
+| N22 | **A realtime signal when an event's prep state changes** | A trigger on `activity_prep_checklist_states` (insert/update) that sends a Supabase Realtime **broadcast** to the private topic **`prep:<activity_id>`** (`realtime.send` or `realtime.broadcast_changes`), payload at least `{ activity_id }` (the changed key(s) too if easy). It must also fire for saves from the prep portal. Plus an RLS policy on `realtime.messages` so only people who may open that event in the app (crew on it, or app admins of its company) can receive on that topic. Please confirm Realtime is running on the self-hosted supabase.foodrun.nl, and write the topic and event name in the contract. No change to `get_my_event` or `set_my_prep_item`: the app reloads the event when a signal arrives. |

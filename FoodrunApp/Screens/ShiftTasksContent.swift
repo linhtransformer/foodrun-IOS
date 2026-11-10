@@ -176,6 +176,11 @@ struct CrewChecklistTaskCard: View {
 struct CrewPrepListSheet: View {
     let store: EventStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+
+    /// While the list is open, colleagues' ticks and amounts show up without pulling.
+    /// Polling until the server has a realtime channel for prep (ios-needs N22).
+    private static let pollInterval: Duration = .seconds(15)
     @State private var editingPrep: CrewPrepItem?
     /// Groups folded away (comma-separated, e.g. "equipment,rentals"); remembered on this phone.
     @AppStorage("crew.prep.collapsed") private var collapsedRaw = ""
@@ -259,7 +264,16 @@ struct CrewPrepListSheet: View {
         .background(Color.foodrun.background.ignoresSafeArea())
         .presentationDragIndicator(.visible)
         // Others may have ticked meanwhile: fresh on opening, and pull down to refresh.
-        .task { await store.load() }
+        .task {
+            await store.load()
+            // Ends when the sheet closes (the task is cancelled). Skipped while the app is in
+            // the background or this person has an amount/note sheet open.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.pollInterval)
+                guard !Task.isCancelled, scenePhase == .active, editingPrep == nil else { continue }
+                await store.refreshQuietly()
+            }
+        }
         .refreshable { await store.load() }
         .sheet(item: $editingPrep) { item in
             CrewPrepSheet(item: item) { quantity, unitLevel, clearQuantity, comment in

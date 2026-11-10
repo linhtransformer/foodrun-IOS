@@ -20,7 +20,12 @@ public final class EventStore {
         self.activityId = activityId
     }
 
+    /// Bumped by every load and save, so a quiet refresh that started earlier
+    /// can't put an older list back on screen.
+    private var generation = 0
+
     public func load() async {
+        generation += 1
         isLoading = true
         defer { isLoading = false }
         do {
@@ -29,6 +34,16 @@ public final class EventStore {
         } catch {
             lastError = CrewAPI.message(for: error)
         }
+    }
+
+    /// Background refresh for a list someone has open (the prep checklist polls
+    /// this): no spinner, and a failed try leaves the screen and its error line alone.
+    public func refreshQuietly() async {
+        guard !isLoading, savingPrep.isEmpty, saving.isEmpty else { return }
+        let started = generation
+        guard let fresh = try? await CrewAPI.fetchEvent(activityId: activityId),
+              generation == started, savingPrep.isEmpty, saving.isEmpty else { return }
+        event = fresh
     }
 
     // MARK: - Tasks
@@ -94,6 +109,7 @@ public final class EventStore {
 
     private func setPrep(_ item: CrewPrepItem, checked: Bool?, comment: String?,
                          quantity: Double? = nil, unitLevel: Int? = nil, clearQuantity: Bool = false) async -> Bool {
+        generation += 1
         savingPrep.insert(item.key)
         defer { savingPrep.remove(item.key) }
         do {
