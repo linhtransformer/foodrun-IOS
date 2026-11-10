@@ -598,3 +598,44 @@ Rules the app can rely on:
 - `ticked_by`, `ticked_at` and `packed_by` are still in the row for HQ; the app should read the four keys above.
 
 Verified by `tests/rostering/crew-app-content.ts` in the HQ repo (sections 6, 9 and 10).
+
+### Realtime prep checklist (server live 2026-11-10, HQ migration `20261110120000`)
+
+Asked in `docs/testing/handoff/ios-needs.md` N22. Realtime is on at `supabase.foodrun.nl` (self-hosted
+`supabase/realtime` v2.102.3 behind Kong, websocket `wss://supabase.foodrun.nl/realtime/v1/websocket`; the
+supabase-swift client finds it from the project URL). `get_my_event` and `set_my_prep_item` are unchanged.
+
+**Subscribe.** Topic **`prep:<activity_id>`** (lower-case UUID, as `get_my_event` gives it), **private channel**
+(`isPrivate: true` / `config.private = true`), broadcast event **`prep_changed`**. Set the user's access token on the
+Realtime client before joining (`realtime.setAuth(...)`). A channel that is not private opens but never receives
+these messages (they are sent private).
+
+**Who may join.** The same people who may open the event in the app: crew rostered on it and app admins of its
+company (`crew_resolve_caller`, through the receive policy `prep: crew and admins receive` on `realtime.messages`).
+Anyone else, and anyone not signed in, gets `CHANNEL_ERROR` "Unauthorized: You do not have permissions to read from this
+Channel topic …" on join. Drafts and cancelled events refuse too. Topics that are not `prep:<uuid>` are refused.
+
+**What arrives.** One broadcast per changed map after every insert/update of the event's prep state, whoever did
+it: the app (`set_my_prep_item`), the prep portal's save, HQ. The sender hears their own change too.
+
+```json
+{ "event": "prep_changed",
+  "payload": { "id": "4c2852d1-…", "activity_id": "43815b01-…",
+               "keys": ["ing-9f011638-…"], "fields": ["checked"],
+               "updated_at": "2026-11-10T11:33:04.374854+00:00" } }
+```
+
+| Key | Meaning |
+|---|---|
+| `activity_id` | the event |
+| `keys` | the prep item keys whose value changed (`ing-/equip-/addon-/trailer-<id>`, same keys as `prep.items[].key`); never empty |
+| `fields` | which of the four maps changed for those keys: `checked`, `comment`, `quantity`, `quantity_level` |
+| `updated_at` | the row's `updated_at` after the change |
+| `id` | message id, added by Realtime |
+
+A portal save that changes several maps sends several messages in a row (e.g. `checked`, then `quantity`); a save
+that changes nothing sends nothing. The message says **what** changed, not the new values: on `prep_changed`
+re-read with `get_my_event` (or debounce 300 ms and read once). Measured: a portal tick arrived 0.3–1.2 s later.
+
+Verified by `tests/rostering/prep-realtime.ts` in the HQ repo (12 checks over a real websocket, as Sanne on the
+wijkmarkt event she is not rostered on, a crew member of another company, and an anonymous client).

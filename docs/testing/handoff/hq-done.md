@@ -248,3 +248,18 @@ to `activities.files`. "Files" is not hidden on this draaiboek, so they are for 
 Checked signed in as Sanne (`get_my_event` on wijkmarkt: `is_admin: true`, no shift of her own): `briefing.files`
 lists both (picture first, the list is sorted by path), she can download each one and get a signed link for each one.
 Not signed in, both downloads are refused. So if a file does not open in the app, it is on the app side.
+
+## ios-needs N22 — realtime prep checklist, built Tue 10 Nov 12:36 (HQ `2cfd24a`, migration `20261110120000_prep_realtime`, live)
+
+The shape is in `FoodrunApp/Supabase/SchemaContract.md` → "Realtime prep checklist". No message to anyone.
+`get_my_event` and `set_my_prep_item` were not changed.
+
+| # | Need | What HQ built |
+|---|---|---|
+| N22.1 | Trigger on `activity_prep_checklist_states` → Realtime broadcast on `prep:<activity_id>` | `activity_prep_checklist_state_broadcast_trg` (after insert or update, per row) → `prep_state_broadcast()` → `realtime.send(payload, 'prep_changed', 'prep:<activity_id>', private = true)`. Payload **`{ activity_id, keys, fields, updated_at }`**: `keys` = the item keys whose tick / note / amount / amount unit changed, `fields` = which of those four. It fires for the app, **the prep portal's save** and HQ alike, because all of them write that table; nothing is sent when none of the four maps changed |
+| N22.2 | RLS on `realtime.messages` | Policy **`prep: crew and admins receive`** (select, role authenticated): `extension = 'broadcast'` and `prep_topic_ok(realtime.topic())`. `prep_topic_ok` parses `prep:<uuid>` and asks the one crew door `crew_resolve_caller(activity)`: crew rostered on the event or an app admin of its company → true; everyone else, drafts, cancelled, malformed topics → false. No insert policy: clients cannot send on the topic |
+| N22.3 | Is Realtime on, which names | **On**: self-hosted `supabase/realtime` v2.102.3 at `supabase.foodrun.nl` (container healthy, tenant `realtime-dev`, 200 connections / 100 events per second). Topic **`prep:<activity_id>`**, **private** channel, event **`prep_changed`**. A non-private channel on the topic opens but receives nothing |
+| Tests | N22 | `tests/rostering/prep-realtime.ts` (HQ repo), 12 checks over a real websocket against the VPS, all passed: Sanne (admin, not rostered) joins; demo crew of another company and an anonymous client get `CHANNEL_ERROR Unauthorized`; a portal tick arrives as `prep_changed` with the key (286 ms – 1.2 s); Sanne's own app untick arrives too; a save that changes nothing sends nothing; a non-private channel gets nothing. The row was put back |
+
+**To try on the phone:** open wijkmarkt's prep in the app, then tick a row in the prep portal of wijkmarkt (HQ → the
+event → prep link) or in HQ; the app should get `prep_changed` with that key within a second and re-read.
