@@ -122,7 +122,7 @@ a shift's Draaiboek, Tasks with a checklist, clock-in, hours. No iPad set needed
   > you pin a spot on the event map. Both can be refused; the rest keeps working.
   > A new account without an employer sees empty tabs; Me → Your organizations
   > ("No organization yet") explains how an employer adds them — that is expected.
-  > Account deletion: Me → Delete account.
+  > Account deletion: Me → Settings → Delete account (type the confirmation word).
 
 ## 5. Final test pass (TestFlight build, real iPhone)
 
