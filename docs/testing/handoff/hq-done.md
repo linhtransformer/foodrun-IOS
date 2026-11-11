@@ -382,3 +382,17 @@ Checked live as Sanne on `[iOS test] Stadsfestival` (`fbbd8d5d-…`), 17:28–17
 App: nothing to change — the build-27 `deletePinPhoto` now succeeds (it will mostly find the object already gone, which
 `remove` reports as `[]`), and on older builds the RPC cleans up. **Not done here:** the daily sweep of orphan crew
 photos (uploads whose save never happened) and N23a–c (size/type limits, 20 pins, 1 task photo) — separate items.
+
+## App Store: Foodrun 1.0 (build 26) submitted, Wed 11 Nov 22:15
+
+Submitted for review from App Store Connect (status *Waiting for Review*). Version page: 5 screenshots in the
+6.9" slot (01 → 05, the 6.3" required slot uses the same assets), build 26, copyright "2026 Foodrun", §4 review
+notes with the demo password, sign-in required with ios.worker@test.foodrun.nl, manual release. App Information
+(Business, 4+), Pricing (free, 175 countries) and App Privacy were already complete. The demo seed
+(`tests/rostering/seed-ios-test-accounts.ts`) ran right before; HQ `875648f` makes it survive the once-a-week
+availability-reminder guard.
+
+Account level: the **Digital Services Act** trader declaration was filed the same evening (trader, contact
+Magerhorst 32 / support@foodrun.nl / the App Review phone, KVK extract 98895850 as name + address proof) and is
+*In Review* for 27 EU countries; without it Apple does not list the app in the EU. Apple mails
+support@foodrun.nl about both reviews.
