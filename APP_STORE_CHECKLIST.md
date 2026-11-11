@@ -96,6 +96,12 @@ or a newer Pro Max), log in as the demo worker, then in the Simulator menu **Fil
 Screen** (⌘S); the picture lands on the Desktop in the right size. Good set: shifts,
 a shift's Draaiboek, Tasks with a checklist, clock-in, hours. No iPad set needed.
 
+**Ready-made set (11 Nov, white design, 1320×2868):** Google Drive → My Drive → folder
+**"Foodrun App Store screenshots (iPhone 6.9)"**
+(https://drive.google.com/drive/folders/1EsWpczT0detYaSqyHN5r_EvSEvquFCh_), same files as
+`docs/app-store/screenshots/` in this repo. Upload in name order 01 → 05 to the **iPhone
+6.9" Display** tab of the version page.
+
 ## 4. Review notes + demo account
 
 - 🖐 **Fill the demo account** right before you press Submit, so the worker has shifts,
