@@ -42,12 +42,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>NSCameraUsageDescription</key>
-	<string>Foodrun uses the camera when a task asks you for a photo, for example of your truck set-up.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Foodrun uses your location when you pin a spot on the event, for example where your truck stands.</string>
 	<key>NFCReaderUsageDescription</key>
 	<string>Foodrun uses NFC to let you clock in and out by tapping the tag on your truck.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Foodrun uses the camera when a task asks you for a photo, for example of your truck set-up, or when you add a photo to a spot you pin on the event.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Foodrun uses your location when you pin a spot on the event, for example where your truck stands.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
