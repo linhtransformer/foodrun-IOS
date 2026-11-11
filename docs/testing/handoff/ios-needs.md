@@ -101,3 +101,26 @@ screen; that stays as the fallback once realtime works.
 | # | Need | Detail |
 |---|---|---|
 | N22 | **A realtime signal when an event's prep state changes** | A trigger on `activity_prep_checklist_states` (insert/update) that sends a Supabase Realtime **broadcast** to the private topic **`prep:<activity_id>`** (`realtime.send` or `realtime.broadcast_changes`), payload at least `{ activity_id }` (the changed key(s) too if easy). It must also fire for saves from the prep portal. Plus an RLS policy on `realtime.messages` so only people who may open that event in the app (crew on it, or app admins of its company) can receive on that topic. Please confirm Realtime is running on the self-hosted supabase.foodrun.nl, and write the topic and event name in the contract. No change to `get_my_event` or `set_my_prep_item`: the app reloads the event when a signal arrives. |
+
+## Limits on crew photo uploads (asked by the user, Wed 11 Nov)
+
+The user doesn't want one account to be able to fill the storage. Today nothing caps it: the app shrinks every photo
+(max 1600 px, JPEG ≈ 0.2–0.5 MB) but each upload is a **new file** (`<…>/<ms>.jpg`, no upsert), so:
+- pins: any number of pins with a photo per person per event;
+- task photos: every retake adds a file, the old one stays behind unused;
+- a deleted pin seems to leave its photo in storage;
+- the app's shrinking is no protection: someone with their own login token can upload straight to storage.
+
+So the limits must live on the **server**. Values the user picked: **2 MB per file, images only, 20 pins per person per
+event, 1 photo per task per person.**
+
+| # | Need | Detail |
+|---|---|---|
+| N23a | **Size and type per file** | On the crew upload paths of `crew-task-photos` and `location-pins` (`crew/…`): max **2 MB**, `image/jpeg` only (the app only sends JPEG). A bucket-wide `file_size_limit` / `allowed_mime_types` is fine if HQ's and the prep portal's own uploads to those buckets fit it; otherwise enforce it in the insert policy for the crew paths only. First write the **current** limits of both buckets in `hq-done.md`. |
+| N23b | **20 pins per person per event** | `submit_my_location_pin` refuses the 21st pin of the same person on the same event with error code **`too_many_pins`**. The storage insert policy on `location-pins/crew/<activity>/<employee>/` refuses a new object once that folder holds 20. Admins (N19) count the same as crew. |
+| N23c | **1 photo per task per person** | When `submit_my_task_response` saves a new `p_photo_path`, delete the previous photo object of that task + person (and on clearing the answer, delete it too). The storage insert policy on `crew-task-photos/<activity>/<task>/<employee>/` refuses a new object once that folder holds **3** (room for a retake whose submit failed). Error code **`too_many_photos`**. |
+| N23d | **Clean up** | `delete_my_location_pin` deletes the pin's photo object. A daily job removes crew photos that no pin or task answer points to and that are older than 24 h (uploads whose save never happened). |
+
+No change to the app's upload paths is needed. Write the error codes and limits in the contract; the app side follows:
+it shows "Max 20 pins per person on this event" / "Photo too large" for `too_many_pins`, `too_many_photos` and a 413
+from storage, instead of the generic "Saving didn't work". Test on `[iOS test]` events with Sanne only.
