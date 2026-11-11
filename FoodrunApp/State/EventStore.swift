@@ -152,6 +152,7 @@ public final class EventStore {
         guard let pinId = location.pin_id else { return false }
         do {
             try await CrewAPI.deletePin(activityId: activityId, pinId: pinId)
+            await CrewAPI.deletePinPhoto(activityId: activityId, imageURL: location.image)
             await load()
             return true
         } catch {

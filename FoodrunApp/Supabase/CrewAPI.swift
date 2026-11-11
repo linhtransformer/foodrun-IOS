@@ -98,6 +98,18 @@ enum CrewAPI {
             .execute()
     }
 
+    /// After deleting my pin: remove its photo from storage too, so it doesn't stay behind.
+    /// Only a photo the app uploaded for this event (`location-pins/crew/<activity>/…`).
+    /// Best effort: on 11 Nov the storage policy refused it (the file stayed), so until HQ
+    /// builds N23d the photo stays behind. Works as soon as either side allows it.
+    static func deletePinPhoto(activityId: UUID, imageURL: String?) async {
+        let marker = "/object/public/location-pins/"
+        guard let imageURL, let range = imageURL.range(of: marker) else { return }
+        let path = String(imageURL[range.upperBound...]).components(separatedBy: "?").first ?? ""
+        guard path.hasPrefix("crew/\(activityId.uuidString.lowercased())/") else { return }
+        _ = try? await client.storage.from("location-pins").remove(paths: [path])
+    }
+
     /// Buckets anyone may read (heading photos/PDFs, setup photos, dish photos).
     private static let publicBuckets: Set<String> = ["script-heading-images", "script-heading-attachments", "dishes"]
 
