@@ -23,7 +23,7 @@ Last checked against the project: 2026-10-12.
 | # | Rule | Foodrun status |
 |---|---|---|
 | 1 | **Privacy policy link** inside the app **and** in App Store Connect | ✅ Profile → Privacy policy + login footer (`https://foodrun.nl/legal/privacy`) · 🖐 same URL in App Store Connect (§3) |
-| 2 | **Account deletion inside the app**, easy to find | ✅ Profile → *Delete account* (and on the "waiting for employer" screen) → edge fn `delete-my-account` |
+| 2 | **Account deletion inside the app**, easy to find | ✅ Profile → *Delete account* → edge fn `delete-my-account` |
 | 3 | **Sign in with Apple** when you offer Google / Facebook login | ✅ both buttons on the login screen · ✅ Apple + Google switched on on the VPS (auth settings checked 2026-10-12). If Google is on, Apple **must** stay on too. |
 | 4 | **No dead buttons, no "coming soon"** — reviewers tap everything | ✅ removed: shift "⋯" menu, swap request, fake profile rows/stats, "undo clock-in". The **Tasks tab is live** with the employer's real tasks, checklists and week goals (`AppConfig.Features.crewTasks = true`); the old sample checklist stays off (`checklists = false`). The demo account must have tasks in it — the seed does that (§4). |
 | 5 | **Demo account** for the reviewer + clear review notes | 🖐 see §4 |
@@ -120,8 +120,8 @@ a shift's Draaiboek, Tasks with a checklist, clock-in, hours. No iPad set needed
   > "Clock in" button on today's shift.
   > The camera is only asked for when a task needs a photo, and location only when
   > you pin a spot on the event map. Both can be refused; the rest keeps working.
-  > A new account without an employer sees a screen explaining how to get added —
-  > that is expected.
+  > A new account without an employer sees empty tabs; Me → Your organizations
+  > ("No organization yet") explains how an employer adds them — that is expected.
   > Account deletion: Me → Delete account.
 
 ## 5. Final test pass (TestFlight build, real iPhone)
@@ -131,10 +131,12 @@ Internal Testing → +** → make a group, add yourself, pick the build. On the 
 install the **TestFlight** app from the App Store, open the invitation email, Install.
 
 - ⬜ The home-screen icon is the Foodrun logo.
-- ⬜ Fresh install → make account → confirmation email arrives → log in → "waiting for
-  employer" screen shows the email + Share works.
+- ⬜ Fresh install → make account → confirmation email arrives → log in → the tabs
+  show (empty); Shifts says no organization has added you yet → its link and Me →
+  Your organizations → "No organization yet" open the how-to page: email + Share works.
 - ⬜ Add that email in HQ → Stakeholders → Add employee → HQ shows "has a Foodrun
-  account" → save → in the app tap *Check again* → shifts appear.
+  account" → save → on that page tap *Check again* → it closes, the organization is
+  listed under Me and the shifts appear.
 - ⬜ Forgot password → code email arrives → code accepted → new password → log in.
 - ⬜ Sign in with Apple (incl. "Hide my email") and Google both land in the app.
 - ⬜ Open a shift: the Draaiboek shows the script headings with their icons and the

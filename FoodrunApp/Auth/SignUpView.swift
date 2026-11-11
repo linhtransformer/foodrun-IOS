@@ -3,7 +3,7 @@ import SwiftUI
 // "Make an account", pushed from the login screen's "Don't have an account?"
 // line. Email + password sign-up (Supabase sends a confirmation email), or
 // Apple / Google, which create the account on first use. Once HQ adds the
-// worker, the "waiting for your employer" screen (NotLinkedView) clears itself.
+// worker, the "no organization yet" row under Ik (NotLinkedView) clears itself.
 
 struct SignUpView: View {
     @EnvironmentObject private var auth: AuthViewModel

@@ -190,6 +190,8 @@
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Loading your shifts…";
 "shifts.none"               = "No shifts planned yet";
+"shifts.notLinked"          = "No organization has added you yet.";
+"shifts.notLinked.action"   = "See how to get added";
 "hours.tap.title"           = "Phone tap";
 "hours.tap.locked"          = "From the tag on your truck · read-only";
 "hours.tap.stillIn"         = "Still clocked in";
@@ -520,6 +522,9 @@
 "join.code.unknown"         = "We don’t know this code. Check it, or ask your employer for the join code in Foodrun.";
 "profile.section.organizations" = "Your organizations";
 "profile.org.pending"       = "Waiting for approval";
+"profile.org.none"          = "No organization yet";
+"profile.org.waiting"       = "Not added yet";
+"profile.org.howTo"         = "See how your employer adds you";
 
 // Left an employer: only your history is still there
 "profile.org.leftOn %@"     = "Left on %@";

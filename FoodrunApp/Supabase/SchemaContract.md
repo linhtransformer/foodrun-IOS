@@ -25,8 +25,9 @@ All calls: `WorkerAPI.swift`.
 ### Account first, employer second
 
 A worker can make an account in the app before any employer has added them.
-`ScheduleStore.isUnlinked` (no approved `employees` row, not an operator) → AppShell
-shows `NotLinkedView` (their email + Share + "Check again"). The employer adds that
+`ScheduleStore.isUnlinked` (no approved `employees` row, not an operator) → the tabs
+show anyway (empty); Ik → Jouw organisaties → "Nog geen organisatie" (and the empty
+Shifts list) opens `NotLinkedView` (their email + Share + "Check again"). The employer adds that
 email in HQ → Stakeholders → Add employee; HQ calls RPC `find_worker_account(p_email)`
 (migration `20261007120000`, operator-only, exact match) to show "has a Foodrun
 account: <name>", and the `employees` INSERT links it via the auto-link trigger.

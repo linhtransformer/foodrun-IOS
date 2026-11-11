@@ -19,7 +19,32 @@ struct ShiftsMode: View {
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)
             }
-            if schedule.upcomingShifts.isEmpty {
+            if schedule.upcomingShifts.isEmpty && schedule.isUnlinked && !schedule.isLoading {
+                // No employer yet: say why it's empty and open Ik → Jouw organisaties.
+                Button {
+                    router.mePath = [.organizations]
+                    router.tab = .me
+                } label: {
+                    VStack(spacing: 4) {
+                        Text("shifts.notLinked")
+                            .frText(FRType.rowSubtitle)
+                            .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+                        Text("shifts.notLinked.action")
+                            .font(.system(size: 14, weight: .semibold))
+                            .underline()
+                            .foregroundStyle(Color.foodrun.foreground)
+                    }
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(18)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: FRRadius.listRowLg.value, style: .continuous)
+                            .strokeBorder(Color.foodrun.border, style: StrokeStyle(lineWidth: 1, dash: [4]))
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else if schedule.upcomingShifts.isEmpty {
                 Text(LocalizedStringKey(schedule.isLoading ? "shifts.loading" : "shifts.none"))
                     .frText(FRType.rowSubtitle)
                     .foregroundStyle(Color.foodrun.mutedForegroundSoft)

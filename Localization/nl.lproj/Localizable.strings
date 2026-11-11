@@ -190,6 +190,8 @@
 // MARK: Live data (2026-09-28)
 "shifts.loading"            = "Je diensten laden…";
 "shifts.none"               = "Nog geen diensten gepland";
+"shifts.notLinked"          = "Nog geen organisatie heeft je toegevoegd.";
+"shifts.notLinked.action"   = "Zo word je toegevoegd";
 "hours.tap.title"           = "Telefoon-tik";
 "hours.tap.locked"          = "Via de tag op je truck · alleen-lezen";
 "hours.tap.stillIn"         = "Nog ingeklokt";
@@ -520,6 +522,9 @@
 "join.code.unknown"         = "Deze code kennen we niet. Check hem, of vraag je werkgever om de koppelcode in Foodrun.";
 "profile.section.organizations" = "Je organisaties";
 "profile.org.pending"       = "Wacht op goedkeuring";
+"profile.org.none"          = "Nog geen organisatie";
+"profile.org.waiting"       = "Nog niet toegevoegd";
+"profile.org.howTo"         = "Zo voegt je werkgever je toe";
 
 // Uit dienst: een werkgever waar je niet meer werkt (alleen je geschiedenis)
 "profile.org.leftOn %@"     = "Uit dienst sinds %@";

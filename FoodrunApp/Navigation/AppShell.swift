@@ -71,11 +71,9 @@ public struct AppShell: View {
 
     public var body: some View {
         Group {
-            if schedule.isUnlinked {
-                // Account exists but no employer has added it yet.
-                NotLinkedView(onRefresh: loadAll)
-            } else {
-                ZStack(alignment: .bottom) {
+            // No employer yet: the tabs show anyway (empty). How to get added lives
+            // under Ik → Jouw organisaties (NotLinkedView, route .organizations).
+            ZStack(alignment: .bottom) {
                     content
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color.foodrun.background.ignoresSafeArea())
@@ -101,7 +99,6 @@ public struct AppShell: View {
                     // Stay at the bottom while typing: riding up with the keyboard, the bar
                     // covered the field and the button above it (hours note, availability reason).
                     .ignoresSafeArea(.keyboard, edges: .bottom)
-                }
             }
         }
         .task { await loadAll() }
@@ -226,6 +223,8 @@ public struct AppShell: View {
             LeaveView()
         case .settings:
             SettingsView()
+        case .organizations:
+            NotLinkedView(onRefresh: loadAll, asPage: true)
         }
     }
 

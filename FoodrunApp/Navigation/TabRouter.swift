@@ -29,6 +29,9 @@ public final class TabRouter {
         case leave
         /// Ik → Instellingen.
         case settings
+        /// Ik → Jouw organisaties, while no employer has added this account yet:
+        /// how to get added (email to share, join by code, check again).
+        case organizations
     }
 
     public func pushOnShifts(_ route: Route) { shiftsPath.append(route) }

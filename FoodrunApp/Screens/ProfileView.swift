@@ -23,7 +23,8 @@ public struct ProfileView: View {
                 // Right under the name so an employer finds the switch without scrolling.
                 if !schedule.employees.isEmpty { stats }
                 if !schedule.employees.isEmpty { workSection }
-                if !organizations.isEmpty { organizationsSection }
+                // Always there: with no employer yet it holds the way to get added.
+                if !organizations.isEmpty || schedule.isUnlinked { organizationsSection }
                 ProfileAccountSection(onOpenSettings: { router.mePath.append(.settings) })
             }
             .padding(.horizontal, FRSpacing.screenH.value)
@@ -85,6 +86,10 @@ public struct ProfileView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("profile.section.organizations").frText(FRType.sectionHeader)
             VStack(spacing: 6) {
+                if schedule.isUnlinked {
+                    Button { router.mePath.append(.organizations) } label: { noOrganizationRow }
+                        .buttonStyle(.plain)
+                }
                 ForEach(organizations) { org in
                     HStack(spacing: 12) {
                         Image(systemName: "building.2").font(.system(size: 15, weight: .medium))
@@ -111,6 +116,27 @@ public struct ProfileView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// No employer has added this account yet (or a request is still waiting): opens
+    /// NotLinkedView — the email to share, join by code, "Check again".
+    private var noOrganizationRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "building.2").font(.system(size: 15, weight: .medium))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(schedule.hasPendingRequest ? "profile.org.waiting" : "profile.org.none").frText(FRType.rowTitle)
+                Text("profile.org.howTo")
+                    .frText(FRType.rowSubtitle)
+                    .foregroundStyle(Color.foodrun.mutedForegroundSoft)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right").foregroundStyle(Color.foodrun.mutedForegroundSoft)
+        }
+        .foregroundStyle(Color.foodrun.foreground)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: FRRadius.listRowLg.value).fill(Color.foodrun.card))
+        .frNeu(.raised)
+        .contentShape(Rectangle())
     }
 
     private var email: String {
