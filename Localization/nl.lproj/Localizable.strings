@@ -487,6 +487,7 @@
 "pin.openSettings" = "Open Instellingen";
 "pin.name" = "Naam";
 "pin.namePrompt" = "Bijvoorbeeld: Truck, Crew-ingang, Waterpunt";
+"pin.nameRequired" = "Geef deze plek eerst een naam.";
 "pin.notesPrompt" = "Optioneel — bijv. achter de crewtent";
 "pin.photo" = "Foto toevoegen";
 "pin.photoRemove" = "Foto weghalen";

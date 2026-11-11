@@ -99,13 +99,16 @@ struct CrewPinSheet: View {
     @State private var photo: UIImage?
     @State private var working = false
     @State private var failed = false
+    /// Save was pressed without a name: the field turns red and gets the cursor.
+    @State private var nameMissing = false
     @FocusState private var focus: Field?
 
     private enum Field { case name, notes }
 
-    private var canSave: Bool { !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !working }
+    private var hasName: Bool { !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 CrewSheetHeader(title: FRLanguage.string("pin.title")) { dismiss() }
@@ -125,8 +128,17 @@ struct CrewPinSheet: View {
                         .onSubmit { focus = .notes }
                         .padding(.horizontal, 16).padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.surface))
-                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.foodrun.border, lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(nameMissing ? Color.foodrun.subject.destructive : Color.foodrun.border,
+                                    lineWidth: nameMissing ? 1.5 : 1))
+                        .onChange(of: name) { _, _ in if hasName { nameMissing = false } }
+                    if nameMissing {
+                        Text("pin.nameRequired")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.foodrun.subject.destructive)
+                    }
                 }
+                .id(Field.name)
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("crew.prep.noteLabel").frText(FRType.sectionHeader)
@@ -155,7 +167,17 @@ struct CrewPinSheet: View {
                         .foregroundStyle(Color.foodrun.subject.destructive)
                 }
 
-                Button { Task { await save() } } label: {
+                // Always tappable: without a name it says so instead of silently doing nothing.
+                Button {
+                    guard hasName else {
+                        withAnimation(FRAnimation.subtle) { nameMissing = true }
+                        focus = .name
+                        withAnimation(FRAnimation.subtle) { proxy.scrollTo(Field.name, anchor: .center) }
+                        FRHaptic.error.fire()
+                        return
+                    }
+                    Task { await save() }
+                } label: {
                     ZStack {
                         if working { ProgressView().tint(Color.foodrun.backgroundInverseInk) } else { Text("pin.save") }
                     }
@@ -163,12 +185,13 @@ struct CrewPinSheet: View {
                     .foregroundStyle(Color.foodrun.backgroundInverseInk)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .background(Capsule().fill(Color.foodrun.foreground))
-                    .opacity(canSave ? 1 : 0.4)
+                    .opacity(hasName ? 1 : 0.4)
                 }
                 .buttonStyle(.plain)
-                .disabled(!canSave)
+                .disabled(working)
             }
             .padding(20)
+        }
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color.foodrun.background.ignoresSafeArea())

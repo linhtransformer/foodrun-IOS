@@ -487,6 +487,7 @@
 "pin.openSettings" = "Open Settings";
 "pin.name" = "Name";
 "pin.namePrompt" = "For example: Truck, Crew entrance, Water point";
+"pin.nameRequired" = "Give this spot a name first.";
 "pin.notesPrompt" = "Optional — e.g. behind the crew tent";
 "pin.photo" = "Add a photo";
 "pin.photoRemove" = "Remove photo";
