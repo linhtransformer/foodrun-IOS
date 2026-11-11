@@ -369,7 +369,7 @@ and `shiftType` (string). `DBDayTimes` decodes them leniently; `WorkerShift` exp
 
 | Call | Does |
 |---|---|
-| `get_my_swap_board()` | `{ mine, offered, open_shifts, colleagues, my_shifts }` — see `SwapBoard` |
+| `get_my_swap_board()` | `{ mine, offered, asked, open_shifts, colleagues, my_shifts, swaps_enabled }` — see `SwapBoard` |
 | `request_shift_swap(p_activity_id, p_day, p_to_employee_id?, p_note?)` | offer my shift to one colleague or everyone (explicit nulls) |
 | `respond_shift_swap(p_request_id, p_accept)` | take over (`approved` at once, or `accepted` = planner decides) or turn down a targeted offer (`declined`) |
 | `request_open_shift(p_activity_id, p_day, p_note?)` | ask for an open place: `approved` or `accepted` |
@@ -384,8 +384,24 @@ colleagues on the Rooster tab (worker view; tap → `TakeoverSheet`) and the car
 answer in the Inbox (`SwapInboxCards`); the Shifts home has no swap banner any more.
 
 Error codes in the message: `already_requested`, `already_on_shift`, `no_open_place`,
-`not_open`, `in_the_past`, `not_on_shift`, `unknown_colleague`, `shift_changed`
+`not_open`, `in_the_past`, `not_on_shift`, `unknown_colleague`, `shift_changed`, `swaps_off`
 (`PeopleAPI.message(for:)` maps them to `swap.error.*`).
+
+**Swaps are off by default** (server live 2026-11-11, HQ migration `20261111130000`). The employer turns
+them on in HQ → Stakeholders → Instellingen → "Medewerkers mogen diensten ruilen". While off,
+`request_shift_swap` and `request_shift_takeover` answer `swaps_off` (42501); open shifts
+(`request_open_shift`) and answering, withdrawing or deciding a request that already exists are not
+affected. What the app may show:
+
+| Where | Flag |
+|---|---|
+| `get_my_organizations()` | `swaps_enabled` per employer |
+| `get_my_swap_board()` | top-level `swaps_enabled` (true when any current employer allows it); `my_shifts[].can_swap` per shift |
+| `get_my_team_roster()` | `can_ask` per row (false for my own rows and when that employer has swaps off) |
+
+Hide "Ruil deze dienst" when `can_swap` is false and the takeover tap when `can_ask` is false; keep
+the Ruilen board for open shifts and for requests that are still running. Foodrun Testbedrijf has swaps
+on, so the test cases are unchanged.
 
 **Verlof**: `leave_requests` — read own rows; insert `{employee_id, start_date, end_date,
 reason, status: 'pending'}`; withdraw = update `status = 'cancelled'` (only while pending).

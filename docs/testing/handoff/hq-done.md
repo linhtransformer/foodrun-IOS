@@ -303,3 +303,13 @@ account has one). **On the phone:** log out and in again (or "Check again"), and
 add that email as ios.operator in HQ → Stakeholders → Add employee to see it link.
 
 Nothing in the app needs changing for this; the double call at start-up is harmless now, but one call would do.
+
+## Swaps switch per employer, off by default — Wed 11 Nov (HQ `50713fb`, migration `20261111130000`, live)
+
+Owner's request: the employer decides whether workers may swap shifts; off unless switched on. HQ → Stakeholders →
+Instellingen → Diensten ruilen → **"Medewerkers mogen diensten ruilen"**. Server: `request_shift_swap` /
+`request_shift_takeover` answer **`swaps_off`** while it is off; open shifts and requests that already exist are
+not affected. New flags for the app: `get_my_organizations().swaps_enabled`, `get_my_swap_board().swaps_enabled` +
+`my_shifts[].can_swap`, `get_my_team_roster()[].can_ask` — shape in `SchemaContract.md` → Ruilen. **Foodrun Testbedrijf
+is on** (also in the seed), so nothing changes for the reviewer; every other company is off until its owner switches it
+on. iOS to do: hide the offer / takeover entry points on the flags and map `swaps_off` to a message.
