@@ -25,13 +25,13 @@ public extension Color {
         /// The black tab bar: stays dark in dark mode too (a lighter black, so it still lifts
         /// off the canvas), with its own light ink. Today's shift card inverts instead (light).
         public let chrome = Color(light: 0x1A1A1A, dark: 0x2A2A28)
-        public let chromeInk = Color(light: 0xF4F5F0, dark: 0xF2F1EE)
+        public let chromeInk = Color(light: 0xFFFFFF, dark: 0xF2F1EE)
         /// A switch that is on: black on the light canvas, green in the dark (a light track
         /// with a white knob can't be seen).
         public let toggleOn = Color(light: 0x1A1A1A, dark: 0x16A34A)
 
         // Ink on the black hero (retired old card value — kept for that one purpose).
-        public let backgroundInverseInk = Color(light: 0xF4F5F0, dark: 0x161615)
+        public let backgroundInverseInk = Color(light: 0xFFFFFF, dark: 0x161615)
 
         // Secondary / tertiary label ink (bundle §Token reconciliation).
         public let mutedForeground = Color(light: 0x6B6B6B, dark: 0xA8A8A6)
@@ -41,7 +41,7 @@ public extension Color {
 
         // Neumorphic surfaces.
         public let neuTrack = Color(light: 0xE8E5E0, dark: 0x272725)            // recessed segmented track
-        public let neuPill = Color(light: 0xFBFAF7, dark: 0x2E2E2C)             // raised active pill
+        public let neuPill = Color(light: 0xFFFFFF, dark: 0x2E2E2C)             // raised active pill
         /// The light edge of the soft-UI shadow: white on the off-white ground, barely there in
         /// the dark (a white glow on a dark card looks like a smudge).
         public let neuHighlight = Color(lightRGBA: (1, 1, 1, 0.9), darkRGBA: (1, 1, 1, 0.03))
