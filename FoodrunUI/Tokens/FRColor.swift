@@ -8,7 +8,7 @@ import UIKit
 // `foreground` / `backgroundInverseInk` swap together. Truck and semantic colours stay.
 //
 // Rules:
-//  * Anchor palette: #F8F7F5 (canvas) / #1A1A1A (ink) / #FFFFFF (surface).
+//  * Anchor palette: #FFFFFF (canvas) / #1A1A1A (ink) / #FFFFFF (surface).
 //    No pure #000000 outside the logo asset.
 //  * `Color(hex:)` is restricted to this file — SwiftLint rule enforces it.
 //  * Truck palette is tint-only (chips, dots, borders). Never a CTA fill.
@@ -16,7 +16,7 @@ import UIKit
 public extension Color {
     struct Foodrun {
         // Anchor palette (bundle §Token reconciliation).
-        public let background = Color(light: 0xF8F7F5, dark: 0x111110)          // warm canvas (was #F3F1EF)
+        public let background = Color(light: 0xFFFFFF, dark: 0x111110)          // plain white canvas (was #F8F7F5 off-white)
         public let foreground = Color(light: 0x1A1A1A, dark: 0xF2F1EE)
         public let surface = Color(light: 0xFFFFFF, dark: 0x1C1C1B)             // floating white cards
         public let card = Color(light: 0xFFFFFF, dark: 0x1E1E1D)                // was #F4F5F0

@@ -65,6 +65,10 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Color.foodrun.background.ignoresSafeArea()
+            // Tap outside a text field anywhere in the app → keyboard closes.
+            KeyboardDismissInstaller()
+                .frame(width: 0, height: 0)
+                .allowsHitTesting(false)
 
             switch auth.state {
             case .loading:

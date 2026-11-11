@@ -125,7 +125,7 @@ struct AuthView: View {
             FRTextField(
                 "E-mail",
                 text: $email,
-                placeholder: "jij@voorbeeld.nl",
+                placeholder: "ik@foodrun.nl",
                 keyboard: .emailAddress,
                 contentType: .emailAddress
             )

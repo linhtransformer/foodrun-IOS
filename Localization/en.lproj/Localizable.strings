@@ -26,7 +26,7 @@
 "auth.error.samePassword"       = "That is your current password. Choose a new one.";
 "auth.error.codeExpired"        = "This code has expired. Ask for a new one.";
 "auth.error.network"            = "No connection. Check your internet and try again.";
-"auth.email.placeholder"  = "you@example.com";
+"auth.email.placeholder"  = "ik@foodrun.nl";
 "auth.password"           = "Password";
 "auth.password.placeholder" = "Password";
 "auth.login"              = "Log in";

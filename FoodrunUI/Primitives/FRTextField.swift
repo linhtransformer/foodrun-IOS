@@ -73,7 +73,7 @@ public struct FRTextField: View {
     return FRTextField(
         "E-mail",
         text: $email,
-        placeholder: "jij@foodrun.nl",
+        placeholder: "ik@foodrun.nl",
         keyboard: .emailAddress,
         contentType: .emailAddress
     )

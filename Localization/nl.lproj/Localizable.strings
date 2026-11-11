@@ -26,7 +26,7 @@
 "auth.error.samePassword"       = "Dat is je huidige wachtwoord. Kies een nieuw.";
 "auth.error.codeExpired"        = "Deze code is verlopen. Vraag een nieuwe aan.";
 "auth.error.network"            = "Geen verbinding. Check je internet en probeer het opnieuw.";
-"auth.email.placeholder"  = "jij@voorbeeld.nl";
+"auth.email.placeholder"  = "ik@foodrun.nl";
 "auth.password"           = "Wachtwoord";
 "auth.password.placeholder" = "Wachtwoord";
 "auth.login"              = "Inloggen";
