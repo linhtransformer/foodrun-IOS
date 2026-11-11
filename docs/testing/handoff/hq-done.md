@@ -282,3 +282,24 @@ every fork slower). Proposed to the owner: fewer healthchecks and unused helpers
 or a move to a dedicated-vCPU server. **For the app:** give every request a timeout (10–15 s) and show "Geen
 verbinding, opnieuw proberen" instead of a spinner; a retry after a few seconds succeeds, because the box comes back
 by itself. That is worth having regardless of the host.
+
+## Phone test §5 "sign up → waiting for employer": fixed on the server, Wed 11 Nov 13:20 (HQ `e0a9540`, migration `20261111120000`, live)
+
+**Seen:** a new account (support@foodrun.nl, 11:06) landed in operator mode with "support's Workspace" listed twice,
+not on `NotLinkedView`.
+
+**Cause (server):** every sign-up gets a workspace from the `handle_new_user` trigger ("<name>'s Workspace"), and
+`employee-identity-link` treated any workspace owner as an operator and auto-made a self employee row
+(`user_id = auth_user_id = me`, approved) — so `fetchOperatorContext` found staff and the app went operator. The app
+calls the function twice at start-up; both calls ran before either had inserted → two self-rows → `get_my_organizations`
+listed the workspace twice.
+
+**Fixed:** the function auto-provisions only for admins and for owners whose workspace is in use (an employee or an
+event in it). A fresh app sign-up now gets `{ matched: false }` on every call and no employee row (probed with a
+throwaway account, two parallel calls: both `matched: false`, 0 rows, `get_my_organizations` `[]`). A partial unique
+index `employees_one_self_row` makes a second self-row impossible; the function treats that as "already there".
+The two rows of support@foodrun.nl were removed and its profile reset; the auto-made workspace stays (harmless, every
+account has one). **On the phone:** log out and in again (or "Check again"), and `NotLinkedView` should show. Then
+add that email as ios.operator in HQ → Stakeholders → Add employee to see it link.
+
+Nothing in the app needs changing for this; the double call at start-up is harmless now, but one call would do.
