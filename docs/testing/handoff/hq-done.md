@@ -313,3 +313,43 @@ not affected. New flags for the app: `get_my_organizations().swaps_enabled`, `ge
 `my_shifts[].can_swap`, `get_my_team_roster()[].can_ask` — shape in `SchemaContract.md` → Ruilen. **Foodrun Testbedrijf
 is on** (also in the seed), so nothing changes for the reviewer; every other company is off until its owner switches it
 on. iOS to do: hide the offer / takeover entry points on the flags and map `swaps_off` to a message.
+
+## Tickets per person: how the operator gives one, and what `get_my_event` returns — Wed 11 Nov (no RPC change)
+
+Tickets are **files on a person's day in the Draaiboek editor** (`scripts.employee_timestamps[].files`); nameless ones
+sit in `scripts.unassigned_accreditations`. `get_my_event(...).briefing.my_tickets[]` = `{ bucket, path, name, date,
+all_days }`, `unnamed_tickets[]` = `{ bucket, path, name }` (served through `activity-file-download` like event files).
+
+Click path in HQ (operator), both from **Draaiboeken** (sidebar) → the event's card → editor → the **Employees** section:
+- **(a) one day:** click the day tab (e.g. *Thu · Nov 12*) → on the person's card tick the checkbox next to the name if it
+  is not ticked (that marks them as working that day in the draaiboek — it creates the day row with the event's default
+  times, 10:00–18:00 here) → **Add files** → pick the PDF. Leave **"Show on every working day"** off → **Draaiboek Opslaan**.
+  Result: `my_tickets[]` entry with `date` = that day and `all_days: false`.
+- **(b) all days:** same, then switch **"Show on every working day"** on (saved as `{ path, pinned_to_all_days: true }`) →
+  **Draaiboek Opslaan**. Result: `date` = the day it was added on, `all_days: true`; the other day tabs show it greyed as
+  "Every working day · added on …". The other route is **Accreditaties importeren** (top of the Employees section): drop
+  PDFs, the AI reads the holder's name, each matched ticket lands on the person's **first** event day pinned to all days
+  (`all_days: true` on a multi-day event; a single-day event stores a plain path, `all_days: false`); a ticket whose name
+  matches nobody is parked under **Zonder naam** (→ `unnamed_tickets`) until the operator assigns it there. Import saves
+  at once; the per-day upload needs the Save button.
+- Stakeholders has no ticket control; it is the draaiboek only.
+
+Done now on **[iOS test] Stadsfestival** (`fbbd8d5d-f5b0-4f02-a2ad-b0763bfd2d5f`) for **Sanne Tester**, in Chrome on
+foodrun.nl as ios.operator via path (a): new PDF `crew-ticket-sanne-tester-do-12-nov.pdf` on **Thu 12 Nov** (Sanne was on
+the 12 Nov roster but not yet ticked in the draaiboek, so the box was ticked first; her day row now has 10:00–18:00 and no
+note). `get_my_event` as Sanne now returns:
+
+```
+my_tickets: [
+  { date: "2026-11-10", name: "crew-ticket-sanne-tester.pdf",           all_days: true  },   // the seeded one
+  { date: "2026-11-12", name: "crew-ticket-sanne-tester-do-12-nov.pdf", all_days: false }    // new
+]
+unnamed_tickets: [ { name: "parkeerkaart.pdf" } ]                                             // still there
+my_days: ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12"]                             // 09 = opbouw day
+```
+
+So on the phone: the Thursday briefing's **Mijn dag** card should list both (`date == day || all_days`), Tuesday and
+Wednesday only the seeded one; the **Tickets** card lists both plus `parkeerkaart.pdf` under "zonder naam". Two things to
+keep in mind in the app: `unnamed_tickets` is emptied when the operator hides "files" on the portal (same switch as event
+files; `my_tickets` is never hidden), and `date` on an all-days ticket is only the day it was added on, so filter on
+`all_days` first.
