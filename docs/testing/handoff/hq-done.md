@@ -353,3 +353,32 @@ Wednesday only the seeded one; the **Tickets** card lists both plus `parkeerkaar
 keep in mind in the app: `unnamed_tickets` is emptied when the operator hides "files" on the portal (same switch as event
 files; `my_tickets` is never hidden), and `date` on an all-days ticket is only the day it was added on, so filter on
 `all_days` first.
+
+## ios-needs N23d — deleting a pin deletes its photo, Wed 11 Nov 17:35 (HQ `e9ee3a9`, migration `20261111150000_pin_photo_cleanup`, live)
+
+Both ways, as offered in N23d:
+
+- **The RPC does it.** `delete_my_location_pin` reads the pin's `image` before dropping the pin; when that is a file in the
+  caller's own `location-pins/crew/<activity>/<employee>/` folder (the only place `submit_my_location_pin` accepts), it
+  deletes the object through the **storage API** (pg_net DELETE with the service role; new internal helper
+  `storage_delete_object`, not callable by clients). That route removes the row *and* the file on disk — a plain
+  `delete from storage.objects` is refused by storage-api's `protect_delete` trigger. It is asynchronous: the photo is
+  gone a second or two after the RPC returns (a GET then answers **400** `{"statusCode":"404","error":"not_found",…}`).
+  Pins an operator placed from HQ keep their image. Return value and error codes unchanged.
+- **The policy allows it.** New storage policy `location-pins: crew deletes own pin photo` (DELETE, authenticated): a crew
+  member may `storage.remove` any path in their own `crew/<activity>/<employee>/` folder, same rule as the upload
+  (`crew_pin_upload_ok`: rostered on the event, approved). Anyone else gets the usual empty `[]` and the file stays.
+
+Checked live as Sanne on `[iOS test] Stadsfestival` (`fbbd8d5d-…`), 17:28–17:30:
+- upload → `submit_my_location_pin` ("Test foto opruimen 2", with photo) → `delete_my_location_pin` → `true`; 5 s later
+  GET on the photo → 400, `storage.objects` row gone, file gone from the storage container's disk, `net._http_response`
+  200 `{"message":"Successfully deleted"}`. A leftover pin from a first run went the same way.
+- policy: fresh upload as Sanne; `remove` as ios.operator → `[]`, GET still 200; `remove` as Sanne → the object listed,
+  GET 400.
+- **The test file from N23d** (`…/909021d9-…/1794414034464.jpg`) was removed as Sanne through `storage.remove`, i.e. the
+  app's own way → GET 400, gone from disk. The two live pins (*foodtruck hier*, *bananen*) and their photos are untouched;
+  Sanne's folder now holds exactly those two files.
+
+App: nothing to change — the build-27 `deletePinPhoto` now succeeds (it will mostly find the object already gone, which
+`remove` reports as `[]`), and on older builds the RPC cleans up. **Not done here:** the daily sweep of orphan crew
+photos (uploads whose save never happened) and N23a–c (size/type limits, 20 pins, 1 task photo) — separate items.
