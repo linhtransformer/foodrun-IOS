@@ -94,6 +94,8 @@ struct CrewPinSheet: View {
     @State private var notes = ""
     @State private var pickerItem: PhotosPickerItem?
     @State private var showCamera = false
+    /// Held until the camera has closed, then shown — see the fullScreenCover below.
+    @State private var capturedPhoto: UIImage?
     @State private var photo: UIImage?
     @State private var working = false
     @State private var failed = false
@@ -186,6 +188,20 @@ struct CrewPinSheet: View {
             centerLatitude = lat
             centerLongitude = lng
             withAnimation(FRAnimation.subtle) { position = .region(region(lat, lng, meters: 200)) }
+        }
+        // On the sheet itself, not on the "Take photo" button: that button disappears as
+        // soon as a photo is set, and taking the camera's host away with it closed this
+        // whole pin sheet on "Use Photo" (it looked saved; it wasn't). The photo is shown
+        // only once the camera is gone, and the pin is saved only by the Save button.
+        .fullScreenCover(isPresented: $showCamera, onDismiss: {
+            if let capturedPhoto { photo = capturedPhoto }
+            capturedPhoto = nil
+        }) {
+            CameraPicker { image in
+                capturedPhoto = image
+                showCamera = false
+            }
+            .ignoresSafeArea()
         }
         .onChange(of: pickerItem) { _, item in
             guard let item else { return }
@@ -297,13 +313,6 @@ struct CrewPinSheet: View {
                         .frame(maxWidth: .infinity, minHeight: 48)
                 }
                 .buttonStyle(CrewCapsuleButtonStyle(filled: false))
-            }
-            .fullScreenCover(isPresented: $showCamera) {
-                CameraPicker { image in
-                    showCamera = false
-                    if let image { photo = image }
-                }
-                .ignoresSafeArea()
             }
         }
     }
