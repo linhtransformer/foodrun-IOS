@@ -28,7 +28,7 @@ Last checked against the project: 2026-10-12.
 | 4 | **No dead buttons, no "coming soon"** — reviewers tap everything | ✅ removed: shift "⋯" menu, swap request, fake profile rows/stats, "undo clock-in". The **Tasks tab is live** with the employer's real tasks, checklists and week goals (`AppConfig.Features.crewTasks = true`); the old sample checklist stays off (`checklists = false`). The demo account must have tasks in it — the seed does that (§4). |
 | 5 | **Demo account** for the reviewer + clear review notes | 🖐 see §4 |
 | 6 | **Paid digital features use In-App Purchase** | n/a — the worker app sells nothing. Don't mention prices, plans or "upgrade" anywhere in the app. |
-| 7 | **Permission pop-ups explain why** | ✅ Four prompts, each with a real feature behind it: **NFC** (clock-in tag), **camera** (a task asks for a photo), **location while using** (pinning a spot on the event — asked when the pin sheet opens, not at launch), **notifications** (shift changes). Reasons are in `project.yml`. Picking a photo from the library uses `PhotosPicker`, which needs no permission. Don't add a request without a feature. |
+| 7 | **Permission pop-ups explain why** | ✅ Four prompts, each with a real feature behind it: **NFC** (clock-in tag), **camera** (a task asks for a photo, or a photo on a pinned spot), **location while using** (pinning a spot on the event — asked when the pin sheet opens, not at launch), **notifications** (shift changes). Reasons are in `project.yml`. Picking a photo from the library uses `PhotosPicker`, which needs no permission. Don't add a request without a feature. |
 | 8 | **Login in an in-app browser, never bounce to Safari** | ✅ Google uses `ASWebAuthenticationSession` (supabase-swift `signInWithOAuth`) |
 | 9 | **Screenshots match the real app** | 🖐 see §3 |
 | 10 | **Not a website in a wrapper** | ✅ native SwiftUI |
@@ -118,7 +118,7 @@ a shift's Draaiboek, Tasks with a checklist, clock-in, hours. No iPad set needed
   > company with shifts today and in the coming days.
   > Clock-in works by tapping an NFC tag on the truck; without a tag, use the
   > "Clock in" button on today's shift.
-  > The camera is only asked for when a task needs a photo, and location only when
+  > The camera is only asked for when you take a photo (a photo task or a pinned spot), and location only when
   > you pin a spot on the event map. Both can be refused; the rest keeps working.
   > A new account without an employer sees empty tabs; Me → Your organizations
   > ("No organization yet") explains how an employer adds them — that is expected.

@@ -93,6 +93,7 @@ struct CrewPinSheet: View {
     @State private var name = ""
     @State private var notes = ""
     @State private var pickerItem: PhotosPickerItem?
+    @State private var showCamera = false
     @State private var photo: UIImage?
     @State private var working = false
     @State private var failed = false
@@ -281,11 +282,29 @@ struct CrewPinSheet: View {
                 .accessibilityLabel(Text("pin.photoRemove"))
             }
         } else {
-            PhotosPicker(selection: $pickerItem, matching: .images) {
-                Label(FRLanguage.string("pin.photo"), systemImage: "photo.on.rectangle")
-                    .frame(maxWidth: .infinity, minHeight: 48)
+            // Camera or library, like a photo task (CrewPhotoSheet). No camera on the
+            // simulator or an iPod-like device: only the library button shows.
+            HStack(spacing: 10) {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button { showCamera = true } label: {
+                        Label(FRLanguage.string("crew.photo.take"), systemImage: "camera")
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(CrewCapsuleButtonStyle(filled: false))
+                }
+                PhotosPicker(selection: $pickerItem, matching: .images) {
+                    Label(FRLanguage.string("crew.photo.library"), systemImage: "photo.on.rectangle")
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(CrewCapsuleButtonStyle(filled: false))
             }
-            .buttonStyle(CrewCapsuleButtonStyle(filled: false))
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraPicker { image in
+                    showCamera = false
+                    if let image { photo = image }
+                }
+                .ignoresSafeArea()
+            }
         }
     }
 
