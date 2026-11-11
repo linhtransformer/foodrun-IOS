@@ -121,7 +121,7 @@ struct SettingsView: View {
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(tint)
             .frame(width: 32, height: 32)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.foodrun.neuTrack))
+            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).frTile())
     }
 
     private func toggleRow(_ symbol: String, _ label: LocalizedStringKey, isOn: Binding<Bool>) -> some View {

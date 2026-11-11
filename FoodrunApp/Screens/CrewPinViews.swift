@@ -249,7 +249,7 @@ struct CrewPinSheet: View {
                 Text("pin.openSettings")
                     .font(.system(size: 13, weight: .semibold))
                     .padding(.horizontal, 12).padding(.vertical, 7)
-                    .background(Capsule().fill(Color.foodrun.neuTrack))
+                    .background(Capsule().frTile())
             }
             .buttonStyle(.plain)
         }

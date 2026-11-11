@@ -118,7 +118,7 @@ struct AvailabilityMode: View {
                     .frText(FRType.fieldLabel)
                     .foregroundStyle(Color.foodrun.foreground)
                     .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(Capsule().fill(weekClosed ? Color.foodrun.neuTrack : Color.foodrun.subject.warningPill))
+                    .background(Capsule().frTile(weekClosed ? Color.foodrun.card : Color.foodrun.subject.warningPill, shadow: weekClosed))
             }
         }
     }

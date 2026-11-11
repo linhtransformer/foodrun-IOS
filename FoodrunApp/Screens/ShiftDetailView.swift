@@ -207,7 +207,7 @@ public struct ShiftDetailView: View {
                             Text(verbatim: "\(open)")
                                 .font(.system(size: 11, weight: .bold).monospacedDigit())
                                 .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(Capsule().fill(active ? Color.foodrun.backgroundInverseInk.opacity(0.2) : Color.foodrun.neuTrack))
+                                .background(Capsule().frTile(active ? Color.foodrun.backgroundInverseInk.opacity(0.2) : Color.foodrun.card, shadow: !active))
                         }
                     }
                     .font(.system(size: 14, weight: .semibold))
@@ -519,7 +519,7 @@ public struct ShiftDetailView: View {
 
     private var locationCard: some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.neuTrack).frame(width: 56, height: 56)
+            RoundedRectangle(cornerRadius: 12).frTile().frame(width: 56, height: 56)
                 .overlay(Image(systemName: "map").foregroundStyle(Color.foodrun.mutedForegroundSoft))
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: activity?.name ?? "—").frText(FRType.rowTitle)
@@ -642,7 +642,7 @@ public struct ShiftDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.foodrun.background)
+                .frTile()
         )
     }
 

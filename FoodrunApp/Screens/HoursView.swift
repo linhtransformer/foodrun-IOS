@@ -82,7 +82,7 @@ public struct HoursView: View {
             arrow("chevron.right", label: "action.more") { h.hoursMonthOffset += 1 }
         }
         .padding(6)
-        .background(Capsule().fill(Color.foodrun.neuTrack))
+        .background(Capsule().frTile())
     }
 
     private func arrow(_ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
@@ -91,7 +91,7 @@ public struct HoursView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color.foodrun.foreground)
                 .frame(width: 44, height: 44)
-                .background(Circle().fill(Color.foodrun.neuPill).frame(width: 30, height: 30))
+                .background(Circle().frTile().frame(width: 30, height: 30))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(label))

@@ -59,7 +59,7 @@ public struct FRTaskRow: View {
                                     .foregroundStyle(Color.foodrun.foreground)
                                     .padding(.horizontal, 10).padding(.vertical, 6)
                                     .background(
-                                        Capsule().fill(Color.foodrun.background)
+                                        Capsule().frTile()
                                     )
                                     .frNeu(.pressed)
                             }

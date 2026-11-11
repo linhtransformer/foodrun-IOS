@@ -82,7 +82,7 @@ struct SubmitHoursCard: View {
                     }
                     .font(.system(size: 14))
                     .padding(.horizontal, 12).padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
+                    .background(RoundedRectangle(cornerRadius: 12).frTile())
                     .frNeu(.pressed)
                     .accessibilityLabel(Text("hours.note.label"))
                 if let err = hours.lastError {
@@ -141,7 +141,7 @@ struct SubmitHoursCard: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.foodrun.background))
+            .background(RoundedRectangle(cornerRadius: 12).frTile())
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(selected ? Color.foodrun.foreground : .clear, lineWidth: 1.5)

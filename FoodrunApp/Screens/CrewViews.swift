@@ -210,7 +210,7 @@ struct CrewTaskRow: View {
                 .frame(width: 30, height: 30)
                 .background(
                     RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(done ? Color.foodrun.subject.positive.opacity(0.14) : Color.foodrun.neuTrack)
+                        .frTile(done ? Color.foodrun.subject.positive.opacity(0.14) : Color.foodrun.card, shadow: !done)
                 )
             Text(LocalizedStringKey(kindKey))
                 .font(.system(size: 11, weight: .semibold))
@@ -262,7 +262,7 @@ struct CrewTaskRow: View {
             .foregroundStyle(done ? Color.foodrun.subject.positive : Color.foodrun.foreground)
             .frame(maxWidth: .infinity, minHeight: 40)
             .background(
-                Capsule().fill(done ? Color.foodrun.subject.positive.opacity(0.12) : Color.foodrun.neuTrack)
+                Capsule().frTile(done ? Color.foodrun.subject.positive.opacity(0.12) : Color.foodrun.card, shadow: !done)
             )
             .contentShape(Capsule())
         }
@@ -346,7 +346,7 @@ struct CrewTaskRow: View {
         }
         .foregroundStyle(Color.foodrun.foreground)
         .padding(.horizontal, 9).padding(.vertical, 5)
-        .background(Capsule().fill(Color.foodrun.neuTrack))
+        .background(Capsule().frTile())
         .padding(.top, 2)
     }
 }
@@ -730,7 +730,7 @@ struct CrewDishThumb: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.neuTrack)
+            RoundedRectangle(cornerRadius: 12, style: .continuous).frTile()
             if let url {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image {

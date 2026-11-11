@@ -25,6 +25,18 @@ public enum FRNeu {
     case inset
 }
 
+public extension Shape {
+    /// A white tile with a soft drop shadow — chips, icon tiles, small buttons and boxes
+    /// inside a card (they used to be filled grey, `neuTrack`). The shadow sits on the
+    /// shape only, so the text on it stays crisp. `shadow: false` for a tinted state
+    /// (done = green) that doesn't need lifting.
+    func frTile(_ fill: Color = Color.foodrun.card, shadow: Bool = true) -> some View {
+        self.fill(fill)
+            .shadow(color: .black.opacity(shadow ? 0.07 : 0), radius: 5, x: 0, y: 2)
+            .shadow(color: .black.opacity(shadow ? 0.04 : 0), radius: 1, x: 0, y: 0.5)
+    }
+}
+
 public extension View {
     func frElevation(_ level: FRElevation) -> some View {
         switch level {

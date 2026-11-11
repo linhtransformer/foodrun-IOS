@@ -122,7 +122,7 @@ struct CrewChecklistTaskCard: View {
                     .frame(width: 30, height: 30)
                     .background(
                         RoundedRectangle(cornerRadius: 9, style: .continuous)
-                            .fill(finished ? Color.foodrun.subject.positive.opacity(0.14) : Color.foodrun.neuTrack)
+                            .frTile(finished ? Color.foodrun.subject.positive.opacity(0.14) : Color.foodrun.card, shadow: !finished)
                     )
                 Text(LocalizedStringKey(kindKey))
                     .font(.system(size: 11, weight: .semibold))
@@ -152,7 +152,7 @@ struct CrewChecklistTaskCard: View {
                 .foregroundStyle(finished ? Color.foodrun.subject.positive : Color.foodrun.foreground)
                 .frame(maxWidth: .infinity, minHeight: 40)
                 .background(
-                    Capsule().fill(finished ? Color.foodrun.subject.positive.opacity(0.12) : Color.foodrun.neuTrack)
+                    Capsule().frTile(finished ? Color.foodrun.subject.positive.opacity(0.12) : Color.foodrun.card, shadow: !finished)
                 )
                 .contentShape(Capsule())
             }
@@ -413,7 +413,7 @@ struct CrewStockListSheet: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(mine != nil ? Color.foodrun.backgroundInverseInk : Color.foodrun.foreground)
                             .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Capsule().fill(mine != nil ? Color.foodrun.foreground : Color.foodrun.neuTrack))
+                            .background(Capsule().frTile(mine != nil ? Color.foodrun.foreground : Color.foodrun.card, shadow: mine == nil))
                         }
                         .foregroundStyle(Color.foodrun.foreground)
                         .padding(14)

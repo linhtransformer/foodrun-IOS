@@ -430,7 +430,7 @@ struct CrewPowerCard: View {
                             Text(verbatim: "\(outletIndex + 1)")
                                 .font(.system(size: 12, weight: .bold).monospacedDigit())
                                 .frame(width: 24, height: 24)
-                                .background(Circle().fill(over ? Color.foodrun.subject.destructive.opacity(0.15) : Color.foodrun.neuTrack))
+                                .background(Circle().frTile(over ? Color.foodrun.subject.destructive.opacity(0.15) : Color.foodrun.card, shadow: !over))
                             VStack(alignment: .leading, spacing: 2) {
                                 if outlet.items.isEmpty {
                                     Text("power.empty").frText(FRType.rowSubtitle)
@@ -448,7 +448,7 @@ struct CrewPowerCard: View {
                     }
                 }
                 .padding(12)
-                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.foodrun.background))
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).frTile())
             }
             if let comment = power.comment {
                 Text(CrewFormat.linkified(comment)).frText(FRType.body)
@@ -533,7 +533,7 @@ struct CrewBriefingCard<Content: View>: View {
                 Image(systemName: icon)
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 28, height: 28)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.foodrun.neuTrack))
+                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).frTile())
                 title.frText(FRType.sectionHeader)
                 Spacer(minLength: 0)
             }
@@ -759,7 +759,7 @@ struct CrewFileRow: View {
                 Image(systemName: icon)
                     .font(.system(size: 15, weight: .medium))
                     .frame(width: 36, height: 36)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.foodrun.neuTrack))
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).frTile())
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: file.name).frText(FRType.rowTitle).lineLimit(1)
                     if let subtitle {
@@ -828,7 +828,7 @@ struct CrewFlowChips: View {
                     .font(.system(size: small ? 11 : 13, weight: .semibold))
                     .foregroundStyle(Color.foodrun.foreground)   // ink on the pastel
                     .padding(.horizontal, small ? 8 : 10).padding(.vertical, small ? 3 : 6)
-                    .background(Capsule().fill(hex.map { Color.foodrunData(hex: $0) } ?? Color.foodrun.neuTrack))
+                    .background(Capsule().frTile(hex.map { Color.foodrunData(hex: $0) } ?? Color.foodrun.card, shadow: hex == nil))
             }
         }
     }
